@@ -8,28 +8,39 @@ import "./App.css"
 
 // Componente principal de la aplicación
 function App() {
-  // Estado para almacenar la sesión del usuario
   const [session, setSession] = useState(null)
-  // Estado para controlar la carga inicial
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Obtener la sesión actual al cargar la app
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
-    })
+    const getInitialSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
+        if (error) {
+          console.error("Error obteniendo sesión:", error)
+        }
+        setSession(session)
+      } catch (error) {
+        console.error("Error:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    getInitialSession()
 
     // Escuchar cambios en la autenticación
-    // Esto se ejecuta cuando el usuario inicia/cierra sesión
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session)
       setSession(session)
       setLoading(false)
     })
 
-    // Limpiar el listener cuando el componente se desmonte
     return () => subscription.unsubscribe()
   }, [])
 
@@ -38,7 +49,7 @@ function App() {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Cargando...</p>
+        <p>Verificando autenticación...</p>
       </div>
     )
   }

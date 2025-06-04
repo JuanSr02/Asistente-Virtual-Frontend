@@ -1,53 +1,61 @@
 "use client"
 
-import { useState } from "react"
-import { supabase } from "../supabaseClient"
+import { useUserRole } from "../hooks/useUserRole"
+import NavBar from "./NavBar"
+import StudentDashboard from "./StudentDashboard"
+import AdminDashboard from "./AdminDashboard"
+import { supabase } from "../supabaseClient" // Import supabase
 
-// Este componente se muestra cuando el usuario ya está autenticado
+// Componente principal del dashboard que decide qué vista mostrar
 export default function Dashboard({ user }) {
-  const [loading, setLoading] = useState(false)
+  const { role, loading, error } = useUserRole(user)
 
-  // Función para cerrar sesión
-  const handleSignOut = async () => {
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        alert("Error al cerrar sesión: " + error.message)
-      }
-    } catch (error) {
-      alert("Error: " + error.message)
-    } finally {
-      setLoading(false)
-    }
+  console.log("Dashboard - Usuario:", user?.email, "Rol:", role, "Loading:", loading, "Error:", error)
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Verificando permisos de usuario...</p>
+        <p className="loading-detail">Usuario: {user?.email}</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>⚠️ Error al cargar el dashboard</h2>
+        <p>
+          <strong>Error:</strong> {error}
+        </p>
+        <p>
+          <strong>Usuario:</strong> {user?.email}
+        </p>
+        <div className="error-actions">
+          <button onClick={() => window.location.reload()} className="action-button">
+            🔄 Reintentar
+          </button>
+          <button onClick={() => supabase.auth.signOut()} className="action-button secondary">
+            🚪 Cerrar Sesión
+          </button>
+        </div>
+        <details className="error-details">
+          <summary>Información técnica</summary>
+          <pre>{JSON.stringify({ user: user?.email, role, error }, null, 2)}</pre>
+        </details>
+      </div>
+    )
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>¡Bienvenido!</h1>
-        <button onClick={handleSignOut} disabled={loading} className="auth-button secondary">
-          {loading ? "Cerrando..." : "Cerrar Sesión"}
-        </button>
-      </div>
+    <div className="app-layout">
+      {/* Barra de navegación superior */}
+      <NavBar user={user} role={role} />
 
-      <div className="user-info">
-        <h2>Información del Usuario</h2>
-        <p>
-          <strong>Email:</strong> {user.email}
-        </p>
-        <p>
-          <strong>ID:</strong> {user.id}
-        </p>
-        <p>
-          <strong>Último acceso:</strong> {new Date(user.last_sign_in_at).toLocaleString()}
-        </p>
-      </div>
-
+      {/* Dashboard específico según el rol */}
       <div className="dashboard-content">
-        <h3>Aquí puedes agregar el contenido de tu aplicación</h3>
-        <p>Este es el área principal donde los usuarios autenticados verán el contenido de tu app.</p>
-        <p>Desde aquí puedes hacer llamadas a tu backend en Java Spring.</p>
+        {role === "ADMINISTRADOR" ? <AdminDashboard user={user} /> : <StudentDashboard user={user} />}
       </div>
     </div>
   )

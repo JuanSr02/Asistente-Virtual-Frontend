@@ -2,18 +2,20 @@
 
 import { useState } from "react"
 import { supabase } from "../supabaseClient"
+import TestConnection from "./TestConnection"
 
 // Este componente maneja tanto el login como el registro
 export default function Auth() {
   // Estados para controlar el formulario
-  const [loading, setLoading] = useState(false) // Para mostrar "cargando"
-  const [email, setEmail] = useState("") // Email del usuario
-  const [password, setPassword] = useState("") // Contraseña del usuario
-  const [isSignUp, setIsSignUp] = useState(false) // Si está en modo registro o login
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [showTest, setShowTest] = useState(false)
 
   // Función para manejar el login con email y contraseña
   const handleEmailAuth = async (event) => {
-    event.preventDefault() // Evita que el formulario recargue la página
+    event.preventDefault()
     setLoading(true)
 
     try {
@@ -23,6 +25,11 @@ export default function Auth() {
         result = await supabase.auth.signUp({
           email: email,
           password: password,
+          options: {
+            data: {
+              full_name: email.split("@")[0], // Usar parte del email como nombre
+            },
+          },
         })
       } else {
         // Si está en modo login, inicia sesión
@@ -55,7 +62,11 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin, // Redirige de vuelta a tu app
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
       if (error) {
@@ -125,6 +136,16 @@ export default function Auth() {
             </button>
           </p>
         </div>
+
+        {/* Botón para mostrar pruebas de conexión */}
+        <div className="debug-section">
+          <button type="button" onClick={() => setShowTest(!showTest)} className="link-button">
+            {showTest ? "Ocultar" : "Mostrar"} Pruebas de Conexión
+          </button>
+        </div>
+
+        {/* Componente de pruebas */}
+        {showTest && <TestConnection />}
       </div>
     </div>
   )
