@@ -5,27 +5,37 @@ import { supabase } from "../supabaseClient"
 
 // Este componente maneja tanto el login como el registro
 export default function Auth() {
+  <script src="https://accounts.google.com/gsi/client" async></script>
   // Estados para controlar el formulario
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [nombre, setNombre] = useState("")
+  const [apellido, setApellido] = useState("")
   const [isSignUp, setIsSignUp] = useState(false)
 
   // Función para manejar el login con email y contraseña
   const handleEmailAuth = async (event) => {
     event.preventDefault()
     setLoading(true)
-
+    
     try {
       let result
       if (isSignUp) {
+        // Validar que se hayan completado todos los campos
+        if (!nombre.trim() || !apellido.trim()) {
+          alert("Por favor complete todos los campos")
+          setLoading(false)
+          return
+        }
+
         // Si está en modo registro, crea una nueva cuenta
         result = await supabase.auth.signUp({
           email: email,
           password: password,
           options: {
             data: {
-              full_name: email.split("@")[0], // Usar parte del email como nombre
+              full_name: `${nombre} ${apellido}`, // Guardar nombre completo
             },
           },
         })
@@ -60,11 +70,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
+          redirectTo: "https://qlbpcnyjsvhxnncjorku.supabase.co/auth/v1/callback",
         },
       })
       if (error) {
@@ -77,13 +83,44 @@ export default function Auth() {
     }
   }
 
-  return (
+    return (
     <div className="auth-container">
       <div className="auth-card">
         <h1>{isSignUp ? "Crear Cuenta" : "Iniciar Sesión"}</h1>
 
         {/* Formulario para email y contraseña */}
         <form onSubmit={handleEmailAuth} className="auth-form">
+          {/* Campos adicionales para registro */}
+          {isSignUp && (
+            <>
+              <div className="form-group">
+                <label htmlFor="nombre">Nombre:</label>
+                <input
+                  id="nombre"
+                  type="text"
+                  placeholder="Tu nombre"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="apellido">Apellido:</label>
+                <input
+                  id="apellido"
+                  type="text"
+                  placeholder="Tu apellido"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                  required
+                  className="form-input"
+                />
+              </div>
+            </>
+          )}
+
           <div className="form-group">
             <label htmlFor="email">Email:</label>
             <input

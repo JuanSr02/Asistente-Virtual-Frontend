@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "../supabaseClient"
+import jwt_decode, { jwtDecode } from "jwt-decode"
 
-// Hook personalizado para obtener el rol del usuario
+
 export function useUserRole(user) {
   const [role, setRole] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -16,81 +17,38 @@ export function useUserRole(user) {
       return
     }
 
-    const getUserRole = async () => {
+    const getUserRoleFromToken = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        console.log("Obteniendo rol para usuario:", user.email)
+        const { data, error: sessionError } = await supabase.auth.getSession()
 
-        // Primero intentamos obtener el rol del JWT
-        if (user.app_metadata?.rol_usuario) {
-          console.log("Rol encontrado en app_metadata:", user.app_metadata.rol_usuario)
-          setRole(user.app_metadata.rol_usuario)
-          setLoading(false)
-          return
+        if (sessionError || !data.session) {
+          throw new Error("No se pudo obtener la sesión del usuario.")
         }
 
-        // Si no está en app_metadata, intentamos user_metadata
-        if (user.user_metadata?.rol_usuario) {
-          console.log("Rol encontrado en user_metadata:", user.user_metadata.rol_usuario)
-          setRole(user.user_metadata.rol_usuario)
-          setLoading(false)
-          return
-        }
+        const token = data.session.access_token
+        const decoded = jwtDecode(token)
+        const rol = decoded.rol_usuario
 
-        // Si no está en los metadatos, consultamos la tabla persona
-        console.log("Consultando tabla persona para:", user.email)
-
-        // Usar comillas simples para el valor y especificar el tipo de dato
-        const { data, error } = await supabase.from("persona").select("rol_usuario").eq("mail", user.email).single()
-
-        if (error) {
-          console.error("Error obteniendo rol de la tabla:", error)
-
-          if (error.code === "PGRST116") {
-            // No se encontró el usuario en la tabla
-            console.log("Usuario no encontrado en tabla persona, creando registro con rol ESTUDIANTE")
-
-            // Intentar crear el usuario en la tabla con rol por defecto
-            const { data: insertData, error: insertError } = await supabase
-              .from("persona")
-              .insert([
-                {
-                  mail: user.email,
-                  nombre: user.user_metadata?.full_name || user.email.split("@")[0],
-                  rol_usuario: "ESTUDIANTE",
-                },
-              ])
-              .select()
-              .single()
-
-            if (insertError) {
-              console.error("Error creando usuario:", insertError)
-              setRole("ESTUDIANTE") // Rol por defecto si falla la inserción
-            } else {
-              console.log("Usuario creado exitosamente:", insertData)
-              setRole("ESTUDIANTE")
-            }
-          } else {
-            console.error("Error de base de datos:", error)
-            setError(`Error de base de datos: ${error.message}`)
-            setRole("ESTUDIANTE") // Rol por defecto
-          }
+        if (rol) {
+          console.log("Rol extraído del JWT:", rol)
+          setRole(rol)
         } else {
-          console.log("Rol encontrado en tabla:", data?.rol_usuario)
-          setRole(data?.rol_usuario || "ESTUDIANTE")
+          console.warn("El JWT no contiene el campo 'rol_usuario'. Asignando rol por defecto.")
+          setRole("ESTUDIANTE")
         }
       } catch (err) {
-        console.error("Error procesando rol:", err)
-        setError(`Error: ${err.message}`)
+        console.error("Error al obtener o decodificar el JWT:", err)
+        setError("Error al obtener o decodificar el token")
         setRole("ESTUDIANTE") // Rol por defecto
       } finally {
         setLoading(false)
       }
     }
 
-    getUserRole()
+    getUserRoleFromToken()
   }, [user])
 
   return { role, loading, error }
