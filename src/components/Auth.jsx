@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { supabase } from "../supabaseClient"
-import TestConnection from "./TestConnection"
 
 // Este componente maneja tanto el login como el registro
 export default function Auth() {
@@ -11,7 +10,6 @@ export default function Auth() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isSignUp, setIsSignUp] = useState(false)
-  const [showTest, setShowTest] = useState(false)
 
   // Función para manejar el login con email y contraseña
   const handleEmailAuth = async (event) => {
@@ -45,7 +43,7 @@ export default function Auth() {
         if (isSignUp) {
           alert("¡Revisa tu email para confirmar tu cuenta!")
         } else {
-          alert("¡Sesión iniciada correctamente!")
+          console.log("Sesión iniciada correctamente")
         }
       }
     } catch (error) {
@@ -136,16 +134,6 @@ export default function Auth() {
             </button>
           </p>
         </div>
-
-        {/* Botón para mostrar pruebas de conexión */}
-        <div className="debug-section">
-          <button type="button" onClick={() => setShowTest(!showTest)} className="link-button">
-            {showTest ? "Ocultar" : "Mostrar"} Pruebas de Conexión
-          </button>
-        </div>
-
-        {/* Componente de pruebas */}
-        {showTest && <TestConnection />}
       </div>
     </div>
   )

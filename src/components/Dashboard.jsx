@@ -1,10 +1,9 @@
 "use client"
 
 import { useUserRole } from "../hooks/useUserRole"
-import NavBar from "./NavBar"
-import StudentDashboard from "./StudentDashboard"
 import AdminDashboard from "./AdminDashboard"
-import { supabase } from "../supabaseClient" // Import supabase
+import StudentDashboard from "./StudentDashboard"
+import { supabase } from "../supabaseClient"
 
 // Componente principal del dashboard que decide qué vista mostrar
 export default function Dashboard({ user }) {
@@ -40,23 +39,28 @@ export default function Dashboard({ user }) {
             🚪 Cerrar Sesión
           </button>
         </div>
-        <details className="error-details">
-          <summary>Información técnica</summary>
-          <pre>{JSON.stringify({ user: user?.email, role, error }, null, 2)}</pre>
-        </details>
       </div>
     )
   }
 
+  // Renderizar el dashboard según el rol
   return (
-    <div className="app-layout">
-      {/* Barra de navegación superior */}
-      <NavBar user={user} role={role} />
+    <div className="dashboard-wrapper">
+      <header className="app-header">
+        <div className="header-content">
+          <h1 className="app-title">Sistema Académico</h1>
+          <div className="header-actions">
+            <span className="user-badge">{role}</span>
+            <button onClick={() => supabase.auth.signOut()} className="logout-button">
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </header>
 
-      {/* Dashboard específico según el rol */}
-      <div className="dashboard-content">
+      <main className="app-main">
         {role === "ADMINISTRADOR" ? <AdminDashboard user={user} /> : <StudentDashboard user={user} />}
-      </div>
+      </main>
     </div>
   )
 }
