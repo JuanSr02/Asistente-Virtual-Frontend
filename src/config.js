@@ -11,6 +11,11 @@ export const API_ROUTES = {
     CARGAR_PLAN: "/api/admin/planes-estudio/carga", // POST para cargar nuevo plan
     ELIMINAR_PLAN: "/api/admin/planes-estudio", // DELETE para eliminar plan
   },
+  // Rutas compartidas
+  SHARED: {
+    ESTADISTICAS_GENERALES: "/api/shared/estadisticas/generales", // GET estadísticas generales
+    ESTADISTICAS_MATERIA: "/api/shared/estadisticas/materia", // GET estadísticas por materia
+  },
   // Rutas de estudiante
   ESTUDIANTE: {
     // Aquí irán las rutas para estudiantes cuando las necesitemos
