@@ -10,6 +10,7 @@ export const API_ROUTES = {
     PLANES_ESTUDIO: "/api/admin/planes-estudio", // GET para obtener todos los planes
     CARGAR_PLAN: "/api/admin/planes-estudio/carga", // POST para cargar nuevo plan
     ELIMINAR_PLAN: "/api/admin/planes-estudio", // DELETE para eliminar plan
+    MATERIAS_POR_PLAN: "/api/admin/planes-estudio/materias", // GET para obtener materias por plan
   },
   // Rutas compartidas
   SHARED: {

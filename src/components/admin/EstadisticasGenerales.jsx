@@ -96,12 +96,13 @@ export default function EstadisticasGenerales() {
           />
 
           <div className="materia-destacada">
-            <h4>Materia Más Rendida</h4>
+            <h4 className="chart-title">Materia Más Rendida</h4>
             <div className="destacada-card">
               <div className="destacada-nombre">{estadisticas.materiaMasRendida.nombre}</div>
-              <div className="destacada-codigo">Código: {estadisticas.materiaMasRendida.codigoMateria}</div>
               <div className="destacada-cantidad">{estadisticas.cantidadMateriaMasRendida} exámenes</div>
-              <div className="destacada-porcentaje">{estadisticas.materiaMasRendida.porcentaje}% aprobación</div>
+              <div className="destacada-porcentaje">
+                {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% aprobación
+              </div>
             </div>
           </div>
         </div>
@@ -110,7 +111,7 @@ export default function EstadisticasGenerales() {
           data={estadisticas.distribucionExamenesPorMateria}
           title="Distribución de Exámenes por Materia"
           color="#48bb78"
-          maxBars={10}
+          maxBars={15}
         />
       </div>
 
@@ -124,7 +125,6 @@ export default function EstadisticasGenerales() {
                 <div className="ranking-position">#{index + 1}</div>
                 <div className="ranking-content">
                   <div className="ranking-name">{materia.nombre}</div>
-                  <div className="ranking-code">Código: {materia.codigoMateria}</div>
                 </div>
                 <div className="ranking-percentage">{materia.porcentaje.toFixed(1)}%</div>
               </div>
@@ -140,7 +140,6 @@ export default function EstadisticasGenerales() {
                 <div className="ranking-position">#{index + 1}</div>
                 <div className="ranking-content">
                   <div className="ranking-name">{materia.nombre}</div>
-                  <div className="ranking-code">Código: {materia.codigoMateria}</div>
                 </div>
                 <div className="ranking-percentage">{materia.porcentaje.toFixed(1)}%</div>
               </div>
@@ -155,7 +154,7 @@ export default function EstadisticasGenerales() {
           data={estadisticas.promedioNotasPorMateria}
           title="Promedio de Notas por Materia"
           color="#9f7aea"
-          maxBars={15}
+          maxBars={25}
         />
       </div>
     </div>

@@ -58,6 +58,21 @@ const planesEstudioService = {
       throw error
     }
   },
+
+  /**
+   * Obtiene todas las materias de un plan específico
+   * @param {string} codigoPlan - Código del plan de estudio
+   * @returns {Promise} Promesa con la lista de materias
+   */
+  obtenerMateriasPorPlan: async (codigoPlan) => {
+    try {
+      const response = await api.get(`${API_ROUTES.ADMIN.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`)
+      return response.data
+    } catch (error) {
+      console.error("Error al obtener materias por plan:", error)
+      throw error
+    }
+  },
 }
 
 export default planesEstudioService
