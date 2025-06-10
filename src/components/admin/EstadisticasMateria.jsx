@@ -15,6 +15,7 @@ export default function EstadisticasMateria() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [loadingMessage, setLoadingMessage] = useState("")
 
   // Estados para los comboboxes
   const [planes, setPlanes] = useState([])
@@ -70,7 +71,7 @@ export default function EstadisticasMateria() {
       const savedData = localStorage.getItem("estadisticasMateria")
       const savedMateria = localStorage.getItem("savedMateriaCode")
       if (!savedData || savedMateria !== materiaSeleccionada) {
-        buscarEstadisticas(materiaSeleccionada)
+        buscarEstadisticasRapido(materiaSeleccionada)
       }
     } else {
       localStorage.removeItem("materiaSeleccionada")
@@ -130,11 +131,14 @@ export default function EstadisticasMateria() {
     }
   }
 
-  const buscarEstadisticas = async (codigoMateria) => {
+  // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
+  const buscarEstadisticasRapido = async (codigoMateria) => {
     setLoading(true)
     setError(null)
+    setLoadingMessage("Cargando estadísticas...")
+
     try {
-      const data = await estadisticasService.obtenerEstadisticasMateria(codigoMateria)
+      const data = await estadisticasService.obtenerEstadisticasMateriaRapido(codigoMateria)
       setEstadisticas(data)
       const now = new Date()
       setLastUpdate(now)
@@ -149,6 +153,34 @@ export default function EstadisticasMateria() {
       setEstadisticas(null)
     } finally {
       setLoading(false)
+      setLoadingMessage("")
+    }
+  }
+
+  // Función para refrescar datos (usando el endpoint completo)
+  const refrescarDatos = async () => {
+    if (!materiaSeleccionada) return
+
+    setLoading(true)
+    setError(null)
+    setLoadingMessage("Actualizando estadísticas...")
+
+    try {
+      const data = await estadisticasService.obtenerEstadisticasMateria(materiaSeleccionada)
+      setEstadisticas(data)
+      const now = new Date()
+      setLastUpdate(now)
+
+      // Guardar en localStorage
+      localStorage.setItem("estadisticasMateria", JSON.stringify(data))
+      localStorage.setItem("estadisticasMateriaTime", now.toISOString())
+      localStorage.setItem("savedMateriaCode", materiaSeleccionada)
+    } catch (err) {
+      console.error("Error al refrescar estadísticas de materia:", err)
+      setError("No se pudieron actualizar las estadísticas para la materia seleccionada.")
+    } finally {
+      setLoading(false)
+      setLoadingMessage("")
     }
   }
 
@@ -158,19 +190,18 @@ export default function EstadisticasMateria() {
     return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`
   }
 
-  // Función para refrescar los datos
-  const refrescarDatos = () => {
-    if (materiaSeleccionada) {
-      buscarEstadisticas(materiaSeleccionada)
-    }
-  }
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-semibold text-gray-800">Estadísticas por Materia</h3>
         <div className="flex items-center gap-4">
-          {lastUpdate && (
+          {loadingMessage && (
+            <div className="flex items-center gap-2 text-blue-600">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm">{loadingMessage}</span>
+            </div>
+          )}
+          {lastUpdate && !loadingMessage && (
             <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
           )}
           <button
@@ -255,7 +286,23 @@ export default function EstadisticasMateria() {
       </div>
 
       {/* Mensajes de estado */}
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span>⚠️</span>
+            <strong>Error al cargar estadísticas</strong>
+          </div>
+          <p className="mb-3">{error}</p>
+          {materiaSeleccionada && (
+            <button
+              onClick={() => buscarEstadisticasRapido(materiaSeleccionada)}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+            >
+              Reintentar
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Indicador de carga */}
       {loading && (
@@ -384,7 +431,7 @@ export default function EstadisticasMateria() {
                   <div>
                     <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Dificultad</h5>
                     <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioDificultad ? estadisticas.promedioDificultad.toFixed(1) : "7.0"}
+                      {estadisticas.promedioDificultad.toFixed(1)}
                     </div>
                   </div>
                 </div>

@@ -14,6 +14,7 @@ export default function EstadisticasGenerales() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [loadingMessage, setLoadingMessage] = useState("")
   const [lastUpdate, setLastUpdate] = useState(() => {
     const savedTime = localStorage.getItem("estadisticasGeneralesTime")
     return savedTime ? new Date(savedTime) : null
@@ -22,13 +23,40 @@ export default function EstadisticasGenerales() {
   useEffect(() => {
     // Si no hay datos guardados, cargar automáticamente
     if (!estadisticas) {
-      cargarEstadisticasGenerales()
+      cargarEstadisticasGeneralesRapido()
     }
   }, [])
 
-  const cargarEstadisticasGenerales = async () => {
+  // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
+  const cargarEstadisticasGeneralesRapido = async () => {
     setLoading(true)
     setError(null)
+    setLoadingMessage("Cargando estadísticas...")
+
+    try {
+      const data = await estadisticasService.obtenerEstadisticasGeneralesRapido()
+      setEstadisticas(data)
+      const now = new Date()
+      setLastUpdate(now)
+
+      // Guardar en localStorage
+      localStorage.setItem("estadisticasGenerales", JSON.stringify(data))
+      localStorage.setItem("estadisticasGeneralesTime", now.toISOString())
+    } catch (err) {
+      console.error("Error al cargar estadísticas generales:", err)
+      setError("No se pudieron cargar las estadísticas generales. Por favor, intente nuevamente.")
+    } finally {
+      setLoading(false)
+      setLoadingMessage("")
+    }
+  }
+
+  // Función para refrescar datos (usando el endpoint completo)
+  const refrescarDatos = async () => {
+    setLoading(true)
+    setError(null)
+    setLoadingMessage("Actualizando estadísticas...")
+
     try {
       const data = await estadisticasService.obtenerEstadisticasGenerales()
       setEstadisticas(data)
@@ -39,17 +67,26 @@ export default function EstadisticasGenerales() {
       localStorage.setItem("estadisticasGenerales", JSON.stringify(data))
       localStorage.setItem("estadisticasGeneralesTime", now.toISOString())
     } catch (err) {
-      console.error("Error al cargar estadísticas generales:", err)
-      setError("No se pudieron cargar las estadísticas generales.")
+      console.error("Error al refrescar estadísticas generales:", err)
+      setError("No se pudieron actualizar las estadísticas generales. Por favor, intente nuevamente.")
     } finally {
       setLoading(false)
+      setLoadingMessage("")
     }
   }
 
   if (loading) {
     return (
       <div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-6">Estadísticas Generales del Sistema</h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-800">Estadísticas Generales del Sistema</h3>
+          {loadingMessage && (
+            <div className="flex items-center gap-2 text-blue-600">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm">{loadingMessage}</span>
+            </div>
+          )}
+        </div>
 
         {/* Métricas skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
@@ -71,7 +108,21 @@ export default function EstadisticasGenerales() {
   }
 
   if (error) {
-    return <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">{error}</div>
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <span>⚠️</span>
+          <strong>Error al cargar estadísticas</strong>
+        </div>
+        <p className="mb-3">{error}</p>
+        <button
+          onClick={cargarEstadisticasGeneralesRapido}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+        >
+          Reintentar
+        </button>
+      </div>
+    )
   }
 
   if (!estadisticas) {
@@ -87,7 +138,7 @@ export default function EstadisticasGenerales() {
             <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
           )}
           <button
-            onClick={cargarEstadisticasGenerales}
+            onClick={refrescarDatos}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
             disabled={loading}
           >

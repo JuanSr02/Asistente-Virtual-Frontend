@@ -14,8 +14,10 @@ export const API_ROUTES = {
   },
   // Rutas compartidas
   SHARED: {
-    ESTADISTICAS_GENERALES: "/api/shared/estadisticas/generales", // GET estadísticas generales
-    ESTADISTICAS_MATERIA: "/api/shared/estadisticas/materia", // GET estadísticas por materia
+    ESTADISTICAS_GENERALES: "/api/shared/estadisticas/generales", // GET estadísticas generales (completas)
+    ESTADISTICAS_MATERIA: "/api/shared/estadisticas/materia", // GET estadísticas por materia (completas)
+    ESTADISTICAS_GENERALES_RAPIDO: "/api/shared/fast/estadisticas/generales", // GET estadísticas generales (rápidas)
+    ESTADISTICAS_MATERIA_RAPIDO: "/api/shared/fast/estadisticas/materia", // GET estadísticas por materia (rápidas)
   },
   // Rutas de estudiante
   ESTUDIANTE: {
