@@ -5,21 +5,34 @@ import estadisticasService from "../../services/estadisticasService"
 import planesEstudioService from "../../services/planesEstudioService"
 import PieChart from "./charts/PieChart"
 import BarChart from "./charts/BarChart"
+import { MetricSkeleton, ChartSkeleton } from "../ui/Skeleton"
 
 export default function EstadisticasMateria() {
-  const [estadisticas, setEstadisticas] = useState(null)
+  const [estadisticas, setEstadisticas] = useState(() => {
+    // Intentar cargar datos guardados del localStorage
+    const savedData = localStorage.getItem("estadisticasMateria")
+    return savedData ? JSON.parse(savedData) : null
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   // Estados para los comboboxes
   const [planes, setPlanes] = useState([])
   const [materias, setMaterias] = useState([])
-  const [planSeleccionado, setPlanSeleccionado] = useState("")
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState("")
+  const [planSeleccionado, setPlanSeleccionado] = useState(() => {
+    return localStorage.getItem("planSeleccionado") || ""
+  })
+  const [materiaSeleccionada, setMateriaSeleccionada] = useState(() => {
+    return localStorage.getItem("materiaSeleccionada") || ""
+  })
 
   // Estados de carga
   const [loadingPlanes, setLoadingPlanes] = useState(true)
   const [loadingMaterias, setLoadingMaterias] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState(() => {
+    const savedTime = localStorage.getItem("estadisticasMateriaTime")
+    return savedTime ? new Date(savedTime) : null
+  })
 
   // Cargar planes al montar el componente
   useEffect(() => {
@@ -29,23 +42,42 @@ export default function EstadisticasMateria() {
   // Cargar materias cuando se selecciona un plan
   useEffect(() => {
     if (planSeleccionado) {
+      localStorage.setItem("planSeleccionado", planSeleccionado)
       cargarMaterias(planSeleccionado)
-      // Limpiar materia seleccionada y estadísticas cuando cambia el plan
-      setMateriaSeleccionada("")
-      setEstadisticas(null)
+      // Solo limpiar materia seleccionada si cambia el plan y no estamos cargando desde localStorage
+      if (materiaSeleccionada && materiaSeleccionada !== localStorage.getItem("materiaSeleccionada")) {
+        setMateriaSeleccionada("")
+        setEstadisticas(null)
+        localStorage.removeItem("estadisticasMateria")
+        localStorage.removeItem("estadisticasMateriaTime")
+      }
     } else {
+      localStorage.removeItem("planSeleccionado")
       setMaterias([])
       setMateriaSeleccionada("")
       setEstadisticas(null)
+      localStorage.removeItem("materiaSeleccionada")
+      localStorage.removeItem("estadisticasMateria")
+      localStorage.removeItem("estadisticasMateriaTime")
     }
   }, [planSeleccionado])
 
   // Cargar estadísticas cuando se selecciona una materia
   useEffect(() => {
     if (materiaSeleccionada) {
-      buscarEstadisticas(materiaSeleccionada)
+      localStorage.setItem("materiaSeleccionada", materiaSeleccionada)
+      // Solo cargar si no hay datos guardados para esta materia
+      const savedData = localStorage.getItem("estadisticasMateria")
+      const savedMateria = localStorage.getItem("savedMateriaCode")
+      if (!savedData || savedMateria !== materiaSeleccionada) {
+        buscarEstadisticas(materiaSeleccionada)
+      }
     } else {
+      localStorage.removeItem("materiaSeleccionada")
       setEstadisticas(null)
+      localStorage.removeItem("estadisticasMateria")
+      localStorage.removeItem("estadisticasMateriaTime")
+      localStorage.removeItem("savedMateriaCode")
     }
   }, [materiaSeleccionada])
 
@@ -54,6 +86,17 @@ export default function EstadisticasMateria() {
     try {
       const data = await planesEstudioService.obtenerPlanes()
       setPlanes(data)
+
+      // Si hay un plan guardado, verificar que exista en los datos cargados
+      const planGuardado = localStorage.getItem("planSeleccionado")
+      if (planGuardado && !data.some((plan) => plan.codigo === planGuardado)) {
+        setPlanSeleccionado("")
+        localStorage.removeItem("planSeleccionado")
+        localStorage.removeItem("materiaSeleccionada")
+        localStorage.removeItem("estadisticasMateria")
+        localStorage.removeItem("estadisticasMateriaTime")
+        localStorage.removeItem("savedMateriaCode")
+      }
     } catch (err) {
       console.error("Error al cargar planes:", err)
       setError("No se pudieron cargar los planes de estudio.")
@@ -68,6 +111,16 @@ export default function EstadisticasMateria() {
     try {
       const data = await planesEstudioService.obtenerMateriasPorPlan(codigoPlan)
       setMaterias(data)
+
+      // Si hay una materia guardada, verificar que exista en los datos cargados
+      const materiaGuardada = localStorage.getItem("materiaSeleccionada")
+      if (materiaGuardada && !data.some((materia) => materia.codigo === materiaGuardada)) {
+        setMateriaSeleccionada("")
+        localStorage.removeItem("materiaSeleccionada")
+        localStorage.removeItem("estadisticasMateria")
+        localStorage.removeItem("estadisticasMateriaTime")
+        localStorage.removeItem("savedMateriaCode")
+      }
     } catch (err) {
       console.error("Error al cargar materias:", err)
       setError("No se pudieron cargar las materias del plan seleccionado.")
@@ -83,6 +136,13 @@ export default function EstadisticasMateria() {
     try {
       const data = await estadisticasService.obtenerEstadisticasMateria(codigoMateria)
       setEstadisticas(data)
+      const now = new Date()
+      setLastUpdate(now)
+
+      // Guardar en localStorage
+      localStorage.setItem("estadisticasMateria", JSON.stringify(data))
+      localStorage.setItem("estadisticasMateriaTime", now.toISOString())
+      localStorage.setItem("savedMateriaCode", codigoMateria)
     } catch (err) {
       console.error("Error al cargar estadísticas de materia:", err)
       setError("No se encontraron estadísticas para la materia seleccionada.")
@@ -92,16 +152,43 @@ export default function EstadisticasMateria() {
     }
   }
 
+  // Función para formatear la fecha correctamente (dd/mm/yyyy)
+  const formatearFecha = (fechaStr) => {
+    const fecha = new Date(fechaStr)
+    return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`
+  }
+
+  // Función para refrescar los datos
+  const refrescarDatos = () => {
+    if (materiaSeleccionada) {
+      buscarEstadisticas(materiaSeleccionada)
+    }
+  }
+
   return (
-    <div className="estadisticas-materia">
-      <h3 className="section-subtitle">Estadísticas por Materia</h3>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-semibold text-gray-800">Estadísticas por Materia</h3>
+        <div className="flex items-center gap-4">
+          {lastUpdate && (
+            <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
+          )}
+          <button
+            onClick={refrescarDatos}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            disabled={!materiaSeleccionada || loading}
+          >
+            <span>🔄</span> Refrescar
+          </button>
+        </div>
+      </div>
 
       {/* Selectores en cascada */}
-      <div className="selectors-section">
-        <div className="selectors-grid">
+      <div className="bg-gray-50 rounded-xl p-8 mb-8 border border-gray-200">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Selector de Plan */}
-          <div className="selector-group">
-            <label htmlFor="plan-select" className="selector-label">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="plan-select" className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
               Plan de Estudio
             </label>
             <select
@@ -109,9 +196,9 @@ export default function EstadisticasMateria() {
               value={planSeleccionado}
               onChange={(e) => setPlanSeleccionado(e.target.value)}
               disabled={loadingPlanes}
-              className="selector-input"
+              className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
-              <option value="">{loadingPlanes ? "Cargando planes..." : "Seleccione un plan"}</option>
+              <option value="">{loadingPlanes ? "Cargando..." : "Seleccione un plan"}</option>
               {planes.map((plan) => (
                 <option key={plan.codigo} value={plan.codigo}>
                   {plan.propuesta}
@@ -121,8 +208,8 @@ export default function EstadisticasMateria() {
           </div>
 
           {/* Selector de Materia */}
-          <div className="selector-group">
-            <label htmlFor="materia-select" className="selector-label">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="materia-select" className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
               Materia
             </label>
             <select
@@ -130,13 +217,13 @@ export default function EstadisticasMateria() {
               value={materiaSeleccionada}
               onChange={(e) => setMateriaSeleccionada(e.target.value)}
               disabled={!planSeleccionado || loadingMaterias || materias.length === 0}
-              className="selector-input"
+              className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
                 {!planSeleccionado
                   ? "Primero seleccione un plan"
                   : loadingMaterias
-                    ? "Cargando materias..."
+                    ? "Cargando..."
                     : materias.length === 0
                       ? "No hay materias disponibles"
                       : "Seleccione una materia"}
@@ -152,13 +239,15 @@ export default function EstadisticasMateria() {
 
         {/* Información adicional */}
         {planSeleccionado && (
-          <div className="selection-info">
-            <span className="info-item">
-              <strong>Plan seleccionado:</strong> {planes.find((p) => p.codigo === planSeleccionado)?.propuesta}
+          <div className="flex flex-col gap-2 p-4 bg-white rounded-lg border-l-4 border-blue-500">
+            <span className="text-sm text-gray-600">
+              <strong className="text-gray-800">Plan seleccionado:</strong>{" "}
+              {planes.find((p) => p.codigo === planSeleccionado)?.propuesta}
             </span>
             {materiaSeleccionada && (
-              <span className="info-item">
-                <strong>Materia seleccionada:</strong> {materias.find((m) => m.codigo === materiaSeleccionada)?.nombre}
+              <span className="text-sm text-gray-600">
+                <strong className="text-gray-800">Materia seleccionada:</strong>{" "}
+                {materias.find((m) => m.codigo === materiaSeleccionada)?.nombre}
               </span>
             )}
           </div>
@@ -166,124 +255,168 @@ export default function EstadisticasMateria() {
       </div>
 
       {/* Mensajes de estado */}
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>}
 
       {/* Indicador de carga */}
       {loading && (
-        <div className="loading-indicator">
-          <div className="loading-spinner"></div>
-          <span>Cargando estadísticas de la materia...</span>
+        <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <MetricSkeleton key={index} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-8">
+            <MetricSkeleton />
+          </div>
+          <div className="mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <ChartSkeleton type="pie" />
+              <ChartSkeleton type="pie" />
+            </div>
+            <ChartSkeleton type="bar" />
+          </div>
         </div>
       )}
 
       {/* Resultados */}
       {estadisticas && (
-        <div className="materia-estadisticas">
+        <div>
           {/* Header de la materia */}
-          <div className="materia-header">
-            <h4>{estadisticas.nombreMateria}</h4>
-            <span className="materia-codigo">Código: {estadisticas.codigoMateria}</span>
-            <span className="fecha-actualizacion">
-              Última actualización: {new Date(estadisticas.fechaUltimaActualizacion).toLocaleDateString()}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
+            <h4 className="text-2xl font-bold mb-2">{estadisticas.nombreMateria}</h4>
+            <span className="block text-base opacity-90 mb-2">Código: {estadisticas.codigoMateria}</span>
+            <span className="block text-sm opacity-80">
+              Última actualización: {formatearFecha(estadisticas.fechaUltimaActualizacion)}
             </span>
           </div>
 
           {/* Verificar si hay datos */}
           {estadisticas.totalRendidos === 0 ? (
-            <div className="no-statistics-state">
-              <div className="no-stats-icon">📊</div>
-              <h4>No hay estadísticas disponibles</h4>
-              <p>Esta materia aún no tiene exámenes rendidos registrados en el sistema.</p>
-              <div className="no-stats-details">
-                <span>
-                  • Total de exámenes rendidos: <strong>0</strong>
+            <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 mx-0">
+              <div className="text-6xl mb-6 opacity-60">📊</div>
+              <h4 className="text-2xl text-gray-800 mb-4 font-semibold">No hay estadísticas disponibles</h4>
+              <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
+                Esta materia aún no tiene exámenes rendidos registrados en el sistema.
+              </p>
+              <div className="flex flex-col gap-3 bg-white p-6 rounded-lg border-l-4 border-orange-500 max-w-md mx-auto text-left">
+                <span className="text-sm text-gray-600 flex items-center gap-2">
+                  ℹ️ Total de exámenes rendidos: <strong className="text-gray-800 font-semibold">0</strong>
                 </span>
-                <span>• No hay datos suficientes para generar estadísticas</span>
-                <span>• Las estadísticas aparecerán cuando se registren exámenes</span>
+                <span className="text-sm text-gray-600 flex items-center gap-2">
+                  ℹ️ No hay datos suficientes para generar estadísticas
+                </span>
+                <span className="text-sm text-gray-600 flex items-center gap-2">
+                  ℹ️ Las estadísticas aparecerán cuando se registren exámenes
+                </span>
               </div>
             </div>
           ) : (
             <>
-              {/* Métricas principales */}
-              <div className="materia-metrics">
-                <div className="metric-card primary">
-                  <div className="metric-icon">👥</div>
-                  <div className="metric-content">
-                    <h5>Total Rendidos</h5>
-                    <div className="metric-value">{estadisticas.totalRendidos}</div>
+              {/* Métricas principales - Primera fila */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-blue-500">
+                  <div className="text-3xl opacity-80">👥</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Total Rendidos</h5>
+                    <div className="text-3xl font-bold text-gray-800">{estadisticas.totalRendidos}</div>
                   </div>
                 </div>
 
-                <div className="metric-card success">
-                  <div className="metric-icon">✅</div>
-                  <div className="metric-content">
-                    <h5>Aprobados</h5>
-                    <div className="metric-value">{estadisticas.aprobados}</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-green-500">
+                  <div className="text-3xl opacity-80">✅</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Aprobados</h5>
+                    <div className="text-3xl font-bold text-gray-800">{estadisticas.aprobados}</div>
                   </div>
                 </div>
 
-                <div className="metric-card danger">
-                  <div className="metric-icon">❌</div>
-                  <div className="metric-content">
-                    <h5>Reprobados</h5>
-                    <div className="metric-value">{estadisticas.reprobados}</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-red-500">
+                  <div className="text-3xl opacity-80">❌</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Reprobados</h5>
+                    <div className="text-3xl font-bold text-gray-800">{estadisticas.reprobados}</div>
                   </div>
                 </div>
 
-                <div className="metric-card warning">
-                  <div className="metric-icon">📊</div>
-                  <div className="metric-content">
-                    <h5>% Aprobados</h5>
-                    <div className="metric-value">{estadisticas.porcentajeAprobados.toFixed(1)}%</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-orange-500">
+                  <div className="text-3xl opacity-80">📊</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">% Aprobados</h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.porcentajeAprobados.toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Métricas principales - Segunda fila */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-teal-500">
+                  <div className="text-3xl opacity-80">🎯</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Notas</h5>
+                    <div className="text-3xl font-bold text-gray-800">{estadisticas.promedioNotas.toFixed(2)}</div>
                   </div>
                 </div>
 
-                <div className="metric-card info">
-                  <div className="metric-icon">🎯</div>
-                  <div className="metric-content">
-                    <h5>Promedio Notas</h5>
-                    <div className="metric-value">{estadisticas.promedioNotas.toFixed(2)}</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
+                  <div className="text-3xl opacity-80">📅</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Días</h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.promedioDiasEstudio.toFixed(1)}
+                    </div>
                   </div>
                 </div>
 
-                <div className="metric-card secondary">
-                  <div className="metric-icon">📅</div>
-                  <div className="metric-content">
-                    <h5>Días de Estudio</h5>
-                    <div className="metric-value">{estadisticas.promedioDiasEstudio.toFixed(1)}</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
+                  <div className="text-3xl opacity-80">⏰</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Horas</h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.promedioHorasDiarias.toFixed(1)}
+                    </div>
                   </div>
                 </div>
 
-                <div className="metric-card secondary">
-                  <div className="metric-icon">⏰</div>
-                  <div className="metric-content">
-                    <h5>Horas Diarias</h5>
-                    <div className="metric-value">{estadisticas.promedioHorasDiarias.toFixed(1)}</div>
+                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-purple-500">
+                  <div className="text-3xl opacity-80">⭐</div>
+                  <div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Dificultad</h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.promedioDificultad ? estadisticas.promedioDificultad.toFixed(1) : "7.0"}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Gráficos de distribución */}
-              <div className="materia-charts">
-                <div className="charts-row">
+              <div className="mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
                   <PieChart
                     data={estadisticas.distribucionModalidad}
                     title="Distribución por Modalidad"
                     colors={["#4299e1", "#48bb78", "#ed8936"]}
+                    showHover={false}
                   />
 
                   <PieChart
                     data={estadisticas.distribucionRecursos}
                     title="Recursos Utilizados"
                     colors={["#9f7aea", "#38b2ac", "#f56565"]}
+                    showHover={false}
                   />
                 </div>
 
                 <BarChart
                   data={estadisticas.distribucionDificultad}
                   title="Distribución de Dificultad (1-10)"
-                  color="#ed8936"
+                  colors={["#ed8936", "#48bb78", "#4299e1"]}
                   maxBars={10}
+                  useIntegers={true}
+                  showTooltip={false}
+                  showBaseLabels={true}
+                  baseLabels={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
                 />
               </div>
             </>
@@ -293,10 +426,12 @@ export default function EstadisticasMateria() {
 
       {/* Estado vacío */}
       {!estadisticas && !loading && !error && (
-        <div className="empty-state">
-          <div className="empty-icon">📊</div>
-          <h4>Seleccione un plan y una materia</h4>
-          <p>Elija un plan de estudio y luego una materia para ver las estadísticas detalladas</p>
+        <div className="text-center py-16 text-gray-500">
+          <div className="text-6xl mb-4 opacity-50">📊</div>
+          <h4 className="text-xl text-gray-600 mb-2 font-semibold">Seleccione un plan y una materia</h4>
+          <p className="text-base text-gray-500 max-w-md mx-auto">
+            Elija un plan de estudio y luego una materia para ver las estadísticas detalladas
+          </p>
         </div>
       )}
     </div>

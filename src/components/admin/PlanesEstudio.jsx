@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react"
 import planesEstudioService from "../../services/planesEstudioService"
 import { APP_CONFIG } from "../../config"
+import { TableSkeleton } from "../ui/Skeleton"
+import MateriasModal from "./MateriasModal"
 
 export default function PlanesEstudio() {
   const [planes, setPlanes] = useState([])
@@ -11,6 +13,7 @@ export default function PlanesEstudio() {
   const [selectedPlan, setSelectedPlan] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(null)
+  const [showMateriasModal, setShowMateriasModal] = useState(false)
   const fileInputRef = useRef(null)
 
   // Cargar planes al montar el componente
@@ -95,75 +98,150 @@ export default function PlanesEstudio() {
     }
   }
 
+  // Función para mostrar materias del plan
+  const handleVerMaterias = () => {
+    if (selectedPlan) {
+      setShowMateriasModal(true)
+    }
+  }
+
   return (
-    <div className="planes-estudio-container">
-      <h2 className="section-title">Planes de Estudio</h2>
+    <div className="bg-white rounded-lg shadow-md p-8">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">Planes de Estudio</h2>
 
       {/* Sección de acciones */}
-      <div className="planes-actions">
-        <div className="upload-section">
+      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+        <div className="flex flex-col">
           <input
             type="file"
             id="file-upload"
             ref={fileInputRef}
             onChange={handleFileUpload}
             accept=".xls,.xlsx"
-            className="file-input"
+            className="absolute w-0 h-0 opacity-0 overflow-hidden -z-10"
             disabled={uploading}
           />
-          <label htmlFor="file-upload" className={`file-label ${uploading ? "disabled" : ""}`}>
+          <label
+            htmlFor="file-upload"
+            className={`inline-block px-6 py-3 rounded-lg font-semibold transition-all cursor-pointer ${
+              uploading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 transform hover:-translate-y-0.5"
+            } text-white`}
+          >
             {uploading ? "Cargando..." : "Cargar Plan de Estudio"}
           </label>
-          <p className="file-help">Formatos permitidos: XLS, XLSX</p>
+          <p className="text-xs text-gray-500 mt-2">Formatos permitidos: XLS, XLSX</p>
         </div>
 
-        <button
-          className={`delete-button ${!selectedPlan ? "disabled" : ""}`}
-          onClick={handleDeletePlan}
-          disabled={!selectedPlan || loading}
-        >
-          Eliminar Plan Seleccionado
-        </button>
+        <div className="flex gap-4">
+          <button
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+              !selectedPlan
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white transform hover:-translate-y-0.5"
+            }`}
+            onClick={handleVerMaterias}
+            disabled={!selectedPlan}
+          >
+            📚 Ver Materias
+          </button>
+          <button
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+              !selectedPlan || loading
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600 text-white transform hover:-translate-y-0.5"
+            }`}
+            onClick={handleDeletePlan}
+            disabled={!selectedPlan || loading}
+          >
+            🗑️ Eliminar Plan
+          </button>
+        </div>
       </div>
 
       {/* Mensajes de estado */}
-      {error && <div className="error-message">{error}</div>}
-      {uploadSuccess && <div className="success-message">{uploadSuccess}</div>}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">{error}</div>}
+      {uploadSuccess && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+          {uploadSuccess}
+        </div>
+      )}
+
+      {/* Información del plan seleccionado */}
+      {selectedPlan && (
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl mb-6 shadow-lg">
+          <h4 className="text-lg font-semibold mb-4">Plan Seleccionado</h4>
+          <div className="flex flex-wrap gap-6">
+            <span className="text-sm opacity-90">
+              <strong className="opacity-100">Código:</strong> {selectedPlan.codigo}
+            </span>
+            <span className="text-sm opacity-90">
+              <strong className="opacity-100">Propuesta:</strong> {selectedPlan.propuesta}
+            </span>
+            <span className="text-sm opacity-90">
+              <strong className="opacity-100">Materias:</strong> {selectedPlan.cantidadMateriasCargadas}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Tabla de planes */}
-      <div className="planes-table-container">
+      <div className="overflow-x-auto">
         {loading ? (
-          <div className="loading-indicator">Cargando planes de estudio...</div>
+          <TableSkeleton rows={5} columns={3} />
         ) : planes.length === 0 ? (
-          <div className="empty-state">
-            <p>No hay planes de estudio cargados</p>
-            <p className="empty-help">Cargue un archivo Excel para comenzar</p>
+          <div className="text-center py-16 text-gray-500">
+            <div className="text-6xl mb-4 opacity-50">📋</div>
+            <h4 className="text-xl text-gray-600 mb-2 font-semibold">No hay planes de estudio cargados</h4>
+            <p className="text-sm text-gray-400">Cargue un archivo Excel para comenzar</p>
           </div>
         ) : (
-          <table className="planes-table">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th>Código</th>
-                <th>Propuesta</th>
-                <th>Cantidad de Materias</th>
+                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                  Código
+                </th>
+                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                  Propuesta
+                </th>
+                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                  Cantidad de Materias
+                </th>
               </tr>
             </thead>
             <tbody>
               {planes.map((plan) => (
                 <tr
                   key={plan.codigo}
-                  className={selectedPlan?.codigo === plan.codigo ? "selected" : ""}
+                  className={`cursor-pointer transition-all duration-200 border-l-4 ${
+                    selectedPlan?.codigo === plan.codigo
+                      ? "bg-blue-50 border-l-blue-500 shadow-sm"
+                      : "border-l-transparent hover:bg-gray-50 hover:border-l-gray-300 hover:transform hover:translate-x-0.5"
+                  }`}
                   onClick={() => handleSelectPlan(plan)}
                 >
-                  <td>{plan.codigo}</td>
-                  <td>{plan.propuesta}</td>
-                  <td>{plan.cantidadMateriasCargadas}</td>
+                  <td className="px-4 py-4 border-b border-gray-200">{plan.codigo}</td>
+                  <td className="px-4 py-4 border-b border-gray-200">{plan.propuesta}</td>
+                  <td className="px-4 py-4 border-b border-gray-200">
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        selectedPlan?.codigo === plan.codigo ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {plan.cantidadMateriasCargadas}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {/* Modal de materias */}
+      <MateriasModal isOpen={showMateriasModal} onClose={() => setShowMateriasModal(false)} plan={selectedPlan} />
     </div>
   )
 }

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { supabase } from "./supabaseClient"
 import Auth from "./components/Auth"
 import Dashboard from "./components/Dashboard"
-import "./App.css"
 
 // Componente principal de la aplicación
 function App() {
@@ -50,15 +49,15 @@ function App() {
   // Mostrar loading mientras se verifica la sesión
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Verificando autenticación...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-gray-600">Verificando autenticación...</p>
       </div>
     )
   }
 
   return (
-    <div className="App">
+    <div className="min-h-screen">
       {/* Si no hay sesión, mostrar el formulario de auth */}
       {!session ? (
         <Auth />

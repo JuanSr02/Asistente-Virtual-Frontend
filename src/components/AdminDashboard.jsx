@@ -16,36 +16,44 @@ export default function AdminDashboard({ user }) {
       case "estadisticas":
         return <Estadisticas />
       default:
-        return <div>Seleccione una opción del menú</div>
+        return <div className="text-center py-8 text-gray-500">Seleccione una opción del menú</div>
     }
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className="flex-1 flex flex-col">
       {/* Barra de navegación horizontal */}
-      <nav className="admin-nav">
-        <div className="nav-tabs">
+      <nav className="bg-white px-8 py-2 border-b border-gray-200 flex justify-between items-center">
+        <div className="flex gap-4">
           <button
-            className={`nav-tab ${activeTab === "planes" ? "active" : ""}`}
+            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
+              activeTab === "planes"
+                ? "text-blue-500 border-blue-500 font-semibold"
+                : "text-gray-600 border-transparent hover:text-gray-800"
+            }`}
             onClick={() => setActiveTab("planes")}
           >
             Planes de Estudio
           </button>
           <button
-            className={`nav-tab ${activeTab === "estadisticas" ? "active" : ""}`}
+            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
+              activeTab === "estadisticas"
+                ? "text-blue-500 border-blue-500 font-semibold"
+                : "text-gray-600 border-transparent hover:text-gray-800"
+            }`}
             onClick={() => setActiveTab("estadisticas")}
           >
             Estadísticas
           </button>
         </div>
-        <div className="user-profile">
-          <span className="user-email">{user.email}</span>
-          <span className="user-role">Administrador</span>
+        <div className="flex flex-col items-end">
+          <span className="text-sm text-gray-600">{user.email}</span>
+          <span className="text-xs text-gray-500">Administrador</span>
         </div>
       </nav>
 
       {/* Contenido principal */}
-      <div className="admin-content">{renderContent()}</div>
+      <div className="flex-1 p-8 max-w-6xl mx-auto w-full">{renderContent()}</div>
     </div>
   )
 }

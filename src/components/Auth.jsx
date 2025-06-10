@@ -5,7 +5,6 @@ import { supabase } from "../supabaseClient"
 
 // Este componente maneja tanto el login como el registro
 export default function Auth() {
-  <script src="https://accounts.google.com/gsi/client" async></script>
   // Estados para controlar el formulario
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -18,7 +17,7 @@ export default function Auth() {
   const handleEmailAuth = async (event) => {
     event.preventDefault()
     setLoading(true)
-    
+
     try {
       let result
       if (isSignUp) {
@@ -71,6 +70,10 @@ export default function Auth() {
         provider: "google",
         options: {
           redirectTo: "https://qlbpcnyjsvhxnncjorku.supabase.co/auth/v1/callback",
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
       if (error) {
@@ -83,18 +86,22 @@ export default function Auth() {
     }
   }
 
-    return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h1>{isSignUp ? "Crear Cuenta" : "Iniciar Sesión"}</h1>
+  return (
+    <div className="w-full max-w-md mx-auto p-8">
+      <div className="bg-white p-8 rounded-xl shadow-lg">
+        <h1 className="text-center mb-8 text-2xl font-bold text-gray-800">
+          {isSignUp ? "Crear Cuenta" : "Iniciar Sesión"}
+        </h1>
 
         {/* Formulario para email y contraseña */}
-        <form onSubmit={handleEmailAuth} className="auth-form">
+        <form onSubmit={handleEmailAuth} className="mb-6">
           {/* Campos adicionales para registro */}
           {isSignUp && (
             <>
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre:</label>
+              <div className="mb-4">
+                <label htmlFor="nombre" className="block mb-2 font-medium text-gray-600">
+                  Nombre:
+                </label>
                 <input
                   id="nombre"
                   type="text"
@@ -102,12 +109,14 @@ export default function Auth() {
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
                   required
-                  className="form-input"
+                  className="w-full px-3 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500"
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="apellido">Apellido:</label>
+              <div className="mb-4">
+                <label htmlFor="apellido" className="block mb-2 font-medium text-gray-600">
+                  Apellido:
+                </label>
                 <input
                   id="apellido"
                   type="text"
@@ -115,14 +124,16 @@ export default function Auth() {
                   value={apellido}
                   onChange={(e) => setApellido(e.target.value)}
                   required
-                  className="form-input"
+                  className="w-full px-3 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500"
                 />
               </div>
             </>
           )}
 
-          <div className="form-group">
-            <label htmlFor="email">Email:</label>
+          <div className="mb-4">
+            <label htmlFor="email" className="block mb-2 font-medium text-gray-600">
+              Email:
+            </label>
             <input
               id="email"
               type="email"
@@ -130,12 +141,14 @@ export default function Auth() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="form-input"
+              className="w-full px-3 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-2 font-medium text-gray-600">
+              Contraseña:
+            </label>
             <input
               id="password"
               type="password"
@@ -143,30 +156,45 @@ export default function Auth() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="form-input"
+              className="w-full px-3 py-3 border-2 border-gray-200 rounded-lg text-base transition-colors focus:outline-none focus:border-blue-500"
             />
           </div>
 
-          <button type="submit" disabled={loading} className="auth-button primary">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-base font-medium transition-colors mb-2"
+          >
             {loading ? "Cargando..." : isSignUp ? "Registrarse" : "Iniciar Sesión"}
           </button>
         </form>
 
         {/* Separador visual */}
-        <div className="separator">
-          <span>O</span>
+        <div className="text-center my-6 relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <span className="bg-white px-4 text-gray-400 relative">O</span>
         </div>
 
         {/* Botón para Google */}
-        <button onClick={handleGoogleAuth} disabled={loading} className="auth-button google">
+        <button
+          onClick={handleGoogleAuth}
+          disabled={loading}
+          className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg text-base font-medium transition-colors"
+        >
           {loading ? "Cargando..." : "Continuar con Google"}
         </button>
 
         {/* Botón para cambiar entre login y registro */}
-        <div className="toggle-mode">
-          <p>
+        <div className="text-center mt-6">
+          <p className="text-gray-500">
             {isSignUp ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}
-            <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="link-button">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-blue-500 hover:text-blue-600 underline ml-2 bg-none border-none cursor-pointer"
+            >
               {isSignUp ? "Inicia Sesión" : "Regístrate"}
             </button>
           </p>

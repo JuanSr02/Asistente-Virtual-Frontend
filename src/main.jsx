@@ -1,6 +1,7 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import App from "./App.jsx"
+import "./index.css"
 
 // Este es el punto de entrada de tu aplicación React
 // ReactDOM.createRoot crea la raíz donde se montará tu app

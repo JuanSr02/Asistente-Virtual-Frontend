@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 
 // Componente mejorado de gráfico de torta usando Canvas
-export default function PieChart({ data, title, colors = [] }) {
+export default function PieChart({ data, title, colors = [], showHover = false }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
-  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 })
   const [hoveredSegment, setHoveredSegment] = useState(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
@@ -75,11 +74,10 @@ export default function PieChart({ data, title, colors = [] }) {
     // Dibujar segmentos
     let currentAngle = -Math.PI / 2 // Empezar desde arriba
     const entries = Object.entries(data)
-    const segments = []
 
     entries.forEach(([label, value], index) => {
       const sliceAngle = (value / total) * 2 * Math.PI
-      const isHovered = hoveredSegment === index
+      const isHovered = showHover && hoveredSegment === index
 
       // Dibujar segmento
       ctx.beginPath()
@@ -92,124 +90,106 @@ export default function PieChart({ data, title, colors = [] }) {
       ctx.lineWidth = 2
       ctx.stroke()
 
-      // Guardar información del segmento para detección de hover
-      const midAngle = currentAngle + sliceAngle / 2
-      segments.push({
-        startAngle: currentAngle,
-        endAngle: currentAngle + sliceAngle,
-        label,
-        value,
-        percentage: ((value / total) * 100).toFixed(1),
-      })
-
       currentAngle += sliceAngle
     })
 
-    // Función para verificar si un punto está dentro de un segmento del círculo
-    const isPointInSegment = (x, y, centerX, centerY, radius, startAngle, endAngle) => {
-      const dx = x - centerX
-      const dy = y - centerY
-      const distance = Math.sqrt(dx * dx + dy * dy)
+    // Solo agregar event listeners si showHover está habilitado
+    if (showHover) {
+      // Función para verificar si un punto está dentro de un segmento del círculo
+      const isPointInSegment = (x, y, centerX, centerY, radius, startAngle, endAngle) => {
+        const dx = x - centerX
+        const dy = y - centerY
+        const distance = Math.sqrt(dx * dx + dy * dy)
 
-      if (distance > radius) return false
+        if (distance > radius) return false
 
-      let angle = Math.atan2(dy, dx)
-      if (angle < 0) angle += 2 * Math.PI
+        let angle = Math.atan2(dy, dx)
+        if (angle < 0) angle += 2 * Math.PI
 
-      // Ajustar ángulos para que coincidan con nuestro sistema
-      startAngle += Math.PI / 2
-      if (startAngle < 0) startAngle += 2 * Math.PI
+        // Ajustar ángulos para que coincidan con nuestro sistema
+        startAngle += Math.PI / 2
+        if (startAngle < 0) startAngle += 2 * Math.PI
 
-      endAngle += Math.PI / 2
-      if (endAngle < 0) endAngle += 2 * Math.PI
+        endAngle += Math.PI / 2
+        if (endAngle < 0) endAngle += 2 * Math.PI
 
-      // Manejar el caso donde el segmento cruza el eje x positivo
-      if (startAngle > endAngle) {
-        return angle >= startAngle || angle <= endAngle
+        // Manejar el caso donde el segmento cruza el eje x positivo
+        if (startAngle > endAngle) {
+          return angle >= startAngle || angle <= endAngle
+        }
+
+        return angle >= startAngle && angle <= endAngle
       }
 
-      return angle >= startAngle && angle <= endAngle
-    }
+      // Función para manejar el hover
+      const handleMouseMove = (e) => {
+        const rect = canvas.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const y = e.clientY - rect.top
 
-    // Función para manejar el hover
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
+        let found = false
+        let currentAngle = -Math.PI / 2
 
-      let found = false
+        entries.forEach(([label, value], index) => {
+          const sliceAngle = (value / total) * 2 * Math.PI
+          if (isPointInSegment(x, y, centerX, centerY, radius, currentAngle, currentAngle + sliceAngle)) {
+            setHoveredSegment(index)
+            found = true
+          }
+          currentAngle += sliceAngle
+        })
 
-      segments.forEach((segment, index) => {
-        if (isPointInSegment(x, y, centerX, centerY, radius, segment.startAngle, segment.endAngle)) {
-          setTooltip({
-            visible: true,
-            text: `${segment.label}: ${segment.value} (${segment.percentage}%)`,
-            x: e.clientX,
-            y: e.clientY,
-          })
-          setHoveredSegment(index)
-          found = true
+        if (!found) {
+          setHoveredSegment(null)
         }
-      })
+      }
 
-      if (!found) {
-        setTooltip({ visible: false, text: "", x: 0, y: 0 })
+      const handleMouseLeave = () => {
         setHoveredSegment(null)
       }
-    }
 
-    const handleMouseLeave = () => {
-      setTooltip({ visible: false, text: "", x: 0, y: 0 })
-      setHoveredSegment(null)
-    }
+      // Agregar event listeners
+      canvas.addEventListener("mousemove", handleMouseMove)
+      canvas.addEventListener("mouseleave", handleMouseLeave)
 
-    // Agregar event listeners
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mouseleave", handleMouseLeave)
-
-    // Cleanup
-    return () => {
-      canvas.removeEventListener("mousemove", handleMouseMove)
-      canvas.removeEventListener("mouseleave", handleMouseLeave)
+      // Cleanup
+      return () => {
+        canvas.removeEventListener("mousemove", handleMouseMove)
+        canvas.removeEventListener("mouseleave", handleMouseLeave)
+      }
     }
-  }, [data, chartColors, hoveredSegment, dimensions])
+  }, [data, chartColors, hoveredSegment, dimensions, showHover])
 
   if (!data || Object.keys(data).length === 0) {
     return (
-      <div className="chart-container">
-        <h4 className="chart-title">{title}</h4>
-        <div className="no-data">No hay datos disponibles</div>
+      <div className="bg-white rounded-xl p-6 shadow-md">
+        <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">{title}</h4>
+        <div className="text-center py-8 text-gray-400 italic">No hay datos disponibles</div>
       </div>
     )
   }
 
   return (
-    <div className="chart-container">
-      <h4 className="chart-title">{title}</h4>
-      <div className="pie-chart-wrapper" ref={containerRef}>
-        <canvas ref={canvasRef} className="pie-canvas" />
-        {tooltip.visible && (
-          <div
-            className="chart-tooltip"
-            style={{
-              left: `${tooltip.x + 10}px`,
-              top: `${tooltip.y - 30}px`,
-            }}
-          >
-            {tooltip.text}
-          </div>
-        )}
-        <div className="chart-legend">
+    <div className="bg-white rounded-xl p-6 shadow-md">
+      <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">{title}</h4>
+      <div className="relative" ref={containerRef}>
+        <canvas ref={canvasRef} className="mx-auto" />
+        <div className="flex flex-col gap-3 mt-6 w-full">
           {Object.entries(data).map(([label, value], index) => (
             <div
               key={label}
-              className="legend-item"
-              onMouseEnter={() => setHoveredSegment(index)}
-              onMouseLeave={() => setHoveredSegment(null)}
+              className={`flex items-center gap-3 p-2 rounded transition-colors ${
+                showHover && hoveredSegment === index ? "bg-gray-100" : ""
+              }`}
+              onMouseEnter={() => showHover && setHoveredSegment(index)}
+              onMouseLeave={() => showHover && setHoveredSegment(null)}
             >
-              <div className="legend-color" style={{ backgroundColor: chartColors[index % chartColors.length] }} />
-              <span className="legend-label">{label}</span>
-              <span className="legend-value">({value})</span>
+              <div
+                className="w-3.5 h-3.5 rounded"
+                style={{ backgroundColor: chartColors[index % chartColors.length] }}
+              />
+              <span className="text-gray-700 font-medium flex-1">{label}</span>
+              <span className="text-gray-600">({value})</span>
             </div>
           ))}
         </div>
