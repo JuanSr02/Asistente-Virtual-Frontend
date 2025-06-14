@@ -3,20 +3,31 @@
 import { useState, useEffect } from "react"
 import EstadisticasGenerales from "./EstadisticasGenerales"
 import EstadisticasMateria from "./EstadisticasMateria"
+import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 export default function Estadisticas() {
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem("estadisticasActiveTab") || "generales"
-  })
+  const { estadisticasState, setEstadisticasState } = useSessionPersistence()
+  const [activeTab, setActiveTab] = useState(estadisticasState.activeTab)
 
-  // Guardar la pestaña activa en localStorage
+  // Sincronizar el estado local con el persistente
   useEffect(() => {
-    localStorage.setItem("estadisticasActiveTab", activeTab)
-  }, [activeTab])
+    setActiveTab(estadisticasState.activeTab)
+  }, [estadisticasState.activeTab])
+
+  // Manejar cambio de pestaña
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setEstadisticasState("activeTab", tab)
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Estadísticas del Sistema</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Estadísticas del Sistema</h2>
+        <div className="text-sm text-gray-500">
+          Pestaña activa: <span className="font-medium">{activeTab === "generales" ? "Generales" : "Por Materia"}</span>
+        </div>
+      </div>
 
       {/* Pestañas */}
       <div className="flex gap-2 mb-8 border-b border-gray-200 pb-2">
@@ -26,7 +37,7 @@ export default function Estadisticas() {
               ? "text-blue-500 border-blue-500 font-semibold"
               : "text-gray-600 border-transparent hover:text-gray-800"
           }`}
-          onClick={() => setActiveTab("generales")}
+          onClick={() => handleTabChange("generales")}
         >
           Estadísticas Generales
         </button>
@@ -36,7 +47,7 @@ export default function Estadisticas() {
               ? "text-blue-500 border-blue-500 font-semibold"
               : "text-gray-600 border-transparent hover:text-gray-800"
           }`}
-          onClick={() => setActiveTab("materia")}
+          onClick={() => handleTabChange("materia")}
         >
           Estadísticas por Materia
         </button>

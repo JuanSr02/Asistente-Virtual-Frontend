@@ -66,7 +66,7 @@ const planesEstudioService = {
    */
   obtenerMateriasPorPlan: async (codigoPlan) => {
     try {
-      const response = await api.get(`${API_ROUTES.ADMIN.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`)
+      const response = await api.get(`${API_ROUTES.SHARED.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`)
       return response.data
     } catch (error) {
       console.error("Error al obtener materias por plan:", error)

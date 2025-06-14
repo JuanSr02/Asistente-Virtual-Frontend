@@ -31,7 +31,7 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Materias del Plan: ${plan?.propuesta || ""}`} maxWidth="38rem">
+    <Modal isOpen={isOpen} onClose={onClose} title={`Materias del Plan: ${plan?.propuesta || ""}`} maxWidth="50rem">
       <div className="min-h-[18.75rem]">
         {loading ? (
           <MateriaListSkeleton count={12} />

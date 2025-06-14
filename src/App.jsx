@@ -34,13 +34,10 @@ function App() {
     // Escuchar cambios en la autenticación
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      // Solo actualizar el estado si realmente hay un cambio en la sesión
-      if (JSON.stringify(session) !== JSON.stringify(session)) {
-        console.log("Auth state changed:", _event, session)
-        setSession(session)
-        setLoading(false)
-      }
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session)
+      setSession(session)
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

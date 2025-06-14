@@ -30,9 +30,11 @@ export default function NavBar({ user, role }) {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) {
+        console.error("Error al cerrar sesión:", error)
         alert("Error al cerrar sesión: " + error.message)
       }
     } catch (error) {
+      console.error("Error:", error)
       alert("Error: " + error.message)
     } finally {
       setLoading(false)
@@ -45,7 +47,7 @@ export default function NavBar({ user, role }) {
         {/* Logo y título */}
         <div className="navbar-brand">
           <h2>🎓 Sistema Académico</h2>
-          <span className="role-badge role-badge-{role.toLowerCase()}">
+          <span className={`role-badge role-badge-${role.toLowerCase()}`}>
             {role === "ADMINISTRADOR" ? "Admin" : "Estudiante"}
           </span>
         </div>
@@ -71,7 +73,7 @@ export default function NavBar({ user, role }) {
             <span className="user-role">{role}</span>
           </div>
           <button onClick={handleSignOut} disabled={loading} className="logout-button">
-            {loading ? "..." : "🚪 Salir"}
+            {loading ? "Cerrando..." : "🚪 Salir"}
           </button>
         </div>
       </div>

@@ -4,12 +4,35 @@ import { useUserRole } from "../hooks/useUserRole"
 import AdminDashboard from "./AdminDashboard"
 import StudentDashboard from "./StudentDashboard"
 import { supabase } from "../supabaseClient"
+import { useState } from "react"
+import { useSessionPersistence } from "../hooks/useSessionPersistence"
 
 // Componente principal del dashboard que decide qué vista mostrar
 export default function Dashboard({ user }) {
   const { role, loading, error } = useUserRole(user)
+  const [signingOut, setSigningOut] = useState(false)
+  const { clearAllSession } = useSessionPersistence()
 
   console.log("Dashboard - Usuario:", user?.email, "Rol:", role, "Loading:", loading, "Error:", error)
+
+  const handleSignOut = async () => {
+    setSigningOut(true)
+    try {
+      // Limpiar toda la sesión persistente antes de cerrar sesión
+      clearAllSession()
+
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("Error al cerrar sesión:", error)
+        alert("Error al cerrar sesión: " + error.message)
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      alert("Error: " + error.message)
+    } finally {
+      setSigningOut(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -39,10 +62,11 @@ export default function Dashboard({ user }) {
             🔄 Reintentar
           </button>
           <button
-            onClick={() => supabase.auth.signOut()}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
           >
-            🚪 Cerrar Sesión
+            {signingOut ? "Cerrando..." : "🚪 Cerrar Sesión"}
           </button>
         </div>
       </div>
@@ -60,10 +84,11 @@ export default function Dashboard({ user }) {
               {role}
             </span>
             <button
-              onClick={() => supabase.auth.signOut()}
-              className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             >
-              Cerrar Sesión
+              {signingOut ? "Cerrando..." : "Cerrar Sesión"}
             </button>
           </div>
         </div>

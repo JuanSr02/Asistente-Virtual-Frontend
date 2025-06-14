@@ -1,12 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import PlanesEstudio from "./admin/PlanesEstudio"
 import Estadisticas from "./admin/Estadisticas"
+import { useSessionPersistence } from "../hooks/useSessionPersistence"
 
 // Dashboard específico para administradores
 export default function AdminDashboard({ user }) {
-  const [activeTab, setActiveTab] = useState("planes")
+  const { dashboardState, setDashboardState, updateLastVisited } = useSessionPersistence()
+  const [activeTab, setActiveTab] = useState(dashboardState.activeTab)
+
+  // Actualizar la última visita cuando el componente se monta
+  useEffect(() => {
+    updateLastVisited()
+  }, [])
+
+  // Sincronizar el estado local con el persistente
+  useEffect(() => {
+    setActiveTab(dashboardState.activeTab)
+  }, [dashboardState.activeTab])
+
+  // Manejar cambio de pestaña
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    setDashboardState("activeTab", tab)
+    updateLastVisited()
+  }
 
   // Renderizar el contenido según la pestaña activa
   const renderContent = () => {
@@ -31,7 +50,7 @@ export default function AdminDashboard({ user }) {
                 ? "text-blue-500 border-blue-500 font-semibold"
                 : "text-gray-600 border-transparent hover:text-gray-800"
             }`}
-            onClick={() => setActiveTab("planes")}
+            onClick={() => handleTabChange("planes")}
           >
             Planes de Estudio
           </button>
@@ -41,7 +60,7 @@ export default function AdminDashboard({ user }) {
                 ? "text-blue-500 border-blue-500 font-semibold"
                 : "text-gray-600 border-transparent hover:text-gray-800"
             }`}
-            onClick={() => setActiveTab("estadisticas")}
+            onClick={() => handleTabChange("estadisticas")}
           >
             Estadísticas
           </button>
@@ -49,6 +68,11 @@ export default function AdminDashboard({ user }) {
         <div className="flex flex-col items-end">
           <span className="text-sm text-gray-600">{user.email}</span>
           <span className="text-xs text-gray-500">Administrador</span>
+          {dashboardState.lastVisited && (
+            <span className="text-xs text-gray-400">
+              Última visita: {new Date(dashboardState.lastVisited).toLocaleTimeString()}
+            </span>
+          )}
         </div>
       </nav>
 

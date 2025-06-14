@@ -5,16 +5,24 @@ import planesEstudioService from "../../services/planesEstudioService"
 import { APP_CONFIG } from "../../config"
 import { TableSkeleton } from "../ui/Skeleton"
 import MateriasModal from "./MateriasModal"
+import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 export default function PlanesEstudio() {
+  const { planesState, setPlanesState } = useSessionPersistence()
+
   const [planes, setPlanes] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [selectedPlan, setSelectedPlan] = useState(null)
+  const [selectedPlan, setSelectedPlan] = useState(planesState.selectedPlan)
   const [uploading, setUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(null)
   const [showMateriasModal, setShowMateriasModal] = useState(false)
   const fileInputRef = useRef(null)
+
+  // Sincronizar el estado local con el persistente
+  useEffect(() => {
+    setSelectedPlan(planesState.selectedPlan)
+  }, [planesState.selectedPlan])
 
   // Cargar planes al montar el componente
   useEffect(() => {
@@ -28,6 +36,12 @@ export default function PlanesEstudio() {
     try {
       const data = await planesEstudioService.obtenerPlanes()
       setPlanes(data)
+
+      // Verificar si el plan seleccionado guardado aún existe
+      if (planesState.selectedPlan && !data.some((plan) => plan.codigo === planesState.selectedPlan.codigo)) {
+        setSelectedPlan(null)
+        setPlanesState("selectedPlan", null)
+      }
     } catch (err) {
       console.error("Error al cargar planes:", err)
       setError("No se pudieron cargar los planes de estudio. Por favor, intente nuevamente.")
@@ -38,7 +52,9 @@ export default function PlanesEstudio() {
 
   // Función para manejar la selección de un plan
   const handleSelectPlan = (plan) => {
-    setSelectedPlan(plan.codigo === selectedPlan?.codigo ? null : plan)
+    const newSelectedPlan = plan.codigo === selectedPlan?.codigo ? null : plan
+    setSelectedPlan(newSelectedPlan)
+    setPlanesState("selectedPlan", newSelectedPlan)
   }
 
   // Función para manejar la carga de un archivo
@@ -65,6 +81,8 @@ export default function PlanesEstudio() {
       )
       // Recargar la lista de planes
       cargarPlanes()
+      // Actualizar timestamp de última actualización
+      setPlanesState("lastUpdate", new Date().toISOString())
     } catch (err) {
       console.error("Error al cargar archivo:", err)
       setError("Error al cargar el plan de estudio. Verifique el formato del archivo.")
@@ -87,9 +105,12 @@ export default function PlanesEstudio() {
     try {
       await planesEstudioService.eliminarPlan(selectedPlan.codigo)
       setSelectedPlan(null)
+      setPlanesState("selectedPlan", null)
       // Recargar la lista de planes
       cargarPlanes()
       setUploadSuccess("Plan de estudio eliminado correctamente")
+      // Actualizar timestamp de última actualización
+      setPlanesState("lastUpdate", new Date().toISOString())
     } catch (err) {
       console.error("Error al eliminar plan:", err)
       setError("No se pudo eliminar el plan de estudio. Por favor, intente nuevamente.")
@@ -107,7 +128,14 @@ export default function PlanesEstudio() {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 pb-3 border-b border-gray-200">Planes de Estudio</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 pb-3 border-b border-gray-200">Planes de Estudio</h2>
+        {planesState.lastUpdate && (
+          <div className="text-sm text-gray-500">
+            Última actualización: {new Date(planesState.lastUpdate).toLocaleString()}
+          </div>
+        )}
+      </div>
 
       {/* Sección de acciones */}
       <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
@@ -186,8 +214,8 @@ export default function PlanesEstudio() {
         </div>
       )}
 
-      {/* Tabla de planes */}
-      <div className="overflow-x-auto">
+      {/* Tabla de planes - Modificado para eliminar la barra de desplazamiento horizontal */}
+      <div className="w-full overflow-hidden">
         {loading ? (
           <TableSkeleton rows={5} columns={3} />
         ) : planes.length === 0 ? (
@@ -197,46 +225,48 @@ export default function PlanesEstudio() {
             <p className="text-sm text-gray-400">Cargue un archivo Excel para comenzar</p>
           </div>
         ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Código
-                </th>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Propuesta
-                </th>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Cantidad de Materias
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {planes.map((plan) => (
-                <tr
-                  key={plan.codigo}
-                  className={`cursor-pointer transition-all duration-200 border-l-4 ${
-                    selectedPlan?.codigo === plan.codigo
-                      ? "bg-blue-50 border-l-blue-500 shadow-sm"
-                      : "border-l-transparent hover:bg-gray-50 hover:border-l-gray-300 hover:transform hover:translate-x-0.5"
-                  }`}
-                  onClick={() => handleSelectPlan(plan)}
-                >
-                  <td className="px-4 py-4 border-b border-gray-200">{plan.codigo}</td>
-                  <td className="px-4 py-4 border-b border-gray-200">{plan.propuesta}</td>
-                  <td className="px-4 py-4 border-b border-gray-200">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        selectedPlan?.codigo === plan.codigo ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {plan.cantidadMateriasCargadas}
-                    </span>
-                  </td>
+          <div className="w-full">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                    Código
+                  </th>
+                  <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                    Propuesta
+                  </th>
+                  <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
+                    Cantidad de Materias
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {planes.map((plan) => (
+                  <tr
+                    key={plan.codigo}
+                    className={`cursor-pointer transition-all duration-200 border-l-4 ${
+                      selectedPlan?.codigo === plan.codigo
+                        ? "bg-blue-50 border-l-blue-500 shadow-sm"
+                        : "border-l-transparent hover:bg-gray-50 hover:border-l-gray-300 hover:transform hover:translate-x-0.5"
+                    }`}
+                    onClick={() => handleSelectPlan(plan)}
+                  >
+                    <td className="px-4 py-4 border-b border-gray-200">{plan.codigo}</td>
+                    <td className="px-4 py-4 border-b border-gray-200">{plan.propuesta}</td>
+                    <td className="px-4 py-4 border-b border-gray-200">
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          selectedPlan?.codigo === plan.codigo ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-600"
+                        }`}
+                      >
+                        {plan.cantidadMateriasCargadas}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

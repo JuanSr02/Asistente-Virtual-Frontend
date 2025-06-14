@@ -6,8 +6,11 @@ import planesEstudioService from "../../services/planesEstudioService"
 import PieChart from "./charts/PieChart"
 import BarChart from "./charts/BarChart"
 import { MetricSkeleton, ChartSkeleton } from "../ui/Skeleton"
+import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 export default function EstadisticasMateria() {
+  const { estadisticasState, setEstadisticasState } = useSessionPersistence()
+
   const [estadisticas, setEstadisticas] = useState(() => {
     // Intentar cargar datos guardados del localStorage
     const savedData = localStorage.getItem("estadisticasMateria")
@@ -17,15 +20,11 @@ export default function EstadisticasMateria() {
   const [error, setError] = useState(null)
   const [loadingMessage, setLoadingMessage] = useState("")
 
-  // Estados para los comboboxes
+  // Estados para los comboboxes - usar el estado persistente
   const [planes, setPlanes] = useState([])
   const [materias, setMaterias] = useState([])
-  const [planSeleccionado, setPlanSeleccionado] = useState(() => {
-    return localStorage.getItem("planSeleccionado") || ""
-  })
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState(() => {
-    return localStorage.getItem("materiaSeleccionada") || ""
-  })
+  const [planSeleccionado, setPlanSeleccionado] = useState(estadisticasState.planSeleccionado)
+  const [materiaSeleccionada, setMateriaSeleccionada] = useState(estadisticasState.materiaSeleccionada)
 
   // Estados de carga
   const [loadingPlanes, setLoadingPlanes] = useState(true)
@@ -35,6 +34,12 @@ export default function EstadisticasMateria() {
     return savedTime ? new Date(savedTime) : null
   })
 
+  // Sincronizar estados locales con el estado persistente
+  useEffect(() => {
+    setPlanSeleccionado(estadisticasState.planSeleccionado)
+    setMateriaSeleccionada(estadisticasState.materiaSeleccionada)
+  }, [estadisticasState.planSeleccionado, estadisticasState.materiaSeleccionada])
+
   // Cargar planes al montar el componente
   useEffect(() => {
     cargarPlanes()
@@ -43,30 +48,33 @@ export default function EstadisticasMateria() {
   // Cargar materias cuando se selecciona un plan
   useEffect(() => {
     if (planSeleccionado) {
-      localStorage.setItem("planSeleccionado", planSeleccionado)
+      setEstadisticasState("planSeleccionado", planSeleccionado)
       cargarMaterias(planSeleccionado)
-      // Solo limpiar materia seleccionada si cambia el plan y no estamos cargando desde localStorage
-      if (materiaSeleccionada && materiaSeleccionada !== localStorage.getItem("materiaSeleccionada")) {
+      // Solo limpiar materia seleccionada si cambia el plan y no estamos cargando desde estado persistente
+      if (materiaSeleccionada && materiaSeleccionada !== estadisticasState.materiaSeleccionada) {
         setMateriaSeleccionada("")
+        setEstadisticasState("materiaSeleccionada", "")
         setEstadisticas(null)
         localStorage.removeItem("estadisticasMateria")
         localStorage.removeItem("estadisticasMateriaTime")
+        localStorage.removeItem("savedMateriaCode")
       }
     } else {
-      localStorage.removeItem("planSeleccionado")
+      setEstadisticasState("planSeleccionado", "")
       setMaterias([])
       setMateriaSeleccionada("")
+      setEstadisticasState("materiaSeleccionada", "")
       setEstadisticas(null)
-      localStorage.removeItem("materiaSeleccionada")
       localStorage.removeItem("estadisticasMateria")
       localStorage.removeItem("estadisticasMateriaTime")
+      localStorage.removeItem("savedMateriaCode")
     }
   }, [planSeleccionado])
 
   // Cargar estadísticas cuando se selecciona una materia
   useEffect(() => {
     if (materiaSeleccionada) {
-      localStorage.setItem("materiaSeleccionada", materiaSeleccionada)
+      setEstadisticasState("materiaSeleccionada", materiaSeleccionada)
       // Solo cargar si no hay datos guardados para esta materia
       const savedData = localStorage.getItem("estadisticasMateria")
       const savedMateria = localStorage.getItem("savedMateriaCode")
@@ -74,7 +82,7 @@ export default function EstadisticasMateria() {
         buscarEstadisticasRapido(materiaSeleccionada)
       }
     } else {
-      localStorage.removeItem("materiaSeleccionada")
+      setEstadisticasState("materiaSeleccionada", "")
       setEstadisticas(null)
       localStorage.removeItem("estadisticasMateria")
       localStorage.removeItem("estadisticasMateriaTime")
@@ -89,11 +97,13 @@ export default function EstadisticasMateria() {
       setPlanes(data)
 
       // Si hay un plan guardado, verificar que exista en los datos cargados
-      const planGuardado = localStorage.getItem("planSeleccionado")
-      if (planGuardado && !data.some((plan) => plan.codigo === planGuardado)) {
+      if (
+        estadisticasState.planSeleccionado &&
+        !data.some((plan) => plan.codigo === estadisticasState.planSeleccionado)
+      ) {
         setPlanSeleccionado("")
-        localStorage.removeItem("planSeleccionado")
-        localStorage.removeItem("materiaSeleccionada")
+        setEstadisticasState("planSeleccionado", "")
+        setEstadisticasState("materiaSeleccionada", "")
         localStorage.removeItem("estadisticasMateria")
         localStorage.removeItem("estadisticasMateriaTime")
         localStorage.removeItem("savedMateriaCode")
@@ -114,10 +124,12 @@ export default function EstadisticasMateria() {
       setMaterias(data)
 
       // Si hay una materia guardada, verificar que exista en los datos cargados
-      const materiaGuardada = localStorage.getItem("materiaSeleccionada")
-      if (materiaGuardada && !data.some((materia) => materia.codigo === materiaGuardada)) {
+      if (
+        estadisticasState.materiaSeleccionada &&
+        !data.some((materia) => materia.codigo === estadisticasState.materiaSeleccionada)
+      ) {
         setMateriaSeleccionada("")
-        localStorage.removeItem("materiaSeleccionada")
+        setEstadisticasState("materiaSeleccionada", "")
         localStorage.removeItem("estadisticasMateria")
         localStorage.removeItem("estadisticasMateriaTime")
         localStorage.removeItem("savedMateriaCode")
@@ -430,9 +442,7 @@ export default function EstadisticasMateria() {
                   <div className="text-3xl opacity-80">⭐</div>
                   <div>
                     <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Dificultad</h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioDificultad.toFixed(1)}
-                    </div>
+                    <div className="text-3xl font-bold text-gray-800">{estadisticas.promedioDificultad.toFixed(1)}</div>
                   </div>
                 </div>
               </div>
