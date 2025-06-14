@@ -24,9 +24,6 @@ export default function Estadisticas() {
     <div className="bg-white rounded-lg shadow-md p-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Estadísticas del Sistema</h2>
-        <div className="text-sm text-gray-500">
-          Pestaña activa: <span className="font-medium">{activeTab === "generales" ? "Generales" : "Por Materia"}</span>
-        </div>
       </div>
 
       {/* Pestañas */}

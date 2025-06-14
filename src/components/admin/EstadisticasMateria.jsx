@@ -244,7 +244,7 @@ export default function EstadisticasMateria() {
               <option value="">{loadingPlanes ? "Cargando..." : "Seleccione un plan"}</option>
               {planes.map((plan) => (
                 <option key={plan.codigo} value={plan.codigo}>
-                  {plan.propuesta}
+                  {plan.propuesta + " (" +plan.codigo + ")"}
                 </option>
               ))}
             </select>
@@ -279,22 +279,6 @@ export default function EstadisticasMateria() {
             </select>
           </div>
         </div>
-
-        {/* Información adicional */}
-        {planSeleccionado && (
-          <div className="flex flex-col gap-2 p-4 bg-white rounded-lg border-l-4 border-blue-500">
-            <span className="text-sm text-gray-600">
-              <strong className="text-gray-800">Plan seleccionado:</strong>{" "}
-              {planes.find((p) => p.codigo === planSeleccionado)?.propuesta}
-            </span>
-            {materiaSeleccionada && (
-              <span className="text-sm text-gray-600">
-                <strong className="text-gray-800">Materia seleccionada:</strong>{" "}
-                {materias.find((m) => m.codigo === materiaSeleccionada)?.nombre}
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Mensajes de estado */}
