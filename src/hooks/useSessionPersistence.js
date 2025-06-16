@@ -22,8 +22,11 @@ export function useSessionPersistence() {
 
   // Estado de planes de estudio
   const [planesState, setPlanesState, clearPlanesState] = usePersistentStateGroup("planes", {
+    planes: [],  // Añade esto para guardar la lista de planes
     selectedPlan: null,
+    showMateriasModal: false,
     lastUpdate: null,
+    lastFetch: null  // Añade timestamp de última carga
   })
 
   // Función para limpiar toda la sesión
@@ -32,13 +35,12 @@ export function useSessionPersistence() {
     clearEstadisticasState()
     clearPlanesState()
 
-    // Limpiar otros datos relacionados
     if (typeof window !== "undefined") {
-      localStorage.removeItem("estadisticasGenerales")
-      localStorage.removeItem("estadisticasGeneralesTime")
-      localStorage.removeItem("estadisticasMateria")
-      localStorage.removeItem("estadisticasMateriaTime")
-      localStorage.removeItem("savedMateriaCode")
+      sessionStorage.removeItem("estadisticasGenerales")
+      sessionStorage.removeItem("estadisticasGeneralesTime")
+      sessionStorage.removeItem("estadisticasMateria")
+      sessionStorage.removeItem("estadisticasMateriaTime")
+      sessionStorage.removeItem("savedMateriaCode")
     }
   }
 

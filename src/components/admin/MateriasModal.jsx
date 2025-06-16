@@ -9,19 +9,35 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
   const [materias, setMaterias] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false)
 
   useEffect(() => {
     if (isOpen && plan) {
-      cargarMaterias()
+      const cacheKey = `materias_${plan.codigo}`
+
+      // Si ya se cargaron antes, evitamos recargar (y no mostramos skeleton)
+      const saved = sessionStorage.getItem(cacheKey)
+      if (saved) {
+        setMaterias(JSON.parse(saved))
+        setLoading(false)
+        setError(null)
+        setHasFetchedOnce(true)
+        return
+      }
+
+      // Si nunca se cargaron, ahora sí las cargamos
+      cargarMaterias(plan.codigo)
     }
   }, [isOpen, plan])
 
-  const cargarMaterias = async () => {
+  const cargarMaterias = async (codigo) => {
     setLoading(true)
     setError(null)
     try {
-      const data = await planesEstudioService.obtenerMateriasPorPlan(plan.codigo)
+      const data = await planesEstudioService.obtenerMateriasPorPlan(codigo)
       setMaterias(data)
+      sessionStorage.setItem(`materias_${codigo}`, JSON.stringify(data))
+      setHasFetchedOnce(true)
     } catch (err) {
       console.error("Error al cargar materias:", err)
       setError("No se pudieron cargar las materias del plan.")
@@ -31,16 +47,21 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Materias del Plan: ${plan?.propuesta || ""}`} maxWidth="50rem">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={`Materias del Plan: ${plan?.propuesta || ""} (${plan?.codigo || ""})`} 
+      maxWidth="50rem"
+    >
       <div className="min-h-[18.75rem]">
-        {loading ? (
+        {loading && !hasFetchedOnce ? (
           <MateriaListSkeleton count={12} />
         ) : error ? (
           <div className="text-center py-12">
             <div className="text-5xl mb-4">⚠️</div>
             <p className="text-gray-600 mb-4">{error}</p>
             <button
-              onClick={cargarMaterias}
+              onClick={() => cargarMaterias(plan.codigo)}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
             >
               Reintentar
