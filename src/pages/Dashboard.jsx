@@ -1,7 +1,7 @@
 "use client"
 
 import { useUserRole } from "../hooks/useUserRole"
-import AdminDashboard from "./AdminDashboard"
+import AdminDashboard from "./admin/AdminDashboard"
 import StudentDashboard from "./StudentDashboard"
 import { supabase } from "../supabaseClient"
 import { useState } from "react"

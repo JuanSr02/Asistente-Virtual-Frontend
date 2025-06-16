@@ -1,69 +1,52 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "./supabaseClient"
-import Auth from "./components/Auth"
-import Dashboard from "./components/Dashboard"
+import Auth from "./pages/Auth"
+import Dashboard from "./pages/Dashboard"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+<ToastContainer position="top-right" autoClose={3000} />
 
-// Componente principal de la aplicación
-function App() {
+export default function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Obtener la sesión actual al cargar la app
-    const getInitialSession = async () => {
+    const initSession = async () => {
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession()
-        if (error) {
-          console.error("Error obteniendo sesión:", error)
-        }
-        setSession(session)
-      } catch (error) {
-        console.error("Error:", error)
+        const { data, error } = await supabase.auth.getSession()
+        if (error) console.error("Error obteniendo sesión:", error)
+        setSession(data?.session || null)
+      } catch (err) {
+        console.error("Error inesperado al obtener sesión:", err)
       } finally {
         setLoading(false)
       }
     }
 
-    getInitialSession()
+    initSession()
 
-    // Escuchar cambios en la autenticación
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session)
-      setSession(session)
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => listener?.subscription?.unsubscribe?.()
   }, [])
 
-  // Mostrar loading mientras se verifica la sesión
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-gray-600">Verificando autenticación...</p>
+        <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
+        <p className="text-muted-foreground">Verificando autenticación...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Si no hay sesión, mostrar el formulario de auth */}
-      {!session ? (
-        <Auth />
-      ) : (
-        /* Si hay sesión, mostrar el dashboard */
-        <Dashboard user={session.user} />
-      )}
-    </div>
+    <main className="min-h-screen bg-background text-foreground">
+      {!session ? <Auth /> : <Dashboard user={session.user} />}
+    </main>
   )
 }
-
-export default App

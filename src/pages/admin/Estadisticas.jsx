@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import EstadisticasGenerales from "./EstadisticasGenerales"
-import EstadisticasMateria from "./EstadisticasMateria"
+import EstadisticasMateria from "../EstadisticasMateria"
 import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 export default function Estadisticas() {

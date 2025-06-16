@@ -2,8 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
+/* No es recomendable redefinir font-family sin usar Tailwind */
+/* Mejor usar el sistema de fuentes de Tailwind o agregar font-family con @apply */
+@layer base {
+  body {
+    @apply font-sans; /* Tailwind ya define font-sans con sistema moderno */
+  }
 }
 
 @layer utilities {
@@ -14,6 +18,7 @@ body {
 
 @layer base {
   :root {
+    /* Variables para modo claro */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -49,6 +54,7 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
+    /* Variables para modo oscuro */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -82,13 +88,14 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
+  /* Aplicar borde usando la variable --border (sería bueno que lo uses en componentes que lo necesiten) */
+  *, *::before, *::after {
+    border-color: hsl(var(--border));
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+    /* Alternativa para usar variables en Tailwind con custom properties */
   }
 }

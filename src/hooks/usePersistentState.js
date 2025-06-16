@@ -9,28 +9,30 @@ import { useState } from "react"
  * @returns {[any, function]} - [valor, setter]
  */
 export function usePersistentState(key, defaultValue) {
+  const isClient = typeof window !== "undefined"
+
   const [state, setState] = useState(() => {
-    if (typeof window === "undefined") return defaultValue
+    if (!isClient) return defaultValue
 
     try {
-      const item = sessionStorage.getItem(key)
-      return item ? JSON.parse(item) : defaultValue
-    } catch (error) {
-      console.warn(`Error loading ${key} from sessionStorage:`, error)
+      const stored = sessionStorage.getItem(key)
+      return stored !== null ? JSON.parse(stored) : defaultValue
+    } catch (err) {
+      console.warn(`⚠️ Error al leer "${key}" desde sessionStorage:`, err)
       return defaultValue
     }
   })
 
   const setValue = (value) => {
     try {
-      const valueToStore = value instanceof Function ? value(state) : value
-      setState(valueToStore)
+      const newValue = value instanceof Function ? value(state) : value
+      setState(newValue)
 
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(key, JSON.stringify(valueToStore))
+      if (isClient) {
+        sessionStorage.setItem(key, JSON.stringify(newValue))
       }
-    } catch (error) {
-      console.warn(`Error saving ${key} to sessionStorage:`, error)
+    } catch (err) {
+      console.warn(`⚠️ Error al guardar "${key}" en sessionStorage:`, err)
     }
   }
 
@@ -39,50 +41,55 @@ export function usePersistentState(key, defaultValue) {
 
 /**
  * Hook para manejar múltiples estados persistentes relacionados con sessionStorage
- * @param {string} namespace - Namespace para agrupar las claves
- * @param {object} defaultValues - Objeto con valores por defecto
- * @returns {[object, function, function]} - [estados, setter, clear]
+ * @param {string} namespace - Prefijo de clave para sessionStorage
+ * @param {object} defaultValues - Objeto con los valores iniciales
+ * @returns {[object, function, function]} - [estado, setter, clear]
  */
 export function usePersistentStateGroup(namespace, defaultValues) {
-  const [states, setStates] = useState(() => {
-    if (typeof window === "undefined") return defaultValues
+  const isClient = typeof window !== "undefined"
 
-    const savedStates = {}
-    Object.keys(defaultValues).forEach((key) => {
+  const [states, setStates] = useState(() => {
+    if (!isClient) return defaultValues
+
+    const loaded = {}
+
+    for (const key of Object.keys(defaultValues)) {
       try {
-        const item = sessionStorage.getItem(`${namespace}_${key}`)
-        savedStates[key] = item ? JSON.parse(item) : defaultValues[key]
-      } catch (error) {
-        console.warn(`Error loading ${namespace}_${key} from sessionStorage:`, error)
-        savedStates[key] = defaultValues[key]
+        const stored = sessionStorage.getItem(`${namespace}_${key}`)
+        loaded[key] = stored !== null ? JSON.parse(stored) : defaultValues[key]
+      } catch (err) {
+        console.warn(`⚠️ Error al leer "${namespace}_${key}" desde sessionStorage:`, err)
+        loaded[key] = defaultValues[key]
       }
-    })
-    return savedStates
+    }
+
+    return loaded
   })
 
   const setGroupState = (key, value) => {
     try {
-      const valueToStore = value instanceof Function ? value(states[key]) : value
+      const newValue = value instanceof Function ? value(states[key]) : value
 
       setStates((prev) => ({
         ...prev,
-        [key]: valueToStore,
+        [key]: newValue,
       }))
 
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(`${namespace}_${key}`, JSON.stringify(valueToStore))
+      if (isClient) {
+        sessionStorage.setItem(`${namespace}_${key}`, JSON.stringify(newValue))
       }
-    } catch (error) {
-      console.warn(`Error saving ${namespace}_${key} to sessionStorage:`, error)
+    } catch (err) {
+      console.warn(`⚠️ Error al guardar "${namespace}_${key}" en sessionStorage:`, err)
     }
   }
 
   const clearGroupState = () => {
-    Object.keys(defaultValues).forEach((key) => {
-      if (typeof window !== "undefined") {
+    if (isClient) {
+      for (const key of Object.keys(defaultValues)) {
         sessionStorage.removeItem(`${namespace}_${key}`)
       }
-    })
+    }
+
     setStates(defaultValues)
   }
 

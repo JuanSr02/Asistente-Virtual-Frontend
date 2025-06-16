@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import planesEstudioService from "../../services/planesEstudioService"
 import { APP_CONFIG } from "../../config"
-import { TableSkeleton } from "../ui/Skeleton"
+import { TableSkeleton } from "../../components/Skeleton"
 import MateriasModal from "./MateriasModal"
 import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 

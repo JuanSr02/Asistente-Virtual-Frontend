@@ -2,50 +2,32 @@
 
 import { useEffect, useRef, useState } from "react"
 
-// Componente mejorado de gráfico de torta usando Canvas
 export default function PieChart({ data, title, colors = [], showHover = false }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const [hoveredSegment, setHoveredSegment] = useState(null)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
-  // Colores por defecto
   const defaultColors = [
-    "#4299e1",
-    "#48bb78",
-    "#ed8936",
-    "#9f7aea",
-    "#38b2ac",
-    "#f56565",
-    "#ecc94b",
-    "#667eea",
-    "#f093fb",
-    "#4fd1c7",
+    "#4299e1", "#48bb78", "#ed8936", "#9f7aea", "#38b2ac",
+    "#f56565", "#ecc94b", "#667eea", "#f093fb", "#4fd1c7",
   ]
 
   const chartColors = colors.length > 0 ? colors : defaultColors
 
-  // Función para ajustar el tamaño del canvas al contenedor
-  const updateDimensions = () => {
-    if (containerRef.current) {
-      const { width } = containerRef.current.getBoundingClientRect()
-      // Para un gráfico de torta, queremos mantener una relación de aspecto 1:1
-      const size = Math.min(width, 350) // Limitar altura máxima
-      setDimensions({ width: size, height: size })
-    }
-  }
-
-  // Efecto para manejar el redimensionamiento
+  // Ajustar tamaño del canvas a su contenedor
   useEffect(() => {
-    updateDimensions()
-
-    // Agregar event listener para redimensionar
-    window.addEventListener("resize", updateDimensions)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", updateDimensions)
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const { width } = containerRef.current.getBoundingClientRect()
+        const size = Math.min(width, 350)
+        setDimensions({ width: size, height: size })
+      }
     }
+
+    updateDimensions()
+    window.addEventListener("resize", updateDimensions)
+    return () => window.removeEventListener("resize", updateDimensions)
   }, [])
 
   useEffect(() => {
@@ -54,7 +36,6 @@ export default function PieChart({ data, title, colors = [], showHover = false }
     const canvas = canvasRef.current
     const ctx = canvas.getContext("2d")
 
-    // Establecer el tamaño del canvas
     canvas.width = dimensions.width
     canvas.height = dimensions.height
 
@@ -62,27 +43,28 @@ export default function PieChart({ data, title, colors = [], showHover = false }
     const centerY = canvas.height / 2
     const radius = Math.min(centerX, centerY) - 20
 
-    // Limpiar canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Calcular total
-    const values = Object.values(data)
+    const entries = Object.entries(data)
+    const values = entries.map(([, value]) => value)
     const total = values.reduce((sum, value) => sum + value, 0)
-
     if (total === 0) return
 
-    // Dibujar segmentos
-    let currentAngle = -Math.PI / 2 // Empezar desde arriba
-    const entries = Object.entries(data)
+    let currentAngle = -Math.PI / 2
 
     entries.forEach(([label, value], index) => {
       const sliceAngle = (value / total) * 2 * Math.PI
       const isHovered = showHover && hoveredSegment === index
 
-      // Dibujar segmento
       ctx.beginPath()
       ctx.moveTo(centerX, centerY)
-      ctx.arc(centerX, centerY, radius + (isHovered ? 5 : 0), currentAngle, currentAngle + sliceAngle)
+      ctx.arc(
+        centerX,
+        centerY,
+        radius + (isHovered ? 5 : 0),
+        currentAngle,
+        currentAngle + sliceAngle
+      )
       ctx.closePath()
       ctx.fillStyle = chartColors[index % chartColors.length]
       ctx.fill()
@@ -93,66 +75,53 @@ export default function PieChart({ data, title, colors = [], showHover = false }
       currentAngle += sliceAngle
     })
 
-    // Solo agregar event listeners si showHover está habilitado
     if (showHover) {
-      // Función para verificar si un punto está dentro de un segmento del círculo
       const isPointInSegment = (x, y, centerX, centerY, radius, startAngle, endAngle) => {
         const dx = x - centerX
         const dy = y - centerY
         const distance = Math.sqrt(dx * dx + dy * dy)
-
         if (distance > radius) return false
 
         let angle = Math.atan2(dy, dx)
         if (angle < 0) angle += 2 * Math.PI
 
-        // Ajustar ángulos para que coincidan con nuestro sistema
         startAngle += Math.PI / 2
-        if (startAngle < 0) startAngle += 2 * Math.PI
-
         endAngle += Math.PI / 2
+        if (startAngle < 0) startAngle += 2 * Math.PI
         if (endAngle < 0) endAngle += 2 * Math.PI
 
-        // Manejar el caso donde el segmento cruza el eje x positivo
         if (startAngle > endAngle) {
           return angle >= startAngle || angle <= endAngle
         }
-
         return angle >= startAngle && angle <= endAngle
       }
 
-      // Función para manejar el hover
       const handleMouseMove = (e) => {
         const rect = canvas.getBoundingClientRect()
         const x = e.clientX - rect.left
         const y = e.clientY - rect.top
 
         let found = false
-        let currentAngle = -Math.PI / 2
+        let angle = -Math.PI / 2
 
-        entries.forEach(([label, value], index) => {
+        entries.forEach(([_, value], index) => {
           const sliceAngle = (value / total) * 2 * Math.PI
-          if (isPointInSegment(x, y, centerX, centerY, radius, currentAngle, currentAngle + sliceAngle)) {
+          const inSegment = isPointInSegment(x, y, centerX, centerY, radius, angle, angle + sliceAngle)
+          if (inSegment) {
             setHoveredSegment(index)
             found = true
           }
-          currentAngle += sliceAngle
+          angle += sliceAngle
         })
 
-        if (!found) {
-          setHoveredSegment(null)
-        }
+        if (!found) setHoveredSegment(null)
       }
 
-      const handleMouseLeave = () => {
-        setHoveredSegment(null)
-      }
+      const handleMouseLeave = () => setHoveredSegment(null)
 
-      // Agregar event listeners
       canvas.addEventListener("mousemove", handleMouseMove)
       canvas.addEventListener("mouseleave", handleMouseLeave)
 
-      // Cleanup
       return () => {
         canvas.removeEventListener("mousemove", handleMouseMove)
         canvas.removeEventListener("mouseleave", handleMouseLeave)

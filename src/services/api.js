@@ -1,6 +1,15 @@
 import axios from "axios"
 import { API_BASE_URL, AXIOS_CONFIG } from "../config"
 import { supabase } from "../supabaseClient"
+import { toast } from "react-toastify"
+
+// Variable para mantener la sesión actual cacheada
+let currentSession = null
+
+// Escuchar cambios de autenticación y actualizar cache
+supabase.auth.onAuthStateChange((_event, session) => {
+  currentSession = session
+})
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
@@ -8,62 +17,67 @@ const api = axios.create({
   ...AXIOS_CONFIG,
 })
 
-// Interceptor para agregar el token de autenticación a todas las solicitudes
+// Interceptor para agregar token JWT a cada request
 api.interceptors.request.use(
   async (config) => {
-    try {
-      // Obtener la sesión actual de Supabase
-      const { data } = await supabase.auth.getSession()
-      const session = data?.session
+    // Intentar usar cache
+    const token = currentSession?.access_token
 
-      // Si hay una sesión, agregar el token al header
-      if (session?.access_token) {
-        config.headers.Authorization = `Bearer ${session.access_token}`
+    // Si no hay cache, pedir la sesión actual una sola vez
+    if (!token) {
+      try {
+        const { data } = await supabase.auth.getSession()
+        currentSession = data?.session
+      } catch (error) {
+        console.error("Error obteniendo sesión:", error)
       }
-    } catch (error) {
-      console.error("Error al obtener el token de autenticación:", error)
     }
+
+    if (currentSession?.access_token) {
+      config.headers.Authorization = `Bearer ${currentSession.access_token}`
+    }
+
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  },
+  (error) => Promise.reject(error)
 )
 
-// Interceptor para manejar errores de respuesta
+// Interceptor para manejar errores globalmente
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Manejar errores comunes
     if (error.response) {
-      // El servidor respondió con un código de estado fuera del rango 2xx
-      switch (error.response.status) {
+      const status = error.response.status
+      const msg = error.response.data?.message || "Error desconocido"
+
+      switch (status) {
         case 401:
-          console.error("No autorizado. Por favor, inicie sesión nuevamente.")
-          // Aquí podrías redirigir al login o mostrar un mensaje
+          toast.error("Sesión expirada. Redirigiendo al login...")
+          setTimeout(() => {
+            window.location.href = "/" // o "/login"
+          }, 1500)
           break
         case 403:
-          console.error("Acceso prohibido. No tiene permisos para esta acción.")
+          toast.warning("No tenés permisos para esta acción.")
           break
         case 404:
-          console.error("Recurso no encontrado.")
+          toast.info("Recurso no encontrado.")
           break
         case 500:
-          console.error("Error del servidor. Por favor, intente más tarde.")
+          toast.error("Error del servidor. Intentalo más tarde.")
           break
         default:
-          console.error(`Error ${error.response.status}: ${error.response.data.message || "Error desconocido"}`)
+          toast.error(`Error ${status}: ${msg}`)
+          break
       }
     } else if (error.request) {
-      // La solicitud se realizó pero no se recibió respuesta
-      console.error("No se recibió respuesta del servidor. Verifique su conexión.")
+      toast.error("No se recibió respuesta del servidor.")
     } else {
-      // Algo ocurrió al configurar la solicitud
-      console.error("Error al realizar la solicitud:", error.message)
+      toast.error("Error al enviar la solicitud.")
     }
 
     return Promise.reject(error)
-  },
+  }
 )
 
 export default api

@@ -4,26 +4,21 @@
 
 @layer base {
   * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+    @apply m-0 p-0 box-border;
   }
 
   body {
+    @apply bg-slate-50 text-gray-900 leading-relaxed;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-    background-color: #f8fafc;
-    color: #1a202c;
-    line-height: 1.6;
   }
 }
 
 @layer components {
-  /* Skeleton Animation */
   .skeleton {
-    @apply bg-skeleton bg-skeleton animate-skeleton rounded;
+    @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 
+           bg-[length:200%_100%] animate-[skeleton-loading_1.5s_infinite] rounded;
   }
 
-  /* Custom scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }

@@ -68,6 +68,10 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		keyframes: {
+			skeleton: {
+        		'0%': { backgroundPosition: '200% 0' },
+        		'100%': { backgroundPosition: '-200% 0' },
+			},
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -86,6 +90,7 @@ const config: Config = {
   			}
   		},
   		animation: {
+			'skeleton-loading': 'skeleton 1.5s infinite ease-in-out',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}

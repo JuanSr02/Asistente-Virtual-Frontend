@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import estadisticasService from "../../services/estadisticasService"
-import PieChart from "./charts/PieChart"
-import BarChart from "./charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "../ui/Skeleton"
+import PieChart from "../../components/charts/PieChart"
+import BarChart from "../../components/charts/BarChart"
+import { MetricSkeleton, ChartSkeleton } from "../../components/Skeleton"
 
 export default function EstadisticasGenerales() {
   const [estadisticas, setEstadisticas] = useState(() => {
