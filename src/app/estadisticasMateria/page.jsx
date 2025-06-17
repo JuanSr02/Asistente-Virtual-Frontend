@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import estadisticasService from "../services/estadisticasService"
-import planesEstudioService from "../services/planesEstudioService"
-import PieChart from "../components/charts/PieChart"
-import BarChart from "../components/charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "../components/Skeleton"
-import { useSessionPersistence } from "../hooks/useSessionPersistence"
+import estadisticasService from "../../services/estadisticasService"
+import planesEstudioService from "../../services/planesEstudioService"
+import PieChart from "../../components/charts/PieChart"
+import BarChart from "../../components/charts/BarChart"
+import { MetricSkeleton, ChartSkeleton } from "../../components/Skeleton"
+import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 export default function EstadisticasMateria() {
   const { estadisticasState, setEstadisticasState } = useSessionPersistence()

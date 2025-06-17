@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import PlanesEstudio from "./PlanesEstudio"
-import Estadisticas from "./Estadisticas"
-import { useSessionPersistence } from "../../hooks/useSessionPersistence"
+import PlanesEstudio from "../planes-estudio/page"
+import Estadisticas from "../estadisticas/page"
+import { useSessionPersistence } from "../../../hooks/useSessionPersistence"
 
 // Dashboard específico para administradores
 export default function AdminDashboard({ user }) {

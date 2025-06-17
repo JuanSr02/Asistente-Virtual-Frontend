@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import planesEstudioService from "../../services/planesEstudioService"
-import { APP_CONFIG } from "../../config"
-import { TableSkeleton } from "../../components/Skeleton"
-import MateriasModal from "./MateriasModal"
-import { useSessionPersistence } from "../../hooks/useSessionPersistence"
+import planesEstudioService from "../../../services/planesEstudioService"
+import { APP_CONFIG } from "../../../config"
+import { TableSkeleton } from "../../../components/Skeleton"
+import MateriasModal from "../../../components/MateriasModal"
+import { useSessionPersistence } from "../../../hooks/useSessionPersistence"
 
 // Tiempo en milisegundos para considerar los datos como "frescos" (5 minutos)
 const DATA_FRESHNESS_THRESHOLD = 5 * 60 * 1000

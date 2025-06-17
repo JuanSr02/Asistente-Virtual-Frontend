@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "../supabaseClient"
+import { supabase } from "../../supabaseClient"
 import { useRouter } from "next/navigation"
 
 export default function ResetPassword() {

@@ -1,11 +1,11 @@
 "use client"
 
-import { useUserRole } from "../hooks/useUserRole"
-import AdminDashboard from "./admin/AdminDashboard"
-import StudentDashboard from "./StudentDashboard"
-import { supabase } from "../supabaseClient"
+import { useUserRole } from "../../hooks/useUserRole"
+import AdminDashboard from "../admin/admin-dashboard/page"
+import StudentDashboard from "../studentDashboard/page"
+import { supabase } from "../../supabaseClient"
 import { useState } from "react"
-import { useSessionPersistence } from "../hooks/useSessionPersistence"
+import { useSessionPersistence } from "../../hooks/useSessionPersistence"
 
 // Componente principal del dashboard que decide qué vista mostrar
 export default function Dashboard({ user }) {

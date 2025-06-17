@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Modal from "../../components/Modal"
-import planesEstudioService from "../../services/planesEstudioService"
-import { MateriaListSkeleton } from "../../components/Skeleton"
+import Modal from "./Modal"
+import planesEstudioService from "../services/planesEstudioService"
+import { MateriaListSkeleton } from "./Skeleton"
 
 export default function MateriasModal({ isOpen, onClose, plan }) {
   const [materias, setMaterias] = useState([])
