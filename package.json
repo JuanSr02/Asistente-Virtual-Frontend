@@ -38,7 +38,6 @@
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
     "@supabase/supabase-js": "^2.43.5",
-    "autoprefixer": "^10.4.20",
     "axios": "^1.6.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -68,7 +67,8 @@
     "@types/node": "^18.19.36",
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.19",
-    "postcss": "^8.5.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.4.5"
   }

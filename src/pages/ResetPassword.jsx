@@ -1,204 +1,117 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { supabase } from "../../supabaseClient"
-import Link from "next/link"
+import { useState } from "react"
+import { supabase } from "../supabaseClient"
+import { useRouter } from "next/navigation"
 
 export default function ResetPassword() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [password, setPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-  const [tokenValid, setTokenValid] = useState(null) // null = checking, true = valid, false = invalid
+  const [errorMessage, setErrorMessage] = useState("")
+  const router = useRouter()
 
-  // Verificar el token al cargar la página
-  useEffect(() => {
-    const checkToken = async () => {
-      const token = searchParams.get('token')
-      if (!token) {
-        setTokenValid(false)
-        return
-      }
-
-      try {
-        // Verificar el token con Supabase
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: 'recovery'
-        })
-
-        if (error) {
-          console.error("Error verificando token:", error)
-          setTokenValid(false)
-        } else {
-          setTokenValid(true)
-        }
-      } catch (err) {
-        console.error("Error verificando token:", err)
-        setTokenValid(false)
-      }
-    }
-
-    checkToken()
-  }, [searchParams])
-
-  const handleSubmit = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault()
-    setError("")
-    
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden")
-      return
-    }
+    setErrorMessage("")
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres")
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("Las contraseñas no coinciden")
       return
     }
 
     setLoading(true)
-    const token = searchParams.get('token')
 
-    try {
-      // Actualizar la contraseña usando el token
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      }, {
-        token: token
-      })
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
 
-      if (error) {
-        throw error
-      }
-
+    if (error) {
+      setErrorMessage(error.message)
+    } else {
       setSuccess(true)
-      // Redirigir después de 3 segundos
       setTimeout(() => {
-        router.push("/auth")
+        router.push("/") // redirige al login o dashboard
       }, 3000)
-    } catch (error) {
-      console.error("Error actualizando contraseña:", error)
-      setError(error.message || "Ocurrió un error al actualizar la contraseña")
-    } finally {
-      setLoading(false)
     }
-  }
 
-  if (tokenValid === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Verificando enlace...</h1>
-            <p className="text-gray-600">Por favor espera mientras verificamos tu enlace de recuperación.</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!tokenValid) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">Enlace inválido o expirado</h1>
-            <p className="text-gray-600 mb-6">
-              El enlace de recuperación no es válido o ha expirado. Por favor solicita un nuevo enlace.
-            </p>
-            <Link 
-              href="/auth" 
-              className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Volver al inicio de sesión
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-          <div className="text-center">
-            <div className="text-green-500 text-5xl mb-4">✓</div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">¡Contraseña actualizada!</h1>
-            <p className="text-gray-600 mb-6">
-              Tu contraseña ha sido actualizada correctamente. Serás redirigido al inicio de sesión.
-            </p>
-            <Link 
-              href="/auth" 
-              className="inline-block px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Ir al inicio de sesión ahora
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
+    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Restablecer contraseña</h1>
-          <p className="text-gray-600">Ingresa tu nueva contraseña</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-lg mx-auto">
+        <div className="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-2">
+              Restablecer Contraseña
+            </h1>
+            <p className="text-gray-600">Ingresá tu nueva contraseña</p>
+          </div>
+
+          {success ? (
+            <div className="text-center">
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+                ¡Contraseña actualizada con éxito! Serás redirigido...
+              </div>
+              <button
+                onClick={() => router.push("/")}
+                className="text-blue-500 hover:text-blue-700 font-medium"
+              >
+                Volver al inicio
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleReset} className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="new-password" className="block mb-2 text-lg font-medium text-gray-700">
+                    Nueva Contraseña:
+                  </label>
+                  <input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all"
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="confirm-password" className="block mb-2 text-lg font-medium text-gray-700">
+                    Confirmar Contraseña:
+                  </label>
+                  <input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all"
+                    placeholder="Repetí tu contraseña"
+                  />
+                </div>
+              </div>
+
+              {errorMessage && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {errorMessage}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg"
+              >
+                {loading ? "Actualizando..." : "Actualizar Contraseña"}
+              </button>
+            </form>
+          )}
         </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-2">
-              Nueva contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Mínimo 6 caracteres"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-gray-700 text-sm font-medium mb-2">
-              Confirmar nueva contraseña
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Repite tu contraseña"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-          >
-            {loading ? "Actualizando..." : "Actualizar contraseña"}
-          </button>
-        </form>
       </div>
     </div>
   )
