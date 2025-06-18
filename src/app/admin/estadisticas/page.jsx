@@ -23,7 +23,8 @@ export default function Estadisticas() {
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Estadísticas del Sistema</h2>
+        <h2 className="text-2xl font-semibold text-blue-600 pb-2 border-b border-blue-300">
+Estadísticas del Sistema</h2>
       </div>
 
       {/* Pestañas */}

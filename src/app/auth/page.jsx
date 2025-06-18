@@ -47,7 +47,7 @@ export default function Auth() {
             data: {
               full_name: `${nombre} ${apellido}`,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth`,
           },
         })
 
@@ -111,7 +111,7 @@ export default function Auth() {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/ResetPassword`,
+        redirectTo: `${window.location.origin}/reset-password`,
       })
 
       if (error) {

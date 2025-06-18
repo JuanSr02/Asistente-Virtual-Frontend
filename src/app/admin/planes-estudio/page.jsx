@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import planesEstudioService from "../../../services/planesEstudioService"
-import { APP_CONFIG } from "../../../config"
+import { APP_CONFIG }  from "@/src/config" 
 import { TableSkeleton } from "../../../components/Skeleton"
 import MateriasModal from "../../../components/MateriasModal"
 import { useSessionPersistence } from "../../../hooks/useSessionPersistence"
@@ -82,8 +82,8 @@ export default function PlanesEstudio() {
     if (!file) return
 
     const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase()
-    if (!APP_CONFIG.ALLOWED_FILE_EXTENSIONS.includes(fileExtension)) {
-      setError(`Tipo de archivo no permitido. Use: ${APP_CONFIG.ALLOWED_FILE_EXTENSIONS.join(", ")}`)
+    if (!APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension)) {
+      setError(`Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`)
       fileInputRef.current.value = "" 
       return
     }
@@ -142,7 +142,10 @@ export default function PlanesEstudio() {
   return (
     <div className="bg-white rounded-lg shadow-md p-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 pb-3 border-b border-gray-200">Planes de Estudio</h2>
+<h2 className="text-2xl font-semibold text-blue-600 pb-2 border-b border-blue-300">
+  Planes de Estudio
+</h2>
+
         {planesState.lastUpdate && (
           <div className="text-sm text-gray-500">
             Última actualización: {new Date(planesState.lastUpdate).toLocaleString()}

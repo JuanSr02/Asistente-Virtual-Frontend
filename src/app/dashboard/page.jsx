@@ -73,30 +73,42 @@ export default function Dashboard({ user }) {
     )
   }
 
-  // Renderizar el dashboard según el rol
-  return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 shadow-lg">
-        <div className="max-w-6xl mx-auto px-8 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Sistema Académico</h1>
-          <div className="flex items-center gap-4">
-            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
-              {role}
-            </span>
-            <button
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-            >
-              {signingOut ? "Cerrando..." : "Cerrar Sesión"}
-            </button>
-          </div>
-        </div>
-      </header>
+// Renderizar el dashboard según el rol
+return (
+  <div className="min-h-screen flex flex-col">
+    <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 shadow-lg">
+  <div className="max-w-6xl mx-auto px-8">
+    <div className="flex justify-between items-center">
+      <div>
+        <h1 className="text-2xl font-semibold text-white border-b-2 border-white inline-block pb-1 ml-2">
+          Asistente Virtual
+        </h1>
+      </div>
 
-      <main className="flex-1 flex flex-col">
-        {role === "ADMINISTRADOR" ? <AdminDashboard user={user} /> : <StudentDashboard user={user} />}
-      </main>
+      <div className="flex items-center gap-4">
+        <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+          {role}
+        </span>
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+        >
+          {signingOut ? "Cerrando..." : "Cerrar Sesión"}
+        </button>
+      </div>
     </div>
-  )
+  </div>
+</header>
+
+
+    <main className="flex-1 flex flex-col">
+      {role === "ADMINISTRADOR" ? (
+        <AdminDashboard user={user} />
+      ) : (
+        <StudentDashboard user={user} />
+      )}
+    </main>
+  </div>
+)
 }
