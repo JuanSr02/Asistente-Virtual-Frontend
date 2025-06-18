@@ -1,7 +1,6 @@
 import axios from "axios"
 import { API_BASE_URL, AXIOS_CONFIG } from "../lib/config"
 import { supabase } from "../supabaseClient"
-import { toast } from "react-toastify"
 
 // Variable para mantener la sesión actual cacheada
 let currentSession = null

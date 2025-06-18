@@ -1,12 +1,11 @@
 "use client"
+
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { supabase } from "@/src/supabaseClient"
+import { supabase } from "@/supabaseClient"
 import Auth from "../app/auth/page"
 import Dashboard from "../app/dashboard/page"
-import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import "../styles/globals.css"
+import "@/styles/globals.css"
 
 const publicRoutes = ["/reset-password", "/about", "/terms", "/privacy", "/auth"]
 
@@ -100,7 +99,6 @@ useEffect(() => {
         ) : (
           children
         )}
-        <ToastContainer position="top-right" autoClose={3000} />
       </body>
     </html>
   )

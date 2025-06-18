@@ -1,27 +1,64 @@
 {
   "compilerOptions": {
+    // Bibliotecas disponibles para el compilador
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "target": "ES6",
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
+    
+    // Configuración de JavaScript y TypeScript
+    "allowJs": true,                    // Permite archivos .js en proyecto TypeScript
+    "target": "ES2017",                 // Target más moderno para mejor rendimiento
+    "skipLibCheck": true,               // Omite verificación de tipos en archivos .d.ts
+    "strict": true,                     // Habilita todas las verificaciones estrictas
+    "noEmit": true,                     // No emite archivos (Next.js maneja la compilación)
+    
+    // Configuración de módulos
+    "esModuleInterop": true,            // Habilita interoperabilidad con CommonJS
+    "allowSyntheticDefaultImports": true, // Permite imports por defecto sintéticos
+    "module": "esnext",                 // Usa módulos ES más recientes
+    "moduleResolution": "bundler",      // Resolución de módulos optimizada para bundlers
+    "resolveJsonModule": true,          // Permite importar archivos JSON
+    "isolatedModules": true,            // Cada archivo debe ser compilable independientemente
+    
+    // Configuración de JSX
+    "jsx": "preserve",                  // Preserva JSX para Next.js
+    
+    // Configuración de rendimiento
+    "incremental": true,                // Compilación incremental más rápida
+    "forceConsistentCasingInFileNames": true, // Fuerza consistencia en nombres de archivos
+    
+    // Configuración de Next.js
     "plugins": [
       {
         "name": "next"
       }
     ],
+    
+    // Configuración de paths (alias)
+    "baseUrl": ".",                     // Base para resolución de rutas
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"],               // Alias para src (más específico)
+      "@/components/*": ["./src/components/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/app/*": ["./src/app/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/App.jsx", "src/services/planesEstudioService.ts", "src/services/estadisticasService.ts", "src/services/api.js", "src/router.jsx", "src/hooks/usePersistentState.ts", "src/hooks/useUserRole.js", "src/components/Modal.jsx", "src/app/layout.tsx", "src/app/auth/page.jsx", "src/lib/config.js"],
-  "exclude": ["node_modules"]
+  
+  // Archivos a incluir (patrones globales más limpios)
+  "include": [
+    "next-env.d.ts",          // Tipos de Next.js
+    "**/*.ts",                // Todos los archivos TypeScript
+    "**/*.tsx",               // Todos los archivos TypeScript con JSX
+    ".next/types/**/*.ts",    // Tipos generados por Next.js
+    "src/**/*"                // Todo el contenido de src (simplificado)
+  ],
+  
+  // Archivos a excluir
+  "exclude": [
+    "node_modules",           // Dependencias
+    ".next",                  // Build de Next.js
+    "out",                    // Export estático de Next.js
+    "dist"                    // Build de producción
+  ]
 }
