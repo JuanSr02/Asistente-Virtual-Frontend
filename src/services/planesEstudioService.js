@@ -1,5 +1,5 @@
 import api from "./api"
-import { API_ROUTES } from "../config"
+import { API_ROUTES } from "../lib/config"
 
 const planesEstudioService = {
   obtenerPlanes: async () => {

@@ -2,20 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* No es recomendable redefinir font-family sin usar Tailwind */
-/* Mejor usar el sistema de fuentes de Tailwind o agregar font-family con @apply */
-@layer base {
-  body {
-    @apply font-sans; /* Tailwind ya define font-sans con sistema moderno */
-  }
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
 @layer base {
   :root {
     /* Variables para modo claro */
@@ -53,6 +39,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     /* Variables para modo oscuro */
     --background: 0 0% 3.9%;
@@ -89,13 +76,45 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Aplicar borde usando la variable --border (sería bueno que lo uses en componentes que lo necesiten) */
-  *, *::before, *::after {
+  * {
+    @apply m-0 p-0 box-border;
     border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
-    /* Alternativa para usar variables en Tailwind con custom properties */
+    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-sans leading-relaxed;
+  }
+}
+
+@layer components {
+  .skeleton {
+    @apply bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 
+           bg-[length:200%_100%] animate-[skeleton-loading_1.5s_infinite] rounded;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }

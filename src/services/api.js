@@ -1,5 +1,5 @@
 import axios from "axios"
-import { API_BASE_URL, AXIOS_CONFIG } from "../config"
+import { API_BASE_URL, AXIOS_CONFIG } from "../lib/config"
 import { supabase } from "../supabaseClient"
 import { toast } from "react-toastify"
 

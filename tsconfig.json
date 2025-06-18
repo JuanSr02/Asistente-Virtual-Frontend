@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/App.jsx", "src/services/planesEstudioService.ts", "src/services/estadisticasService.ts", "src/services/api.js", "src/router.jsx", "src/hooks/usePersistentState.ts", "src/hooks/useUserRole.js", "src/components/Modal.jsx", "src/app/layout.tsx", "src/app/auth/page.jsx", "src/config.Js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/App.jsx", "src/services/planesEstudioService.ts", "src/services/estadisticasService.ts", "src/services/api.js", "src/router.jsx", "src/hooks/usePersistentState.ts", "src/hooks/useUserRole.js", "src/components/Modal.jsx", "src/app/layout.tsx", "src/app/auth/page.jsx", "src/lib/config.js"],
   "exclude": ["node_modules"]
 }
