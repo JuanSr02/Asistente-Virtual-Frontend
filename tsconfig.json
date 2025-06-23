@@ -1,64 +1,37 @@
 {
   "compilerOptions": {
-    // Bibliotecas disponibles para el compilador
     "lib": ["dom", "dom.iterable", "esnext"],
-    
-    // Configuración de JavaScript y TypeScript
-    "allowJs": true,                    // Permite archivos .js en proyecto TypeScript
-    "target": "ES2017",                 // Target más moderno para mejor rendimiento
-    "skipLibCheck": true,               // Omite verificación de tipos en archivos .d.ts
-    "strict": true,                     // Habilita todas las verificaciones estrictas
-    "noEmit": true,                     // No emite archivos (Next.js maneja la compilación)
-    
-    // Configuración de módulos
-    "esModuleInterop": true,            // Habilita interoperabilidad con CommonJS
-    "allowSyntheticDefaultImports": true, // Permite imports por defecto sintéticos
-    "module": "esnext",                 // Usa módulos ES más recientes
-    "moduleResolution": "bundler",      // Resolución de módulos optimizada para bundlers
-    "resolveJsonModule": true,          // Permite importar archivos JSON
-    "isolatedModules": true,            // Cada archivo debe ser compilable independientemente
-    
-    // Configuración de JSX
-    "jsx": "preserve",                  // Preserva JSX para Next.js
-    
-    // Configuración de rendimiento
-    "incremental": true,                // Compilación incremental más rápida
-    "forceConsistentCasingInFileNames": true, // Fuerza consistencia en nombres de archivos
-    
-    // Configuración de Next.js
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    
-    // Configuración de paths (alias)
-    "baseUrl": ".",                     // Base para resolución de rutas
+    "target": "es2020",
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "node16",
+    "moduleResolution": "node16",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],               // Alias para src (más específico)
-      "@/components/*": ["./src/components/*"],
-      "@/hooks/*": ["./src/hooks/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@/app/*": ["./src/app/*"]
-    }
+      "@/*": ["./src/*"]
+    },
+    "plugins": [{ "name": "next" }],
+    "noUncheckedIndexedAccess": true
   },
-  
-  // Archivos a incluir (patrones globales más limpios)
   "include": [
-    "next-env.d.ts",          // Tipos de Next.js
-    "**/*.ts",                // Todos los archivos TypeScript
-    "**/*.tsx",               // Todos los archivos TypeScript con JSX
-    ".next/types/**/*.ts",    // Tipos generados por Next.js
-    "src/**/*"                // Todo el contenido de src (simplificado)
-  ],
-  
-  // Archivos a excluir
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/**/*"
+, "postcss.config.js"  ],
   "exclude": [
-    "node_modules",           // Dependencias
-    ".next",                  // Build de Next.js
-    "out",                    // Export estático de Next.js
-    "dist"                    // Build de producción
+    "node_modules",
+    ".next",
+    "out",
+    "dist"
   ]
 }
