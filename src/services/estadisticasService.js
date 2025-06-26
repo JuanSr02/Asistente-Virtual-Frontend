@@ -1,5 +1,5 @@
 import api from "./api"
-import { API_ROUTES } from "../lib/config"
+import { API_ROUTES } from "@/lib/config"
 
 const fetchWithFallback = async (fastEndpoint, fallbackEndpoint, contextDesc = "") => {
   try {

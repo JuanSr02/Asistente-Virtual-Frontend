@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import PlanesEstudio from "../planes-estudio/page"
 import Estadisticas from "../estadisticas/page"
-import { useSessionPersistence } from "../../../hooks/useSessionPersistence"
+import { useSessionPersistence } from "@/hooks/useSessionPersistence"
 
 // Dashboard específico para administradores
 export default function AdminDashboard({ user }) {

@@ -19,6 +19,8 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:turbo": "next dev --turbo", 
+    "dev:legacy": "next dev --no-turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -27,8 +29,7 @@
     "preview": "npm run build && npm run start",
     "clean": "rm -rf .next out dist node_modules/.cache",
     "analyze": "ANALYZE=true next build",
-    "format": "prettier --write .",
-    "prepare": "husky install"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -62,6 +63,7 @@
     "@supabase/supabase-js": "^2.50.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "axios": "^1.10.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
@@ -88,10 +90,10 @@
     "@typescript-eslint/eslint-plugin": "^8.35.0",
     "@typescript-eslint/parser": "^8.35.0",
     "autoprefixer": "^10.4.21",
-    "eslint": "^8.57.1",
+    "eslint": "^9.29.0",
     "eslint-config-next": "^15.3.4",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.5.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
     "postcss": "^8.5.6",

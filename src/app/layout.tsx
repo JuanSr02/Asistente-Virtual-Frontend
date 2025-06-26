@@ -1,90 +1,113 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { supabase } from "@/supabaseClient"
-import Auth from "../app/auth/page"
-import Dashboard from "../app/dashboard/page"
-import "@/styles/globals.css"
+import Auth from "@/app/auth/page"
+import Dashboard from "@/app/dashboard/page"
+import "@/app/globals.css"
 
 const publicRoutes = ["/reset-password", "/about", "/terms", "/privacy", "/auth"]
+
+// Componente separado para el loading
+const LoadingScreen = () => (
+  <html lang="es">
+    <body>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
+        <p className="text-muted-foreground">Verificando autenticación...</p>
+      </div>
+    </body>
+  </html>
+)
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isInitialized, setIsInitialized] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
-  useEffect(() => {
-    let mounted = true
-
-    const initAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession()
-        
-        if (!mounted) return
-        
-        if (error) {
-          console.error("Error al obtener sesión:", error)
-          setSession(null)
-        } else {
-          setSession(data.session)
-        }
-      } catch (error) {
-        console.error("Error en initAuth:", error)
+  // Función para inicializar autenticación
+  const initializeAuth = useCallback(async () => {
+    try {
+      console.log("Inicializando autenticación...")
+      
+      // Agregar un pequeño delay para evitar problemas de timing
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      const { data, error } = await supabase.auth.getSession()
+      
+      if (error) {
+        console.error("Error al obtener sesión:", error)
         setSession(null)
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+      } else {
+        console.log("Sesión obtenida:", data.session?.user?.email || "No session")
+        setSession(data.session)
       }
+    } catch (error) {
+      console.error("Error en initializeAuth:", error)
+      setSession(null)
+    } finally {
+      setLoading(false)
+      setIsInitialized(true)
+    }
+  }, [])
+
+  // Efecto para inicializar autenticación
+  useEffect(() => {
+    let isMounted = true
+
+    if (!isInitialized) {
+      initializeAuth()
     }
 
     // Listener para cambios de autenticación
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      if (!mounted) return
-      console.log("Auth state changed:", _event, newSession?.user?.email)
-      setSession(newSession)
-    })
-
-    initAuth()
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        if (!isMounted) return
+        
+        console.log("Auth state changed:", event, newSession?.user?.email || "No session")
+        setSession(newSession)
+        
+        // Si se está inicializando y hay un cambio de auth, marcar como inicializado
+        if (!isInitialized) {
+          setLoading(false)
+          setIsInitialized(true)
+        }
+      }
+    )
 
     return () => {
-      mounted = false
-      listener.subscription.unsubscribe()
+      isMounted = false
+      authListener.subscription.unsubscribe()
     }
-  }, []) // Solo se ejecuta una vez al montar
+  }, [initializeAuth, isInitialized])
 
-  // Agregar esto temporalmente en tu componente
-useEffect(() => {
-  console.log("Estado actual:", { session, loading, pathname })
-}, [session, loading, pathname])
-
-  // Manejo de redirecciones
+  // Efecto para manejo de redirecciones
   useEffect(() => {
-    if (loading) return // No redirigir mientras está cargando
+    if (!isInitialized || loading) return
 
     const isPublicRoute = publicRoutes.includes(pathname || '')
 
+    console.log("Checking redirects:", { 
+      session: !!session, 
+      pathname, 
+      isPublicRoute 
+    })
+
     if (!session && !isPublicRoute) {
+      console.log("Redirecting to auth...")
       router.replace("/auth")
     } else if (session && pathname === "/auth") {
+      console.log("Redirecting to dashboard...")
       router.replace("/dashboard")
     }
-  }, [session, pathname, loading, router])
+  }, [session, pathname, loading, router, isInitialized])
 
-  // Loading state
-  if (loading) {
-    return (
-      <html lang="es">
-        <body>
-          <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-            <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
-            <p className="text-muted-foreground">Verificando autenticación...</p>
-          </div>
-        </body>
-      </html>
-    )
+  // Mostrar loading mientras se inicializa
+  if (!isInitialized || loading) {
+    return <LoadingScreen />
   }
 
   const isPublicRoute = publicRoutes.includes(pathname || '')

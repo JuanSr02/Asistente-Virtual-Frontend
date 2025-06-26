@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import estadisticasService from "../../../services/estadisticasService"
-import PieChart from "../../../components/charts/PieChart"
-import BarChart from "../../../components/charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "../../../components/Skeleton"
+import estadisticasService from "@/services/estadisticasService"
+import PieChart from "@/components/charts/PieChart"
+import BarChart from "@/components/charts/BarChart"
+import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton"
 
 export default function EstadisticasGenerales() {
   const [estadisticas, setEstadisticas] = useState(() => {
