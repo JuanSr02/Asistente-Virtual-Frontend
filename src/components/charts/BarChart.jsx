@@ -30,6 +30,7 @@ export default function BarChart({
   showNameBelow = false,
   showBaseLabels = false,
   baseLabels = [],
+  showHover = true,
 }) {
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
@@ -114,7 +115,10 @@ export default function BarChart({
       })
     }
 
+    // Hover activado solo si showHover es true
     const handleMouseMove = (e) => {
+      if (!showHover) return
+
       const rect = canvas.getBoundingClientRect()
       const mouseX = e.clientX - rect.left
       const mouseY = e.clientY - rect.top
@@ -130,7 +134,6 @@ export default function BarChart({
       if (hovered) {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-        // Redibujar todo con efecto hover en una barra
         entries.forEach(([label, value], i) => {
           const bar = barDataRef.current[i]
           ctx.fillStyle = bar === hovered ? shadeColor(bar.color, 20) : bar.color
@@ -164,18 +167,19 @@ export default function BarChart({
         if (showNameBelow) setHoveredLabel(hovered.label)
       } else {
         setHoveredLabel("")
-        // Forzar re-render si querés resetear
       }
     }
 
-    canvas.addEventListener("mousemove", handleMouseMove)
-    canvas.addEventListener("mouseleave", () => setHoveredLabel(""))
+    if (showHover) {
+      canvas.addEventListener("mousemove", handleMouseMove)
+      canvas.addEventListener("mouseleave", () => setHoveredLabel(""))
+    }
 
     return () => {
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mouseleave", () => setHoveredLabel(""))
     }
-  }, [data, dimensions, colors, maxBars, useIntegers, showBaseLabels, baseLabels, showNameBelow])
+  }, [data, dimensions, colors, maxBars, useIntegers, showBaseLabels, baseLabels, showNameBelow, showHover])
 
   if (!data || Object.keys(data).length === 0) {
     return (

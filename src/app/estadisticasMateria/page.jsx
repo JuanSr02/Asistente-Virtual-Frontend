@@ -452,12 +452,12 @@ export default function EstadisticasMateria() {
                 <BarChart
                   data={estadisticas.distribucionDificultad}
                   title="Distribución de Dificultad (1-10)"
-                  colors={["#ed8936", "#48bb78", "#4299e1"]}
+                  colors={["#9f7aea", "#38b2ac", "#f56565"]}
                   maxBars={10}
                   useIntegers={true}
-                  showTooltip={false}
                   showBaseLabels={true}
                   baseLabels={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
+                  showHover={false}
                 />
               </div>
             </>
