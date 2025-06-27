@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import estadisticasService from "../../services/estadisticasService"
-import planesEstudioService from "../../services/planesEstudioService"
-import PieChart from "../../components/charts/PieChart"
-import BarChart from "../../components/charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "../../components/Skeleton"
-import { useSessionPersistence } from "../../hooks/useSessionPersistence"
+import estadisticasService from "@/services/estadisticasService"
+import planesEstudioService from "@/services/planesEstudioService"
+import PieChart from "@/components/charts/PieChart"
+import BarChart from "@/components/charts/BarChart"
+import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton"
+import { useSessionPersistence } from "@/hooks/useSessionPersistence"
 
 export default function EstadisticasMateria() {
   const { estadisticasState, setEstadisticasState } = useSessionPersistence()
@@ -452,12 +452,12 @@ export default function EstadisticasMateria() {
                 <BarChart
                   data={estadisticas.distribucionDificultad}
                   title="Distribución de Dificultad (1-10)"
-                  colors={["#ed8936", "#48bb78", "#4299e1"]}
+                  colors={["#9f7aea", "#38b2ac", "#f56565"]}
                   maxBars={10}
                   useIntegers={true}
-                  showTooltip={false}
                   showBaseLabels={true}
                   baseLabels={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
+                  showHover={false}
                 />
               </div>
             </>
