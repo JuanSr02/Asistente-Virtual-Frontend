@@ -2,7 +2,7 @@
 
 import { useUserRole } from "@/hooks/useUserRole"
 import AdminDashboard from "../admin/admin-dashboard/page"
-import StudentDashboard from "../studentDashboard/page"
+import StudentDashboard from "../student/studentDashboard/page"
 import { supabase } from "@/supabaseClient"
 import { useState } from "react"
 import { useSessionPersistence } from "@/hooks/useSessionPersistence"

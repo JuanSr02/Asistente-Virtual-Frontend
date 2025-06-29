@@ -4,7 +4,7 @@ import { API_ROUTES } from "../lib/config"
 const planesEstudioService = {
   obtenerPlanes: async () => {
     try {
-      const response = await api.get(API_ROUTES.ADMIN.PLANES_ESTUDIO)
+      const response = await api.get(API_ROUTES.SHARED.PLANES_ESTUDIO)
       return response.data
     } catch (error) {
       console.error("Error al obtener planes de estudio:", error)
