@@ -21,10 +21,12 @@ export default function Recomendacion({ user }) {
   // Referencias para inputs de archivo
   const fileInputRef = useRef(null)
   const updateFileInputRef = useRef(null)
+  const hasLoadedInitialData = useRef(false)
 
   // Cargar datos iniciales cuando el usuario está disponible y el estado está inicializado
   useEffect(() => {
-    if (user && isInitialized) {
+    if (user && isInitialized && !hasLoadedInitialData.current) {
+      hasLoadedInitialData.current = true
       cargarDatosIniciales()
     }
   }, [user, isInitialized])
@@ -379,7 +381,7 @@ export default function Recomendacion({ user }) {
     )
   }
 
-  if (state.loadingPersona) {
+  if (state.loadingPersona && !state.persona) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
@@ -409,11 +411,6 @@ export default function Recomendacion({ user }) {
         {state.lastFetch && (
           <p className="text-sm text-gray-500 mt-2">
             Última actualización: {new Date(state.lastFetch).toLocaleString()}
-            {isStateStale(30) && (
-              <span className="ml-2 text-orange-600 font-medium">
-                (datos antiguos, presiona refrescar)
-              </span>
-            )}
           </p>
         )}
       </div>
@@ -519,23 +516,25 @@ export default function Recomendacion({ user }) {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <input
-                  type="file"
-                  ref={updateFileInputRef}
-                  onChange={(e) => handleFileUpload(e, true)}
-                  accept=".xls,.xlsx"
-                  className="hidden"
-                  disabled={state.uploading}
-                />
-                <button
-                  onClick={() => updateFileInputRef.current?.click()}
-                  disabled={state.uploading}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                  title="¿Cursaste más materias?"
-                >
-                  Actualizar Historia
-                </button>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">¿Cursaste más materias?</span>
+                  <input
+                    type="file"
+                    ref={updateFileInputRef}
+                    onChange={(e) => handleFileUpload(e, true)}
+                    accept=".xls,.xlsx"
+                    className="hidden"
+                    disabled={state.uploading}
+                  />
+                  <button
+                    onClick={() => updateFileInputRef.current?.click()}
+                    disabled={state.uploading}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                  >
+                    📚 Actualizar Historia
+                  </button>
+                </div>
                 <button
                   onClick={handleEliminarHistoria}
                   disabled={state.uploading}
@@ -555,7 +554,7 @@ export default function Recomendacion({ user }) {
                 <button
                   onClick={handleRefrescarRecomendaciones}
                   disabled={state.loadingRecomendaciones}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
                   title="Refrescar recomendaciones"
                 >
                   🔄 Refrescar
@@ -655,7 +654,6 @@ export default function Recomendacion({ user }) {
                         </div>
                       </div>
                     )}
-
                     {state.criterioOrden === "ESTADISTICAS" && (
                       <div>
                         {final.estadisticas ? (
