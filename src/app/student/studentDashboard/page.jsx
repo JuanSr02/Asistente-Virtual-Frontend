@@ -39,6 +39,19 @@ export default function StudentDashboard({ user }) {
     updateLastVisited()
   }
 
+  // Escuchar eventos de cambio de pestaña desde otros componentes
+  useEffect(() => {
+    const handleChangeTab = (event) => {
+      const newTab = event.detail
+      if (newTab && newTab !== activeTab) {
+        handleTabChange(newTab)
+      }
+    }
+
+    window.addEventListener("changeTab", handleChangeTab)
+    return () => window.removeEventListener("changeTab", handleChangeTab)
+  }, [activeTab])
+
   // Renderizar el contenido según la pestaña activa
   const renderContent = () => {
     switch (activeTab) {
