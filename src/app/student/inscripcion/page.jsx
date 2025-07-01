@@ -6,18 +6,28 @@ import historiaAcademicaService from "@/services/historiaAcademicaService"
 import personaService from "@/services/personaService"
 import materiaService from "@/services/materiaService"
 import { useInscripcionPersistence } from "@/hooks/useInscripcionPersistence"
+import { useModalPersistence } from "@/hooks/useModalPersistence"
+import Modal from "@/components/modals/Modal"
 
 export default function Inscripcion({ user }) {
   // Hook de persistencia
   const { state, updateState, clearSelections, shouldRefreshData, invalidateCache, markDataAsFresh, isInitialized } =
     useInscripcionPersistence()
 
+  // Hook de persistencia del modal
+  const {
+    isOpen: showInscriptos,
+    data: inscripcionConsultada,
+    openModal: openInscriptosModal,
+    closeModal: closeInscriptosModal,
+    updateModalData: updateInscriptosData,
+    isInitialized: isModalInitialized,
+  } = useModalPersistence("inscriptos-modal")
+
   // Estados locales (no persistidos)
   const [showConfirmacion, setShowConfirmacion] = useState(false)
-  const [showInscriptos, setShowInscriptos] = useState(false)
   const [inscriptosConsulta, setInscriptosConsulta] = useState([])
   const [loadingInscriptos, setLoadingInscriptos] = useState(false)
-  const [inscripcionConsultada, setInscripcionConsultada] = useState(null)
   const [loading, setLoading] = useState(false)
   const [loadingInscripcion, setLoadingInscripcion] = useState(false)
   const [loadingEliminacion, setLoadingEliminacion] = useState(null)
@@ -45,6 +55,14 @@ export default function Inscripcion({ user }) {
       }
     }
   }, [user, isInitialized, shouldRefreshData])
+
+  // Cargar inscriptos si el modal está abierto al inicializar
+  useEffect(() => {
+    if (showInscriptos && inscripcionConsultada && isModalInitialized && state.persona) {
+      console.log("Recargando inscriptos para modal persistido...")
+      cargarInscriptosParaModal(inscripcionConsultada)
+    }
+  }, [showInscriptos, inscripcionConsultada, isModalInitialized, state.persona])
 
   const cargarDatosIniciales = async () => {
     setLoading(true)
@@ -194,10 +212,9 @@ export default function Inscripcion({ user }) {
     }
   }
 
-  // Función para consultar inscriptos de una materia específica
-  const consultarInscriptos = async (inscripcion) => {
+  // Función auxiliar para cargar inscriptos (usada tanto para nueva consulta como para modal persistido)
+  const cargarInscriptosParaModal = async (inscripcion) => {
     setLoadingInscriptos(true)
-    setInscripcionConsultada(inscripcion)
     setError(null)
 
     try {
@@ -210,14 +227,39 @@ export default function Inscripcion({ user }) {
       )
 
       console.log("Inscriptos obtenidos:", inscriptos)
-
       setInscriptosConsulta(inscriptos || [])
-      setShowInscriptos(true)
     } catch (err) {
       console.error("Error al consultar inscriptos:", err)
       setError("Error al consultar los inscriptos. Intenta nuevamente.")
     } finally {
       setLoadingInscriptos(false)
+    }
+  }
+
+  // Función para consultar inscriptos de una materia específica
+  const consultarInscriptos = async (inscripcion) => {
+    // Abrir modal y guardar datos de la inscripción
+    openInscriptosModal(inscripcion, "inscriptos")
+
+    // Cargar inscriptos
+    await cargarInscriptosParaModal(inscripcion)
+  }
+
+  // Función para copiar email al portapapeles
+  const copiarEmail = async (email) => {
+    try {
+      await navigator.clipboard.writeText(email)
+      setSuccess(`Email ${email} copiado al portapapeles`)
+    } catch (err) {
+      console.error("Error al copiar email:", err)
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement("textarea")
+      textArea.value = email
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textArea)
+      setSuccess(`Email ${email} copiado al portapapeles`)
     }
   }
 
@@ -710,7 +752,7 @@ export default function Inscripcion({ user }) {
 
           {/* Modal de confirmación */}
           {showConfirmacion && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60 p-4">
               <div className="bg-white rounded-xl w-full max-w-md">
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">Confirmar Inscripción</h3>
@@ -755,85 +797,79 @@ export default function Inscripcion({ user }) {
             </div>
           )}
 
-          {/* Modal de inscriptos */}
-          {showInscriptos && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      Inscriptos a {inscripcionConsultada?.materiaNombre}
-                    </h3>
-                    <button
-                      onClick={() => setShowInscriptos(false)}
-                      className="text-gray-500 hover:text-gray-700 text-2xl"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  {inscripcionConsultada && (
-                    <div className="bg-blue-50 p-3 rounded-lg mb-4">
-                      <p className="text-sm text-blue-700">
-                        <strong>Mesa:</strong> {inscripcionConsultada.turno} {inscripcionConsultada.anio}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="max-h-96 overflow-y-auto">
-                    {loadingInscriptos ? (
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <div className="w-6 h-6 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-2"></div>
-                        <p className="text-gray-600">Cargando inscriptos...</p>
-                      </div>
-                    ) : inscriptosConsulta.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <div className="text-4xl mb-2">👥</div>
-                        <p>No hay otros inscriptos en esta mesa</p>
-                        <p className="text-sm mt-1">Eres el único inscripto por ahora</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <p className="text-sm text-gray-600 mb-3">Total de inscriptos: {inscriptosConsulta.length}</p>
-                        {inscriptosConsulta.map((inscripto) => (
-                          <div key={inscripto.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <h4 className="font-semibold text-gray-800">{inscripto.estudianteNombre}</h4>
-                                {inscripto.email && <p className="text-sm text-gray-600">📧 {inscripto.email}</p>}
-                                {inscripto.estudianteId === state.persona?.id && (
-                                  <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
-                                    Tú
-                                  </span>
-                                )}
-                              </div>
-                              {inscripto.email && inscripto.estudianteId !== state.persona?.id && (
-                                <a
-                                  href={`mailto:${inscripto.email}?subject=Mesa de examen - ${inscripcionConsultada?.materiaNombre}&body=Hola! Vi que también estás inscripto a la mesa de ${inscripcionConsultada?.materiaNombre} en ${inscripcionConsultada?.turno} ${inscripcionConsultada?.anio}. ¿Te interesa estudiar juntos?`}
-                                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                                >
-                                  📧 Contactar
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t">
-                    <button
-                      onClick={() => setShowInscriptos(false)}
-                      className="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-lg font-semibold transition-colors"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-                </div>
+          {/* Modal de inscriptos usando el componente Modal */}
+          <Modal
+            isOpen={showInscriptos}
+            onClose={closeInscriptosModal}
+            title={`Inscriptos a ${inscripcionConsultada?.materiaNombre || "la materia"}`}
+            maxWidth="48rem"
+          >
+            {inscripcionConsultada && (
+              <div className="bg-blue-50 p-3 rounded-lg mb-4">
+                <p className="text-sm text-blue-700">
+                  <strong>Mesa:</strong> {inscripcionConsultada.turno} {inscripcionConsultada.anio}
+                </p>
               </div>
+            )}
+
+            <div className="max-h-96 overflow-y-auto">
+              {loadingInscriptos ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-6 h-6 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-2"></div>
+                  <p className="text-gray-600">Cargando inscriptos...</p>
+                </div>
+              ) : inscriptosConsulta.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">👥</div>
+                  <p>No hay otros inscriptos en esta mesa</p>
+                  <p className="text-sm mt-1">Eres el único inscripto por ahora</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 mb-3">Total de inscriptos: {inscriptosConsulta.length}</p>
+                  {inscriptosConsulta.map((inscripto) => (
+                    <div key={inscripto.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800 mb-1">{inscripto.estudianteNombre}</h4>
+                          {inscripto.email && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-sm text-gray-600">📧 {inscripto.email}</span>
+                              <button
+                                onClick={() => copiarEmail(inscripto.email)}
+                                className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded transition-colors"
+                                title="Copiar email"
+                              >
+                                📋 Copiar
+                              </button>
+                            </div>
+                          )}
+                          {inscripto.estudianteId === state.persona?.id && (
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Tú</span>
+                          )}
+                        </div>
+                      </div>
+                      {inscripto.email && inscripto.estudianteId !== state.persona?.id && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="bg-blue-50 p-3 rounded text-sm">
+                            <p className="text-blue-800 font-medium mb-1">💡 Sugerencia de contacto:</p>
+                            <p className="text-blue-700 text-xs">
+                              "Hola! Vi que también estás inscripto a la mesa de{" "}
+                              <strong>{inscripcionConsultada?.materiaNombre}</strong> en{" "}
+                              <strong>
+                                {inscripcionConsultada?.turno} {inscripcionConsultada?.anio}
+                              </strong>
+                              . ¿Te interesa estudiar juntos?"
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </Modal>
 
           {/* Mis inscripciones */}
           <div className="bg-white p-6 rounded-lg shadow-md border">
@@ -852,7 +888,7 @@ export default function Inscripcion({ user }) {
                       <div className="flex-1">
                         <h4 className="font-semibold">{inscripcion.materiaNombre}</h4>
                         <p className="text-sm text-gray-600">
-                         {inscripcion.materiaCodigo} • {inscripcion.turno} {inscripcion.anio}
+                          {inscripcion.materiaCodigo} • {inscripcion.turno} {inscripcion.anio}
                         </p>
                       </div>
                       <div className="flex gap-2 ml-4">

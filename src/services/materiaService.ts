@@ -24,7 +24,7 @@ const materiaService = {
       if (error) {
         if (error.code === "PGRST116") {
           // No encontrado - no es un error crítico
-          console.log(`Materia no encontrada: ${codigo} - ${planCodigo}`)
+          console.log(`Materia no encontrada: ${codigo}-${planCodigo}`)
           return null
         }
         throw error
@@ -33,7 +33,7 @@ const materiaService = {
       console.log(`Materia encontrada:`, data)
       return data
     } catch (error) {
-      console.error(`Error al obtener materia ${codigo} - ${planCodigo}:`, error)
+      console.error(`Error al obtener materia ${codigo}-${planCodigo}:`, error)
       return null
     }
   },
@@ -42,10 +42,12 @@ const materiaService = {
    * Obtiene múltiples materias por sus códigos y planes de estudio
    */
   obtenerMateriasPorCodigos: async (materias: { codigo: string; plan: string }[]): Promise<Materia[]> => {
-    if (!materias || materias.length === 0) return []
-
     try {
       console.log("Buscando materias:", materias)
+
+      if (!materias || materias.length === 0) {
+        return []
+      }
 
       // Hacer consultas individuales en paralelo para cada materia
       const promesasConsultas = materias.map(async (materia) => {
@@ -60,16 +62,16 @@ const materiaService = {
           if (error) {
             if (error.code === "PGRST116") {
               // No encontrado - no es un error crítico
-              console.log(`Materia no encontrada: ${materia.codigo} - ${materia.plan}`)
+              console.log(`Materia no encontrada: ${materia.codigo}-${materia.plan}`)
               return null
             }
             throw error
           }
 
-          console.log(`Materia encontrada: ${materia.codigo} - ${materia.plan}:`, data)
+          console.log(`Materia encontrada: ${materia.codigo}-${materia.plan}:`, data)
           return data
         } catch (error) {
-          console.error(`Error al consultar materia ${materia.codigo} - ${materia.plan}:`, error)
+          console.error(`Error al consultar materia ${materia.codigo}-${materia.plan}:`, error)
           return null
         }
       })
@@ -149,7 +151,7 @@ const materiaService = {
       const materia = await materiaService.obtenerMateriaPorCodigoYPlan(codigo, planCodigo)
       return materia !== null
     } catch (error) {
-      console.error(`Error al verificar existencia de materia ${codigo} - ${planCodigo}:`, error)
+      console.error(`Error al verificar existencia de materia ${codigo}-${planCodigo}:`, error)
       return false
     }
   },

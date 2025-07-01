@@ -13,7 +13,7 @@ export default function StudentDashboard({ user }) {
 
   // Estado inicial específico para estudiantes (por defecto "recomendacion")
   const [activeTab, setActiveTab] = useState(
-    dashboardState.activeTab === "planes" ? "recomendacion" : dashboardState.activeTab,
+    dashboardState?.activeTab === "planes" ? "recomendacion" : dashboardState?.activeTab || "recomendacion",
   )
 
   // Actualizar la última visita cuando el componente se monta
@@ -24,13 +24,13 @@ export default function StudentDashboard({ user }) {
   // Sincronizar el estado local con el persistente
   useEffect(() => {
     // Si viene de admin dashboard, cambiar a recomendacion por defecto
-    if (dashboardState.activeTab === "planes") {
+    if (dashboardState?.activeTab === "planes") {
       setActiveTab("recomendacion")
       setDashboardState("activeTab", "recomendacion")
     } else {
-      setActiveTab(dashboardState.activeTab)
+      setActiveTab(dashboardState?.activeTab || "recomendacion")
     }
-  }, [dashboardState.activeTab])
+  }, [dashboardState?.activeTab])
 
   // Manejar cambio de pestaña
   const handleTabChange = (tab) => {
@@ -118,7 +118,7 @@ export default function StudentDashboard({ user }) {
         <div className="flex flex-col items-end">
           <span className="text-sm text-gray-600">{user.email}</span>
           <span className="text-xs text-gray-500">Estudiante</span>
-          {dashboardState.lastVisited && (
+          {dashboardState?.lastVisited && (
             <span className="text-xs text-gray-400">
               Última visita: {new Date(dashboardState.lastVisited).toLocaleTimeString()}
             </span>
