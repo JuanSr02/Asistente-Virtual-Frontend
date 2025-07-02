@@ -66,13 +66,7 @@ export default function AdminDashboard({ user }) {
           </button>
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-sm text-gray-600">{user.email}</span>
-          <span className="text-xs text-gray-500">Administrador</span>
-          {dashboardState.lastVisited && (
-            <span className="text-xs text-gray-400">
-              Última visita: {new Date(dashboardState.lastVisited).toLocaleTimeString()}
-            </span>
-          )}
+          <span className="text-sm text-gray-600">Usuario: {user.email}</span>
         </div>
       </nav>
 

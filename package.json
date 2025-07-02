@@ -19,8 +19,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "dev:turbo": "next dev --turbo", 
-    "dev:legacy": "next dev --no-turbo",
+    "dev:legacy": "set NEXT_PRIVATE_TURBOPACK=0 && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

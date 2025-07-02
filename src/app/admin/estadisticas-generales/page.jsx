@@ -134,9 +134,6 @@ export default function EstadisticasGenerales() {
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-semibold text-gray-800">Estadísticas Generales del Sistema</h3>
         <div className="flex items-center gap-4">
-          {lastUpdate && (
-            <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
-          )}
           <button
             onClick={refrescarDatos}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
@@ -215,7 +212,7 @@ export default function EstadisticasGenerales() {
 
         <BarChart
           data={estadisticas.distribucionExamenesPorMateria}
-          title="Distribución de Exámenes por Materia"
+          title="Materias mas rendidas"
           colors={["#4299e1", "#48bb78", "#ed8936"]}
           maxBars={15}
           useIntegers={true}
@@ -262,17 +259,35 @@ export default function EstadisticasGenerales() {
         </div>
       </div>
 
-      {/* Promedio de notas por materia */}
-      <div className="mt-8">
-        <BarChart
-          data={estadisticas.promedioNotasPorMateria}
-          title="Promedio de Notas por Materia"
-          colors={["#9f7aea", "#38b2ac", "#f56565"]}
-          maxBars={15}
-          useIntegers={false}
-          showNameBelow={true}
-        />
-      </div>
+{/* Materias con notas promedio más altas */}
+<div className="mt-8">
+  <BarChart
+    data={Object.entries(estadisticas.promedioNotasPorMateria)
+      .sort((a, b) => b[1] - a[1]) // Orden descendente
+      .slice(0, 15) // Tomar las 15 mejores
+      .reduce((obj, [key, value]) => ({...obj, [key]: value}), {})}
+    title="Materias con nota promedio más alta"
+    colors={["#38b2ac", "#9f7aea", "#f56565"]}
+    maxBars={15}
+    useIntegers={false}
+    showNameBelow={true}
+  />
+</div>
+
+{/* Materias con notas promedio más bajas */}
+<div className="mt-8">
+  <BarChart
+    data={Object.entries(estadisticas.promedioNotasPorMateria)
+      .sort((a, b) => a[1] - b[1]) // Orden ascendente
+      .slice(0, 15) // Tomar las 15 peores
+      .reduce((obj, [key, value]) => ({...obj, [key]: value}), {})}
+    title="Materias con nota promedio más baja"
+    colors={["#f56565", "#9f7aea", "#38b2ac"]}
+    maxBars={15}
+    useIntegers={false}
+    showNameBelow={true}
+  />
+</div>
     </div>
   )
 }

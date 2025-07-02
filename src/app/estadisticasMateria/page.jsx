@@ -213,9 +213,6 @@ export default function EstadisticasMateria() {
               <span className="text-sm">{loadingMessage}</span>
             </div>
           )}
-          {lastUpdate && !loadingMessage && (
-            <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
-          )}
           <button
             onClick={refrescarDatos}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
