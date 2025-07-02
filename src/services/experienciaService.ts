@@ -1,3 +1,6 @@
+import api from "./api"
+import { API_ROUTES } from "../lib/config"
+
 export interface ExperienciaResponseDTO {
   id: number
   dificultad: number
@@ -41,111 +44,65 @@ export interface ExamenDisponibleDTO {
   nota: number
 }
 
-class ExperienciaService {
-  private baseUrl = "/api/shared/experiencias"
-
-  async obtenerExperienciasPorMateria(codigoMateria: string): Promise<ExperienciaResponseDTO[]> {
+const experienciaService = {
+  obtenerExperienciasPorMateria: async (codigoMateria: string): Promise<ExperienciaResponseDTO[]> => {
     try {
-      const response = await fetch(`${this.baseUrl}/por-materia/${codigoMateria}`)
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      return await response.json()
+      const response = await api.get(`${API_ROUTES.SHARED.EXPERIENCIAS_POR_MATERIA}/${codigoMateria}`)
+      return response.data
     } catch (error) {
       console.error("Error al obtener experiencias por materia:", error)
       throw error
     }
-  }
+  },
 
-  async obtenerExperienciasPorEstudiante(idEstudiante: number): Promise<ExperienciaResponseDTO[]> {
+  obtenerExperienciasPorEstudiante: async (idEstudiante: number): Promise<ExperienciaResponseDTO[]> => {
     try {
-      const response = await fetch(`${this.baseUrl}/por-estudiante/${idEstudiante}`)
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      return await response.json()
+      const response = await api.get(`${API_ROUTES.SHARED.EXPERIENCIAS_POR_ESTUDIANTE}/${idEstudiante}`)
+      return response.data
     } catch (error) {
       console.error("Error al obtener experiencias por estudiante:", error)
       throw error
     }
-  }
+  },
 
-  async obtenerExamenesPorEstudiante(idEstudiante: number): Promise<ExamenDisponibleDTO[]> {
+  obtenerExamenesPorEstudiante: async (idEstudiante: number): Promise<ExamenDisponibleDTO[]> => {
     try {
-      const response = await fetch(`${this.baseUrl}/examenes-por-estudiante/${idEstudiante}`)
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      return await response.json()
+      const response = await api.get(`${API_ROUTES.SHARED.EXAMENES_POR_ESTUDIANTE}/${idEstudiante}`)
+      return response.data
     } catch (error) {
       console.error("Error al obtener exámenes por estudiante:", error)
       throw error
     }
-  }
+  },
 
-  async crearExperiencia(experienciaDTO: ExperienciaDTO): Promise<ExperienciaResponseDTO> {
+  crearExperiencia: async (experienciaDTO: ExperienciaDTO): Promise<ExperienciaResponseDTO> => {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(experienciaDTO),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      return await response.json()
+      const response = await api.post(API_ROUTES.SHARED.EXPERIENCIAS, experienciaDTO)
+      return response.data
     } catch (error) {
       console.error("Error al crear experiencia:", error)
       throw error
     }
-  }
+  },
 
-  async actualizarExperiencia(id: number, dto: ActualizarExperienciaDTO): Promise<ExperienciaResponseDTO> {
+  actualizarExperiencia: async (id: number, dto: ActualizarExperienciaDTO): Promise<ExperienciaResponseDTO> => {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dto),
-      })
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
-
-      return await response.json()
+      const response = await api.patch(`${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`, dto)
+      return response.data
     } catch (error) {
       console.error("Error al actualizar experiencia:", error)
       throw error
     }
-  }
+  },
 
-  async eliminarExperiencia(id: number): Promise<void> {
+  eliminarExperiencia: async (id: number): Promise<void> => {
     try {
-      const response = await fetch(`${this.baseUrl}/${id}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`)
-      }
+      await api.delete(`${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`)
     } catch (error) {
       console.error("Error al eliminar experiencia:", error)
       throw error
     }
-  }
+  },
 }
 
-const experienciaService = new ExperienciaService()
 export default experienciaService

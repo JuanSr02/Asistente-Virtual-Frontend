@@ -111,7 +111,7 @@ export default function StudentDashboard({ user }) {
             }`}
             onClick={() => handleTabChange("estadisticas")}
           >
-            📊 Estadísticas
+            📊 Estadísticas por Materia
           </button>
         </div>
 

@@ -13,6 +13,10 @@ export const API_ROUTES = {
     ESTADISTICAS_MATERIA_RAPIDO: "/api/shared/fast/estadisticas/materia",
     MATERIAS_POR_PLAN: "/api/shared/planes-estudio/materias",
     PLANES_ESTUDIO: "/api/shared/planes-estudio",
+    EXPERIENCIAS: "/api/shared/experiencias",
+    EXPERIENCIAS_POR_MATERIA: "/api/shared/experiencias/por-materia",
+    EXPERIENCIAS_POR_ESTUDIANTE: "/api/shared/experiencias/por-estudiante",
+    EXAMENES_POR_ESTUDIANTE: "/api/shared/experiencias/examenes-por-estudiante",
   },
   ESTUDIANTE: {
     FINALES_PARA_RENDIR: "/api/shared/finales",
