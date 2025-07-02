@@ -67,7 +67,7 @@ export default function ExperienciasExamen({ user }) {
     "Práctica con compañeros",
   ]
 
-  const motivacionesDisponibles = ["se me vence", "necesito las correlativas", "solo para avanzar en la carrera"]
+  const motivacionesDisponibles = ["Se me vence", "Necesito las correlativas", "Solo para avanzar en la carrera"]
 
   useEffect(() => {
     cargarDatosIniciales()
@@ -362,7 +362,7 @@ export default function ExperienciasExamen({ user }) {
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">💭 Experiencias de Examen</h2>
           <p className="text-gray-600">
-            Descubre las experiencias de otros estudiantes y comparte la tuya para ayudar a la comunidad
+            Descubre las experiencias de otros estudiantes y comparte la tuya para ayudar a la comunidad universitaria.
           </p>
         </div>
 
@@ -497,6 +497,7 @@ export default function ExperienciasExamen({ user }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
             >
               <option value="">Selecciona calificación mínima</option>
+              <option value="0">Todas</option>
               <option value="4">4 o más</option>
               <option value="6">6 o más</option>
               <option value="8">8 o más</option>
@@ -631,9 +632,9 @@ export default function ExperienciasExamen({ user }) {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h4 className="text-xl font-semibold text-gray-800">{experiencia.nombreMateria}</h4>
-                    <p className="text-gray-600">{experiencia.codigoMateria}</p>
+                    <p className="text-gray-600">Codigo: {experiencia.codigoMateria}</p>
                     <p className="text-sm text-gray-500">
-                      Examen: {new Date(experiencia.fechaExamen).toLocaleDateString()}
+                      Examen rendido el: {experiencia.fechaExamen} con nota: {experiencia.nota} 
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

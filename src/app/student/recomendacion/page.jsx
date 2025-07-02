@@ -358,6 +358,7 @@ export default function Recomendacion({ user }) {
     if (dificultad >= 7) return "Alta"
     if (dificultad >= 5) return "Media-Alta"
     if (dificultad >= 3) return "Media"
+    if (dificultad == 0) return "Desconocida"
     return "Baja"
   }
 
@@ -408,11 +409,6 @@ export default function Recomendacion({ user }) {
         <p className="text-gray-600">
           Hola {state.persona.nombre_apellido}, aquí tienes las mejores recomendaciones para tus próximos finales
         </p>
-        {state.lastFetch && (
-          <p className="text-sm text-gray-500 mt-2">
-            Última actualización: {new Date(state.lastFetch).toLocaleString()}
-          </p>
-        )}
       </div>
 
       {/* Mensajes de estado */}
@@ -518,7 +514,7 @@ export default function Recomendacion({ user }) {
 
               <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 whitespace-nowrap">¿Cursaste más materias?</span>
+                  <span className="text-xs text-gray-bold-500 whitespace-nowrap">¿Cursaste más materias?</span>
                   <input
                     type="file"
                     ref={updateFileInputRef}
@@ -619,7 +615,7 @@ export default function Recomendacion({ user }) {
                           final.estadisticas.promedioDificultad,
                         )}`}
                       >
-                        {getDificultadTexto(final.estadisticas.promedioDificultad)}
+                        Dificultad {getDificultadTexto(final.estadisticas.promedioDificultad)}
                       </span>
                     )}
                   </div>
