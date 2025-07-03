@@ -7,7 +7,7 @@ import Auth from "@/app/auth/page"
 import Dashboard from "@/app/dashboard/page"
 import "@/app/globals.css"
 
-const publicRoutes = ["/reset-password", "/about", "/terms", "/privacy", "/auth"]
+const publicRoutes = ["/reset-password","/auth"]
 
 // Componente separado para el loading
 const LoadingScreen = () => (
