@@ -213,9 +213,6 @@ export default function EstadisticasMateria() {
               <span className="text-sm">{loadingMessage}</span>
             </div>
           )}
-          {lastUpdate && !loadingMessage && (
-            <span className="text-sm text-gray-500">Última actualización: {lastUpdate.toLocaleTimeString()}</span>
-          )}
           <button
             onClick={refrescarDatos}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
@@ -328,9 +325,6 @@ export default function EstadisticasMateria() {
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
             <h4 className="text-2xl font-bold mb-2">{estadisticas.nombreMateria}</h4>
             <span className="block text-base opacity-90 mb-2">Código: {estadisticas.codigoMateria}</span>
-            <span className="block text-sm opacity-80">
-              Última actualización: {formatearFecha(estadisticas.fechaUltimaActualizacion)}
-            </span>
           </div>
 
           {/* Verificar si hay datos */}

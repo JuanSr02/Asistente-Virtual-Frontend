@@ -6,6 +6,9 @@ import experienciaService from "@/services/experienciaService"
 import historiaAcademicaService from "@/services/historiaAcademicaService"
 import Modal from "@/components/modals/Modal"
 import { useModalPersistence } from "@/hooks/useModalPersistence"
+import personaService from "@/services/personaService"
+import { usePersistedState } from "@/hooks/usePersistedState"
+import { Skeleton } from "@/components/Skeleton"
 
 export default function ExperienciasExamen({ user }) {
   // Estados principales
@@ -21,11 +24,13 @@ export default function ExperienciasExamen({ user }) {
   const [misExperiencias, setMisExperiencias] = useState([])
   const [examenesDisponibles, setExamenesDisponibles] = useState([])
   const [persona, setPersona] = useState(null)
+  const [historiaAcademica, setHistoriaAcademica] = useState(null)
 
   // Estados de filtros
-  const [planSeleccionado, setPlanSeleccionado] = useState("")
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState("")
-  const [filtroCalificacion, setFiltroCalificacion] = useState("")
+  const [planSeleccionado, setPlanSeleccionado] = usePersistedState("plan-seleccionado", "")
+  const [materiaSeleccionada, setMateriaSeleccionada] = usePersistedState("materia-seleccionada", "")
+  const [filtroCalificacion, setFiltroCalificacion] = usePersistedState("filtro-calificacion", "")
+
 
   // Estados de modales
   const {
@@ -36,16 +41,16 @@ export default function ExperienciasExamen({ user }) {
   } = useModalPersistence("crear-experiencia-modal")
 
   // Estados del formulario
-  const [formData, setFormData] = useState({
-    examenId: "",
-    dificultad: 5,
-    diasEstudio: 1,
-    horasDiarias: 1,
-    intentosPrevios: 0,
-    modalidad: "ESCRITO",
-    recursos: [],
-    motivacion: "solo para avanzar en la carrera",
-  })
+const [formData, setFormData] = usePersistedState("experiencia-form", {
+  examenId: "",
+  dificultad: 5,
+  diasEstudio: 1,
+  horasDiarias: 1,
+  intentosPrevios: 0,
+  modalidad: "ESCRITO",
+  recursos: [],
+  motivacion: "Solo para avanzar en la carrera",
+})
 
   // Estados de notificaciones
   const [success, setSuccess] = useState("")
@@ -65,7 +70,7 @@ export default function ExperienciasExamen({ user }) {
     "Práctica con compañeros",
   ]
 
-  const motivacionesDisponibles = ["se me vence", "necesito las correlativas", "solo para avanzar en la carrera"]
+  const motivacionesDisponibles = ["Se me vence", "Necesito las correlativas", "Solo para avanzar en la carrera"]
 
   useEffect(() => {
     cargarDatosIniciales()
@@ -90,8 +95,20 @@ export default function ExperienciasExamen({ user }) {
 
   useEffect(() => {
     if (persona?.id) {
-      cargarMisExperiencias()
-      cargarExamenesDisponibles()
+      // Verificar historia académica primero
+      historiaAcademicaService
+        .verificarHistoriaAcademica(persona.id)
+        .then((historia) => {
+          setHistoriaAcademica(historia)
+          if (historia) {
+            cargarMisExperiencias()
+            cargarExamenesDisponibles()
+          }
+        })
+        .catch((error) => {
+          console.error("Error al verificar historia académica:", error)
+          setHistoriaAcademica(null)
+        })
     }
   }, [persona])
 
@@ -109,23 +126,29 @@ export default function ExperienciasExamen({ user }) {
   const cargarDatosIniciales = async () => {
     setLoading(true)
     try {
-      // Usar el mismo patrón que en inscripción
-      const historiaData = await historiaAcademicaService.obtenerHistoriaAcademicaPorPersona()
+      // Obtener persona (igual que en inscripción)
+      const personaData =
+        (await personaService.obtenerPersonaPorSupabaseId(user.id)) ||
+        (await personaService.obtenerPersonaPorEmail(user.email))
 
-      if (!historiaData || historiaData.length === 0) {
-        // Redirigir a recomendación para cargar historia
-        const event = new CustomEvent("changeTab", { detail: "recomendacion" })
-        window.dispatchEvent(event)
-        setError("Primero debes cargar tu historia académica")
+      if (!personaData) {
+        setError("No se encontró tu perfil en el sistema. Contacta al administrador.")
         return
       }
 
-      // Obtener persona de la historia académica
-      if (historiaData.length > 0) {
-        setPersona({ id: historiaData[0].persona.id })
+      setPersona(personaData)
+
+      // Verificar historia académica (usar el mismo método que inscripción)
+      const historia = await historiaAcademicaService.verificarHistoriaAcademica(personaData.id)
+
+      if (!historia) {
+        // No redirigir automáticamente, solo no cargar datos adicionales
+        const planesData = await planesEstudioService.obtenerPlanes()
+        setPlanes(planesData || [])
+        return
       }
 
-      // Cargar planes
+      // Solo cargar datos adicionales si tiene historia académica
       const planesData = await planesEstudioService.obtenerPlanes()
       setPlanes(planesData || [])
     } catch (error) {
@@ -172,6 +195,19 @@ export default function ExperienciasExamen({ user }) {
   const cargarMisExperiencias = async () => {
     if (!persona?.id) return
 
+    // Verificar historia académica antes de cargar experiencias
+    try {
+      const historia = await historiaAcademicaService.verificarHistoriaAcademica(persona.id)
+      if (!historia) {
+        setMisExperiencias([])
+        return
+      }
+    } catch (error) {
+      console.error("Error al verificar historia académica:", error)
+      setMisExperiencias([])
+      return
+    }
+
     setLoadingMisExperiencias(true)
     try {
       const data = await experienciaService.obtenerExperienciasPorEstudiante(persona.id)
@@ -187,9 +223,21 @@ export default function ExperienciasExamen({ user }) {
   const cargarExamenesDisponibles = async () => {
     if (!persona?.id) return
 
+    // Verificar historia académica antes de cargar exámenes
+    try {
+      const historia = await historiaAcademicaService.verificarHistoriaAcademica(persona.id)
+      if (!historia) {
+        setExamenesDisponibles([])
+        return
+      }
+    } catch (error) {
+      console.error("Error al verificar historia académica:", error)
+      setExamenesDisponibles([])
+      return
+    }
+
     try {
       const examenes = await experienciaService.obtenerExamenesPorEstudiante(persona.id)
-      // Filtrar exámenes que ya tienen experiencia
       const examenesConExperiencia = misExperiencias.map((exp) => exp.id)
       const examenesSinExperiencia = examenes.filter((examen) => !examenesConExperiencia.includes(examen.id))
       setExamenesDisponibles(examenesSinExperiencia)
@@ -266,7 +314,7 @@ export default function ExperienciasExamen({ user }) {
       intentosPrevios: 0,
       modalidad: "ESCRITO",
       recursos: [],
-      motivacion: "solo para avanzar en la carrera",
+      motivacion: "Solo para avanzar en la carrera",
     })
   }
 
@@ -300,11 +348,97 @@ export default function ExperienciasExamen({ user }) {
     return "text-red-600"
   }
 
-  if (loading) {
+ if (loading) {
+  return (
+    <div className="space-y-6">
+      {/* Skeleton del header */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
+        <Skeleton className="h-6 w-1/3 mb-2" />
+        <Skeleton className="h-4 w-2/3" />
+      </div>
+
+      {/* Skeleton de filtros */}
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+        <Skeleton className="h-5 w-1/4" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </div>
+      </div>
+
+      {/* Skeleton de lista de experiencias */}
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-4 w-full" />
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, j) => (
+                <Skeleton key={j} className="h-10 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+  // Agregar esta verificación después del loading y antes del contenido principal
+  if (!historiaAcademica && persona) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Cargando experiencias...</p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">💭 Experiencias de Examen</h2>
+          <p className="text-gray-600">
+            Descubre las experiencias de otros estudiantes y comparte la tuya para ayudar a la comunidad universitaria.
+          </p>
+        </div>
+
+        {/* Mensaje de historia académica faltante */}
+        <div className="bg-white p-8 rounded-lg shadow-md border border-orange-200">
+          <div className="text-center mb-6">
+            <div className="text-6xl mb-4">📋</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Debes cargar una historia académica</h3>
+            <p className="text-gray-600 mb-6">
+              Para poder ver y compartir experiencias de examen, necesitas tener tu historia académica cargada en el
+              sistema.
+            </p>
+          </div>
+
+          <div className="max-w-md mx-auto space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-2xl">📚</div>
+                <div>
+                  <h4 className="font-semibold text-blue-800">¿Cómo cargar mi historia académica?</h4>
+                </div>
+              </div>
+              <ol className="text-sm text-blue-700 space-y-2 ml-8">
+                <li>
+                  1. Ve a la pestaña <strong>"Recomendación"</strong>
+                </li>
+                <li>2. Selecciona tu plan de estudio</li>
+                <li>3. Sube tu archivo Excel con las materias cursadas</li>
+                <li>4. Una vez cargada, podrás ver y compartir experiencias</li>
+              </ol>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  const event = new CustomEvent("changeTab", { detail: "recomendacion" })
+                  window.dispatchEvent(event)
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors transform hover:-translate-y-0.5"
+              >
+                📚 Ir a Recomendación
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -394,6 +528,7 @@ export default function ExperienciasExamen({ user }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
             >
               <option value="">Selecciona calificación mínima</option>
+              <option value="0">Todas</option>
               <option value="4">4 o más</option>
               <option value="6">6 o más</option>
               <option value="8">8 o más</option>
@@ -440,10 +575,10 @@ export default function ExperienciasExamen({ user }) {
                           experiencia.dificultad,
                         )}`}
                       >
-                        {getDificultadTexto(experiencia.dificultad)}
+                        Dificultad: {getDificultadTexto(experiencia.dificultad)}
                       </span>
                       <span className={`text-2xl font-bold ${getCalificacionColor(experiencia.nota)}`}>
-                        {experiencia.nota}
+                        Nota: {experiencia.nota}
                       </span>
                     </div>
                   </div>
@@ -528,9 +663,9 @@ export default function ExperienciasExamen({ user }) {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h4 className="text-xl font-semibold text-gray-800">{experiencia.nombreMateria}</h4>
-                    <p className="text-gray-600">{experiencia.codigoMateria}</p>
+                    <p className="text-gray-600">Codigo: {experiencia.codigoMateria}</p>
                     <p className="text-sm text-gray-500">
-                      Examen: {new Date(experiencia.fechaExamen).toLocaleDateString()}
+                      Examen rendido el: {experiencia.fechaExamen} con nota: {experiencia.nota} 
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -612,7 +747,7 @@ export default function ExperienciasExamen({ user }) {
                   <option value="">Selecciona un examen</option>
                   {examenesDisponibles.map((examen) => (
                     <option key={examen.id} value={examen.id}>
-                      {examen.nombreMateria} - {new Date(examen.fechaExamen).toLocaleDateString()} - Nota: {examen.nota}
+                      {examen.materiaNombre} • {examen.fecha} • Nota: {examen.nota}
                     </option>
                   ))}
                 </select>

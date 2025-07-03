@@ -8,6 +8,7 @@ import materiaService from "@/services/materiaService"
 import { useInscripcionPersistence } from "@/hooks/useInscripcionPersistence"
 import { useModalPersistence } from "@/hooks/useModalPersistence"
 import Modal from "@/components/modals/Modal"
+import { useConfirmacionPersistence } from "@/hooks/useConfirmacionPersistence"
 
 export default function Inscripcion({ user }) {
   // Hook de persistencia
@@ -25,7 +26,7 @@ export default function Inscripcion({ user }) {
   } = useModalPersistence("inscriptos-modal")
 
   // Estados locales (no persistidos)
-  const [showConfirmacion, setShowConfirmacion] = useState(false)
+  const [showConfirmacion, setShowConfirmacion] = useConfirmacionPersistence()
   const [inscriptosConsulta, setInscriptosConsulta] = useState([])
   const [loadingInscriptos, setLoadingInscriptos] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -319,7 +320,7 @@ export default function Inscripcion({ user }) {
 
     const mesMesa = mesesNumeros[mesa]
 
-    if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 15)) {
+    if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 10)) {
       return anioActual + 1
     }
 
@@ -556,9 +557,7 @@ export default function Inscripcion({ user }) {
           <br />
           La idea de esta inscripción es poner en contacto estudiantes para estudiar en conjunto
         </p>
-        {state.lastUpdate && (
-          <p className="text-sm text-gray-500">Última actualización: {new Date(state.lastUpdate).toLocaleString()}</p>
-        )}
+        
         {state.historiaAcademica && (
           <div className="flex justify-end mt-2">
             <button
@@ -752,7 +751,20 @@ export default function Inscripcion({ user }) {
 
           {/* Modal de confirmación */}
           {showConfirmacion && (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60 p-4">
+<div
+  className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60 p-4"
+  role="dialog"
+  aria-modal="true"
+  tabIndex={-1}
+  style={{
+    position: "fixed",
+    inset: 0,
+    width: "100vw",
+    height: "100vh",
+    margin: 0,
+    padding: "1rem",
+  }}
+>
               <div className="bg-white rounded-xl w-full max-w-md">
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">Confirmar Inscripción</h3>
@@ -849,21 +861,6 @@ export default function Inscripcion({ user }) {
                           )}
                         </div>
                       </div>
-                      {inscripto.email && inscripto.estudianteId !== state.persona?.id && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="bg-blue-50 p-3 rounded text-sm">
-                            <p className="text-blue-800 font-medium mb-1">💡 Sugerencia de contacto:</p>
-                            <p className="text-blue-700 text-xs">
-                              "Hola! Vi que también estás inscripto a la mesa de{" "}
-                              <strong>{inscripcionConsultada?.materiaNombre}</strong> en{" "}
-                              <strong>
-                                {inscripcionConsultada?.turno} {inscripcionConsultada?.anio}
-                              </strong>
-                              . ¿Te interesa estudiar juntos?"
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

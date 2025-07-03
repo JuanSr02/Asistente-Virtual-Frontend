@@ -195,11 +195,16 @@ export default function BarChart({
       <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">{title}</h4>
       <div className="relative w-full" ref={containerRef}>
         <canvas ref={canvasRef} height={dimensions.height} className="w-full" />
-        {showNameBelow && hoveredLabel && (
-          <div className="text-center mt-2 p-2 bg-gray-100 rounded text-sm font-medium text-gray-700">
-            {hoveredLabel}
-          </div>
-        )}
+       {showNameBelow && (
+  <div
+    className={`text-center mt-2 min-h-[2rem] p-2 bg-gray-100 rounded text-sm font-medium text-gray-700 transition-opacity duration-300 ease-in-out ${
+      hoveredLabel ? "opacity-100" : "opacity-0"
+    }`}
+  >
+    {hoveredLabel}
+  </div>
+)}
+
       </div>
     </div>
   )

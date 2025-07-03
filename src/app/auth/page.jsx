@@ -86,7 +86,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: "https://qlbpcnyjsvhxnncjorku.supabase.co/auth/v1/callback",
+          redirectTo: `${window.location.origin}`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -128,48 +128,52 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="w-full max-w-7xl mx-auto flex justify-start">
-        <div className="flex items-stretch">
-          {/* Panel izquierdo */}
-          <div className="bg-white p-10 rounded-l-2xl shadow-xl border border-gray-100 w-96 flex-shrink-0 flex flex-col justify-between min-h-[600px]">
-            <div>
-              <div className="text-center mb-10">
-                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-3">
-                  Asistente Virtual
-                </h1>
-                <h2 className="text-2xl font-semibold text-indigo-800 mb-2">Soporte Académico</h2>
-                <div className="flex justify-center items-center gap-4 mt-4">
-                  <span className="text-lg font-medium text-indigo-600">UNSL</span>
-                  <span className="text-indigo-300">|</span>
-                  <span className="text-lg font-medium text-indigo-600">Dpto Informática</span>
-                </div>
-              </div>
-              <div className="flex justify-center gap-12 mb-10">
-                <img src="logoUNSL.png" alt="Logo UNSL" className="h-20 object-contain" />
-                <img src="logoDptoInfo.png" alt="Logo Dpto Informática" className="h-20 object-contain" />
-              </div>
-            </div>
-            <div>
-              {!showLogin && !showForgotPassword &&  (
-                <button
-                  onClick={() => setShowLogin(true)}
-                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-8"
-                >
-                  Iniciar Sesión
-                </button>
-              )}
-              {(
-                <button
-                  onClick={handleGoogleAuth}
-                  disabled={loading}
-                  className="w-full py-3.5 bg-white hover:bg-gray-50 border-2 border-gray-200 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 rounded-xl text-base font-semibold transition-colors flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
-                >
-                  <img src="logoGoogle.png" alt="Google Logo" className="h-6" />
-                  Continuar con Google
-                </button>
-              )}
-            </div>
+      <div
+  className={`w-full max-w-7xl mx-auto flex transition-all duration-300 ${
+    showLogin || showForgotPassword || isSignUp ? "justify-start" : "justify-center"
+  }`}
+>
+  <div className="flex items-stretch">
+    {/* Panel izquierdo */}
+    <div className="bg-white p-10 rounded-l-2xl shadow-xl border border-gray-100 w-96 flex-shrink-0 flex flex-col justify-between min-h-[600px]">
+      <div>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-3">
+            Asistente Virtual
+          </h1>
+          <h2 className="text-2xl font-semibold text-indigo-800 mb-2">Un soporte académico para estudiantes</h2>
+          <div className="flex justify-center items-center gap-4 mt-4">
+            <span className="text-lg font-medium text-indigo-600">UNSL</span>
+            <span className="text-indigo-300">|</span>
+            <span className="text-lg font-medium text-indigo-600">Dpto Informática</span>
           </div>
+        </div>
+        <div className="flex justify-center gap-12 mb-10">
+          <img src="logoUNSL.png" alt="Logo UNSL" className="h-20 object-contain" />
+          <img src="logoDptoInfo.png" alt="Logo Dpto Informática" className="h-20 object-contain" />
+        </div>
+      </div>
+
+      <div>
+        {!showLogin && !showForgotPassword && (
+          <button
+            onClick={() => setShowLogin(true)}
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-8"
+          >
+            Iniciar Sesión
+          </button>
+        )}
+        <button
+          onClick={handleGoogleAuth}
+          disabled={loading}
+          className="w-full py-3.5 bg-white hover:bg-gray-50 border-2 border-gray-200 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 rounded-xl text-base font-semibold transition-colors flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
+        >
+          <img src="logoGoogle.png" alt="Google Logo" className="h-6" />
+          Continuar con Google
+        </button>
+      </div>
+    </div>
+
 
           {/* Panel recuperación contraseña */}
           {showForgotPassword && (
@@ -187,12 +191,18 @@ export default function Auth() {
             Email:
           </label>
           <input
-            id="reset-email"
-            type="email"
-            placeholder="tu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+  type="text" // OJO: cambiamos de "email" a "text"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  onInvalid={(e) => {
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+    if (!valid) {
+      e.target.setCustomValidity("Por favor ingresá un email válido")
+    }
+  }}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
+  placeholder="tu@email.com"
             className="w-full px-4 py-4 border-2 border-blue-200 bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all"
           />
         </div>
@@ -238,13 +248,19 @@ export default function Auth() {
                   <label htmlFor="email" className="block mb-3 text-lg font-medium text-gray-700">
                     Email:
                   </label>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder="tu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                <input
+  type="text" // OJO: cambiamos de "email" a "text"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  onInvalid={(e) => {
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+    if (!valid) {
+      e.target.setCustomValidity("Por favor ingresá un email válido")
+    }
+  }}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
+  placeholder="tu@email.com"
                     className="w-full px-4 py-4 border-2 border-blue-200 bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all"
                   />
                 </div>
@@ -253,12 +269,13 @@ export default function Auth() {
                     Contraseña:
                   </label>
                   <input
-                    id="password"
-                    type="password"
-                    placeholder="Tu contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  onInvalid={(e) => e.target.setCustomValidity("Por favor ingresá tu contraseña")}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
+  placeholder="Tu contraseña"
                     className="w-full px-4 py-4 border-2 border-blue-200 bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all"
                   />
                 </div>
@@ -311,40 +328,55 @@ export default function Auth() {
                     <div>
                       <label className="block mb-3 text-lg font-medium text-gray-700">Email:</label>
                       <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
+  type="text" // OJO: cambiamos de "email" a "text"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  onInvalid={(e) => {
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value)
+    if (!valid) {
+      e.target.setCustomValidity("Por favor ingresá un email válido")
+    }
+  }}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
+  placeholder="tu@email.com"
                         className="w-full px-4 py-4 border-2 border-blue-200 bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all"
                       />
                     </div>
                     <div>
                       <label className="block mb-3 text-lg font-medium text-gray-700">Nombre:</label>
-                      <input
-                        type="text"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        required
+                     <input
+  type="text"
+  value={nombre}
+  onChange={(e) => setNombre(e.target.value)}
+  onInvalid={(e) => e.target.setCustomValidity("Por favor ingresá tu nombre")}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
                         className="w-full px-4 py-4 border-2 border-green-200 bg-green-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:bg-white transition-all"
                       />
                     </div>
                     <div>
                       <label className="block mb-3 text-lg font-medium text-gray-700">Contraseña:</label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
+                    <input
+  type="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  onInvalid={(e) => e.target.setCustomValidity("Por favor ingresá tu contraseña")}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
+  placeholder="Tu contraseña"
                         className="w-full px-4 py-4 border-2 border-blue-200 bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all"
                       />
                     </div>
                     <div>
                       <label className="block mb-3 text-lg font-medium text-gray-700">Apellido:</label>
-                      <input
-                        type="text"
-                        value={apellido}
-                        onChange={(e) => setApellido(e.target.value)}
-                        required
+                     <input
+  type="text"
+  value={apellido}
+  onChange={(e) => setApellido(e.target.value)}
+  onInvalid={(e) => e.target.setCustomValidity("Por favor ingresá tu apellido")}
+  onInput={(e) => e.target.setCustomValidity("")}
+  required
                         className="w-full px-4 py-4 border-2 border-green-200 bg-green-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:bg-white transition-all"
                       />
                     </div>

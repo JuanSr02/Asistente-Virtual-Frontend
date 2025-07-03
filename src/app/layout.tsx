@@ -111,9 +111,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const isPublicRoute = publicRoutes.includes(pathname || '')
 
-  return (
-    <html lang="es">
-      <body className="min-h-screen bg-background text-foreground">
+ return (
+  <html lang="es">
+    <body className="min-h-screen flex flex-col bg-background text-foreground">
+      <main className="flex-1">
         {!isPublicRoute && !session ? (
           <Auth />
         ) : session && !isPublicRoute ? (
@@ -121,7 +122,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : (
           children
         )}
-      </body>
-    </html>
-  )
+      </main>
+
+      <footer className="bg-gray-100 text-center text-sm text-black py-4 border-t border-gray-200">
+  Universidad Nacional de San Luis · Departamento de Informática · 2025 © Juan Sánchez (juanma2002123@gmail.com)
+</footer>
+
+
+    </body>
+  </html>
+)
+
 }
