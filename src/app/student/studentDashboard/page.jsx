@@ -6,6 +6,7 @@ import EstadisticasMateria from "@/app/estadisticasMateria/page"
 import Inscripcion from "../inscripcion/page"
 import { useSessionPersistence } from "@/hooks/useSessionPersistence"
 import ExperienciasExamen from "../experiencias-examen/page"
+import Perfil from "@/app/perfil/page"
 
 // Dashboard específico para estudiantes
 export default function StudentDashboard({ user }) {
@@ -63,6 +64,8 @@ export default function StudentDashboard({ user }) {
         return <EstadisticasMateria />
       case "experiencias":
         return <ExperienciasExamen user={user} />
+      case "perfil":
+        return <Perfil />
       default:
         return <div className="text-center py-8 text-gray-500">Seleccione una opción del menú</div>
     }
@@ -112,6 +115,16 @@ export default function StudentDashboard({ user }) {
             onClick={() => handleTabChange("estadisticas")}
           >
             📊 Estadísticas por Materia
+          </button>
+          <button
+            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
+              activeTab === "perfil"
+                ? "text-blue-500 border-blue-500 font-semibold"
+                : "text-gray-600 border-transparent hover:text-gray-800"
+            }`}
+            onClick={() => handleTabChange("perfil")}
+          >
+            👤 Perfil
           </button>
         </div>
 

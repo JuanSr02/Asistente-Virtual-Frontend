@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import PlanesEstudio from "../planes-estudio/page"
 import Estadisticas from "../estadisticas/page"
+import Perfil from "@/app/perfil/page"
 import { useSessionPersistence } from "@/hooks/useSessionPersistence"
 
 // Dashboard específico para administradores
@@ -27,6 +28,19 @@ export default function AdminDashboard({ user }) {
     updateLastVisited()
   }
 
+  // Escuchar eventos de cambio de pestaña desde otros componentes
+  useEffect(() => {
+    const handleChangeTab = (event) => {
+      const newTab = event.detail
+      if (newTab && newTab !== activeTab) {
+        handleTabChange(newTab)
+      }
+    }
+
+    window.addEventListener("changeTab", handleChangeTab)
+    return () => window.removeEventListener("changeTab", handleChangeTab)
+  }, [activeTab])
+
   // Renderizar el contenido según la pestaña activa
   const renderContent = () => {
     switch (activeTab) {
@@ -34,6 +48,8 @@ export default function AdminDashboard({ user }) {
         return <PlanesEstudio />
       case "estadisticas":
         return <Estadisticas />
+      case "perfil":
+        return <Perfil />
       default:
         return <div className="text-center py-8 text-gray-500">Seleccione una opción del menú</div>
     }
@@ -63,6 +79,16 @@ export default function AdminDashboard({ user }) {
             onClick={() => handleTabChange("estadisticas")}
           >
             Estadísticas
+          </button>
+          <button
+            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
+              activeTab === "perfil"
+                ? "text-blue-500 border-blue-500 font-semibold"
+                : "text-gray-600 border-transparent hover:text-gray-800"
+            }`}
+            onClick={() => handleTabChange("perfil")}
+          >
+            👤 Perfil
           </button>
         </div>
         <div className="flex flex-col items-end">
