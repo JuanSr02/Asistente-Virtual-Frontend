@@ -7,6 +7,8 @@ import historiaAcademicaService from "@/services/historiaAcademicaService"
 import Modal from "@/components/modals/Modal"
 import { useModalPersistence } from "@/hooks/useModalPersistence"
 import personaService from "@/services/personaService"
+import { usePersistedState } from "@/hooks/usePersistedState"
+import { Skeleton } from "@/components/Skeleton"
 
 export default function ExperienciasExamen({ user }) {
   // Estados principales
@@ -25,9 +27,10 @@ export default function ExperienciasExamen({ user }) {
   const [historiaAcademica, setHistoriaAcademica] = useState(null)
 
   // Estados de filtros
-  const [planSeleccionado, setPlanSeleccionado] = useState("")
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState("")
-  const [filtroCalificacion, setFiltroCalificacion] = useState("")
+  const [planSeleccionado, setPlanSeleccionado] = usePersistedState("plan-seleccionado", "")
+  const [materiaSeleccionada, setMateriaSeleccionada] = usePersistedState("materia-seleccionada", "")
+  const [filtroCalificacion, setFiltroCalificacion] = usePersistedState("filtro-calificacion", "")
+
 
   // Estados de modales
   const {
@@ -38,16 +41,16 @@ export default function ExperienciasExamen({ user }) {
   } = useModalPersistence("crear-experiencia-modal")
 
   // Estados del formulario
-  const [formData, setFormData] = useState({
-    examenId: "",
-    dificultad: 5,
-    diasEstudio: 1,
-    horasDiarias: 1,
-    intentosPrevios: 0,
-    modalidad: "ESCRITO",
-    recursos: [],
-    motivacion: "solo para avanzar en la carrera",
-  })
+const [formData, setFormData] = usePersistedState("experiencia-form", {
+  examenId: "",
+  dificultad: 5,
+  diasEstudio: 1,
+  horasDiarias: 1,
+  intentosPrevios: 0,
+  modalidad: "ESCRITO",
+  recursos: [],
+  motivacion: "Solo para avanzar en la carrera",
+})
 
   // Estados de notificaciones
   const [success, setSuccess] = useState("")
@@ -311,7 +314,7 @@ export default function ExperienciasExamen({ user }) {
       intentosPrevios: 0,
       modalidad: "ESCRITO",
       recursos: [],
-      motivacion: "solo para avanzar en la carrera",
+      motivacion: "Solo para avanzar en la carrera",
     })
   }
 
@@ -345,14 +348,42 @@ export default function ExperienciasExamen({ user }) {
     return "text-red-600"
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Cargando experiencias...</p>
+ if (loading) {
+  return (
+    <div className="space-y-6">
+      {/* Skeleton del header */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
+        <Skeleton className="h-6 w-1/3 mb-2" />
+        <Skeleton className="h-4 w-2/3" />
       </div>
-    )
-  }
+
+      {/* Skeleton de filtros */}
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+        <Skeleton className="h-5 w-1/4" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </div>
+      </div>
+
+      {/* Skeleton de lista de experiencias */}
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-4 w-full" />
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, j) => (
+                <Skeleton key={j} className="h-10 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
   // Agregar esta verificación después del loading y antes del contenido principal
   if (!historiaAcademica && persona) {

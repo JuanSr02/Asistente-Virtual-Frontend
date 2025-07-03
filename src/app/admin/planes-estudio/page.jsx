@@ -146,11 +146,7 @@ export default function PlanesEstudio() {
   Planes de Estudio
 </h2>
 
-        {planesState.lastUpdate && (
-          <div className="text-sm text-gray-500">
-            Última actualización: {new Date(planesState.lastUpdate).toLocaleString()}
-          </div>
-        )}
+        
       </div>
 
       <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
