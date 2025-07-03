@@ -44,10 +44,10 @@ export function useInscripcionPersistence() {
   const [state, setState] = useState<InscripcionState>(initialState)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Cargar estado desde localStorage al inicializar
+  // Cargar estado desde sessionStorage al inicializar
   useEffect(() => {
     try {
-      const savedState = localStorage.getItem(STORAGE_KEY)
+      const savedState = sessionStorage.getItem(STORAGE_KEY)
       if (savedState) {
         const parsedState = JSON.parse(savedState)
         setState(parsedState)
@@ -59,11 +59,11 @@ export function useInscripcionPersistence() {
     }
   }, [])
 
-  // Guardar estado en localStorage cuando cambie
+  // Guardar estado en sessionStorage cuando cambie
   useEffect(() => {
     if (isInitialized) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state))
       } catch (error) {
         console.error("Error al guardar estado de inscripción:", error)
       }
@@ -91,7 +91,7 @@ export function useInscripcionPersistence() {
 
   const clearAllData = useCallback(() => {
     setState(initialState)
-    localStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(STORAGE_KEY)
   }, [])
 
   const shouldRefreshData = useCallback(() => {
