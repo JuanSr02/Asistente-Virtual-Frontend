@@ -177,101 +177,116 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Mi Perfil
-          </CardTitle>
-          <CardDescription>Gestiona tu información personal y configuración de cuenta</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="nombreApellido">Nombre y Apellido</Label>
-              <Input
-                id="nombreApellido"
-                value={formData.nombreApellido}
-                onChange={(e) => handleInputChange("nombreApellido", e.target.value)}
-                maxLength={50}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mail">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
+      <div className="container mx-auto max-w-4xl">
+        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
+          <CardHeader className="text-center pb-8">
+            <CardTitle className="flex items-center justify-center gap-3 text-2xl">
+              <User className="h-6 w-6 text-blue-600" />
+              Mi Perfil
+            </CardTitle>
+            <CardDescription className="text-base">
+              Gestiona tu información personal y configuración de cuenta
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            {/* Formulario en grid horizontal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="nombreApellido" className="text-sm font-medium text-gray-700">
+                  Nombre y Apellido
+                </Label>
                 <Input
-                  id="mail"
-                  type="email"
-                  value={formData.mail}
-                  onChange={(e) => handleInputChange("mail", e.target.value)}
-                  className="pl-10"
+                  id="nombreApellido"
+                  value={formData.nombreApellido}
+                  onChange={(e) => handleInputChange("nombreApellido", e.target.value)}
                   maxLength={50}
+                  className="h-11 bg-white/70 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="mail" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="mail"
+                    type="email"
+                    value={formData.mail}
+                    onChange={(e) => handleInputChange("mail", e.target.value)}
+                    className="h-11 pl-10 bg-white/70 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                    maxLength={50}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="telefono" className="text-sm font-medium text-gray-700">
+                  Teléfono
+                </Label>
+                <div className="relative max-w-md">
+                  <Phone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="telefono"
+                    value={formData.telefono}
+                    onChange={(e) => handleInputChange("telefono", e.target.value)}
+                    className="h-11 pl-10 bg-white/70 border-gray-200 focus:border-blue-400 focus:ring-blue-400"
+                    maxLength={15}
+                    placeholder="Opcional"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="telefono">Teléfono</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="telefono"
-                  value={formData.telefono}
-                  onChange={(e) => handleInputChange("telefono", e.target.value)}
-                  className="pl-10"
-                  maxLength={15}
-                  placeholder="Opcional"
-                />
-              </div>
-            </div>
+            {/* Botones de acción */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+              <Button
+                onClick={handleActualizar}
+                disabled={updating}
+                className="flex-1 h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium"
+              >
+                {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Actualizar Perfil
+              </Button>
 
-            <div className="pt-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                <strong>Rol:</strong> {usuario.rol_usuario}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 pt-6 border-t">
-            <Button onClick={handleActualizar} disabled={updating} className="w-full">
-              {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Actualizar Perfil
-            </Button>
-
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full" disabled={deleting}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar Cuenta
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción no se puede deshacer. Se eliminará permanentemente tu cuenta y todos los datos
-                    asociados.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleEliminarCuenta}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-11 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 bg-transparent"
                     disabled={deleting}
                   >
-                    {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Trash2 className="mr-2 h-4 w-4" />
                     Eliminar Cuenta
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </CardContent>
-      </Card>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-white">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. Se eliminará permanentemente tu cuenta y todos los datos
+                      asociados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleEliminarCuenta}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      disabled={deleting}
+                    >
+                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Eliminar Cuenta
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
