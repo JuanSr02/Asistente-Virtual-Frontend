@@ -6,8 +6,9 @@ import { supabase } from "@/supabaseClient"
 import Auth from "@/app/auth/page"
 import Dashboard from "@/app/dashboard/page"
 import "@/app/globals.css"
+import { Toaster } from "@/components/ui/toaster" // Importa el Toaster
 
-const publicRoutes = ["/reset-password", "/about", "/terms", "/privacy", "/auth"]
+const publicRoutes = ["/reset-password","/auth"]
 
 // Componente separado para el loading
 const LoadingScreen = () => (
@@ -123,6 +124,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           children
         )}
       </main>
+
+      {/* Añade el Toaster aquí, preferiblemente cerca del final del body */}
+        <Toaster />
 
       <footer className="bg-gray-100 text-center text-sm text-black py-4 border-t border-gray-200">
   Universidad Nacional de San Luis · Departamento de Informática · 2025 © Juan Sánchez (juanma2002123@gmail.com)

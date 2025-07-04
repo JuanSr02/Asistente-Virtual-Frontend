@@ -9,14 +9,8 @@ import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersist
 import { APP_CONFIG } from "@/lib/config"
 
 export default function Recomendacion({ user }) {
-  const { 
-    state, 
-    updateState, 
-    clearRecomendaciones, 
-    clearAllState, 
-    isStateStale, 
-    isInitialized 
-  } = useEnhancedSessionPersistence()
+  const { state, updateState, clearRecomendaciones, clearAllState, isStateStale, isInitialized } =
+    useEnhancedSessionPersistence()
 
   // Referencias para inputs de archivo
   const fileInputRef = useRef(null)
@@ -50,9 +44,9 @@ export default function Recomendacion({ user }) {
       }
 
       if (!personaData) {
-        updateState({ 
+        updateState({
           error: "No se encontró tu perfil en el sistema. Contacta al administrador.",
-          loadingPersona: false 
+          loadingPersona: false,
         })
         return
       }
@@ -69,10 +63,7 @@ export default function Recomendacion({ user }) {
 
         // Verificar si hay recomendaciones guardadas para esta persona
         const tieneRecomendacionesGuardadas =
-          state.recomendaciones.length > 0 &&
-          state.personaId === personaData.id &&
-          state.lastFetch &&
-          !isStateStale(30) // No más de 30 minutos de antigüedad
+          state.recomendaciones.length > 0 && state.personaId === personaData.id && state.lastFetch && !isStateStale(30) // No más de 30 minutos de antigüedad
 
         if (tieneRecomendacionesGuardadas) {
           console.log("Usando recomendaciones guardadas")
@@ -88,9 +79,9 @@ export default function Recomendacion({ user }) {
       }
     } catch (err) {
       console.error("Error al cargar datos iniciales:", err)
-      updateState({ 
+      updateState({
         error: "Error al cargar tus datos. Por favor, intenta nuevamente.",
-        loadingPersona: false 
+        loadingPersona: false,
       })
     } finally {
       updateState({ loadingPersona: false })
@@ -112,7 +103,11 @@ export default function Recomendacion({ user }) {
     }
   }
 
-  const obtenerRecomendaciones = async (estudianteId = state.persona?.id, orden = state.criterioOrden, isAutoLoad = false) => {
+  const obtenerRecomendaciones = async (
+    estudianteId = state.persona?.id,
+    orden = state.criterioOrden,
+    isAutoLoad = false,
+  ) => {
     if (!estudianteId) {
       console.warn("No hay ID de estudiante para obtener recomendaciones")
       return
@@ -126,12 +121,12 @@ export default function Recomendacion({ user }) {
       console.log("Recomendaciones obtenidas:", data)
 
       const recomendacionesArray = Array.isArray(data) ? data : []
-      
+
       updateState({
         recomendaciones: recomendacionesArray,
         criterioOrden: orden,
         personaId: estudianteId,
-        lastFetch: new Date().toISOString()
+        lastFetch: new Date().toISOString(),
       })
 
       if (!data || data.length === 0) {
@@ -156,9 +151,9 @@ export default function Recomendacion({ user }) {
         }
       }
 
-      updateState({ 
+      updateState({
         error: errorMessage,
-        recomendaciones: [] // Limpiar recomendaciones en caso de error
+        recomendaciones: [], // Limpiar recomendaciones en caso de error
       })
 
       // Limpiar persistencia en caso de error
@@ -176,8 +171,8 @@ export default function Recomendacion({ user }) {
 
     const fileExtension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase()
     if (!APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension)) {
-      updateState({ 
-        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}` 
+      updateState({
+        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       })
       // Limpiar input
       if (isUpdate && updateFileInputRef.current) {
@@ -237,22 +232,22 @@ export default function Recomendacion({ user }) {
           console.log("Historia recargada:", historia)
 
           if (historia) {
-            updateState({ 
+            updateState({
               historiaAcademica: historia,
-              criterioOrden: "CORRELATIVAS" // Reset criterio
+              criterioOrden: "CORRELATIVAS", // Reset criterio
             })
             // Cargar recomendaciones automáticamente con criterio por defecto
             await obtenerRecomendaciones(state.persona.id, "CORRELATIVAS")
           } else {
             console.warn("No se pudo recargar la historia académica")
-            updateState({ 
-              error: "La historia se procesó pero no se pudo verificar. Intenta recargar la página." 
+            updateState({
+              error: "La historia se procesó pero no se pudo verificar. Intenta recargar la página.",
             })
           }
         } catch (reloadErr) {
           console.error("Error al recargar historia:", reloadErr)
-          updateState({ 
-            error: "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página." 
+          updateState({
+            error: "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
           })
         }
       }, 2000)
@@ -310,7 +305,7 @@ export default function Recomendacion({ user }) {
         historiaAcademica: null,
         recomendaciones: [],
         criterioOrden: "CORRELATIVAS", // Reset criterio
-        success: "Historia académica eliminada correctamente."
+        success: "Historia académica eliminada correctamente.",
       })
 
       // Limpiar recomendaciones guardadas
@@ -439,6 +434,23 @@ export default function Recomendacion({ user }) {
             <p className="text-gray-600 mb-6">
               Para obtener recomendaciones personalizadas, necesitas subir tu historia académica en formato Excel.
             </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 font-medium mb-2">
+                Recuerda subir tu historia completa para un funcionamiento correcto del asistente virtual
+              </p>
+              <p className="text-blue-700 text-sm mb-3">
+                ¿No sabes cómo descargar tu historia académica?
+              </p>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => window.open("https://www.youtube.com/watch?v=VIDEO_ID_AQUI", "_blank")}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                >
+                <span>📺</span>
+                  Ver video tutorial
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="max-w-md mx-auto space-y-4">
@@ -503,8 +515,8 @@ export default function Recomendacion({ user }) {
                     {state.planes.length > 0 && (
                       <span className="ml-2 text-gray-500">
                         (
-                        {state.planes.find((p) => p.codigo === state.historiaAcademica.plan_de_estudio_codigo)?.propuesta ||
-                          "Plan no encontrado"}
+                        {state.planes.find((p) => p.codigo === state.historiaAcademica.plan_de_estudio_codigo)
+                          ?.propuesta || "Plan no encontrado"}
                         )
                       </span>
                     )}
@@ -589,7 +601,9 @@ export default function Recomendacion({ user }) {
             </div>
           ) : (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Finales recomendados ({state.recomendaciones.length})</h3>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Finales recomendados ({state.recomendaciones.length})
+              </h3>
 
               {state.recomendaciones.map((final, index) => (
                 <div

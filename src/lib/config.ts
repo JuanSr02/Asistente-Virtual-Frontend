@@ -5,6 +5,8 @@ export const API_ROUTES = {
   ADMIN: {
     CARGAR_PLAN: "/api/admin/planes-estudio/carga",
     ELIMINAR_PLAN: "/api/admin/planes-estudio",
+    ACTUALIZAR_ADMINISTRADOR: "/api/admin/administradores",
+    ELIMINAR_ADMINISTRADOR: "/api/admin/administradores",
   },
   SHARED: {
     ESTADISTICAS_GENERALES: "/api/shared/estadisticas/generales",
@@ -17,6 +19,8 @@ export const API_ROUTES = {
     EXPERIENCIAS_POR_MATERIA: "/api/shared/experiencias/por-materia",
     EXPERIENCIAS_POR_ESTUDIANTE: "/api/shared/experiencias/por-estudiante",
     EXAMENES_POR_ESTUDIANTE: "/api/shared/experiencias/examenes-por-estudiante",
+    ACTUALIZAR_ESTUDIANTE: "/api/shared/estudiantes",
+    ELIMINAR_ESTUDIANTE: "/api/shared/estudiantes",
   },
   ESTUDIANTE: {
     FINALES_PARA_RENDIR: "/api/shared/finales",

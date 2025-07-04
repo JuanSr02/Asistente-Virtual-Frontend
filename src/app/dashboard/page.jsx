@@ -34,6 +34,13 @@ export default function Dashboard({ user }) {
     }
   }
 
+  // Función para ir a la tab de perfil
+  const handleGoToProfile = () => {
+    // Disparar evento personalizado para cambiar a la tab de perfil
+    const event = new CustomEvent("changeTab", { detail: "perfil" })
+    window.dispatchEvent(event)
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -73,42 +80,41 @@ export default function Dashboard({ user }) {
     )
   }
 
-// Renderizar el dashboard según el rol
-return (
-  <div className="min-h-screen flex flex-col">
-    <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 shadow-lg">
-  <div className="max-w-6xl mx-auto px-8">
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-semibold text-white border-b-2 border-white inline-block pb-1 ml-2">
-          Asistente Virtual
-        </h1>
-      </div>
+  // Renderizar el dashboard según el rol
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 shadow-lg">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-semibold text-white border-b-2 border-white inline-block pb-1 ml-2">
+                Asistente Virtual
+              </h1>
+            </div>
 
-      <div className="flex items-center gap-4">
-        <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
-          {role}
-        </span>
-        <button
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-        >
-          {signingOut ? "Cerrando..." : "Cerrar Sesión"}
-        </button>
-      </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleGoToProfile}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide transition-all cursor-pointer"
+                title="Ir a Perfil"
+              >
+                {role}
+              </button>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {signingOut ? "Cerrando..." : "Cerrar Sesión"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 flex flex-col">
+        {role === "ADMINISTRADOR" ? <AdminDashboard user={user} /> : <StudentDashboard user={user} />}
+      </main>
     </div>
-  </div>
-</header>
-
-
-    <main className="flex-1 flex flex-col">
-      {role === "ADMINISTRADOR" ? (
-        <AdminDashboard user={user} />
-      ) : (
-        <StudentDashboard user={user} />
-      )}
-    </main>
-  </div>
-)
+  )
 }
