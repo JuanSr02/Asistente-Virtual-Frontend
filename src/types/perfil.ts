@@ -2,6 +2,7 @@ export interface ActualizarPerfilDTO {
   nombreApellido?: string
   mail?: string
   telefono?: string
+  contrasenia?: string
 }
 
 export interface PerfilUsuario {
