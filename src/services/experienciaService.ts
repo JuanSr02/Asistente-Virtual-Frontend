@@ -25,6 +25,7 @@ export interface ExperienciaDTO {
   modalidad: string
   recursos: string
   motivacion: string
+  linkResumen: string
 }
 
 export interface ActualizarExperienciaDTO {
@@ -35,6 +36,7 @@ export interface ActualizarExperienciaDTO {
   modalidad?: string
   recursos?: string
   motivacion?: string
+  linkResumen?: string
 }
 
 export interface ExamenDisponibleDTO {

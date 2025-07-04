@@ -50,6 +50,7 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
   modalidad: "ESCRITO",
   recursos: [],
   motivacion: "Solo para avanzar en la carrera",
+  linkResumen: ""
 })
 
   // Estados de notificaciones
@@ -62,15 +63,10 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
     "Diapositivas",
     "Resumen",
     "Videos",
-    "Ejercicios online",
     "Clases particulares",
-    "Grupos de estudio",
-    "Documentación oficial",
-    "Foros",
-    "Práctica con compañeros",
   ]
 
-  const motivacionesDisponibles = ["Se me vence", "Necesito las correlativas", "Solo para avanzar en la carrera"]
+  const motivacionesDisponibles = ["Se me vence", "Necesito las correlativas", "Solo para avanzar en la carrera", "Materia karma"]
 
   useEffect(() => {
     cargarDatosIniciales()
@@ -255,6 +251,7 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
         ...formData,
         recursos: formData.recursos.join(", "),
         examenId: Number.parseInt(formData.examenId),
+        linkResumen: formData.linkResumen
       }
 
       if (experienciaEditando) {
@@ -301,6 +298,7 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
       modalidad: experiencia.modalidad,
       recursos: experiencia.recursos.split(", "),
       motivacion: experiencia.motivacion,
+      linkResumen: experiencia.linkResumen
     })
     openCrearModal(experiencia, "editar")
   }
@@ -315,6 +313,7 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
       modalidad: "ESCRITO",
       recursos: [],
       motivacion: "Solo para avanzar en la carrera",
+      linkResumen: ""
     })
   }
 
@@ -618,6 +617,22 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
                     <h5 className="font-semibold text-gray-800 mb-2">🎯 Motivación:</h5>
                     <p className="text-gray-600 bg-blue-50 p-3 rounded-lg">{experiencia.motivacion}</p>
                   </div>
+
+{experiencia.linkResumen && (
+  <div className="mt-4">
+    <h5 className="font-semibold text-gray-800 mb-2">📄 Link al resumen:</h5>
+    <a
+      href={experiencia.linkResumen}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+    >
+      📎 Ver resumen
+    </a>
+  </div>
+)}
+
+
                 </div>
               ))}
             </div>
@@ -719,6 +734,21 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
                     <p className="text-gray-600 bg-blue-50 p-3 rounded-lg text-sm">{experiencia.motivacion}</p>
                   </div>
                 </div>
+
+{experiencia.linkResumen && (
+  <div className="mt-4">
+    <h5 className="font-semibold text-gray-800 mb-2">📄 Link al resumen:</h5>
+    <a
+      href={experiencia.linkResumen}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium px-4 py-2 rounded-lg text-sm transition-colors"
+    >
+      📎 Ver resumen
+    </a>
+  </div>
+)}
+
               </div>
             ))}
           </div>
@@ -911,6 +941,33 @@ const [formData, setFormData] = usePersistedState("experiencia-form", {
                 ))}
               </div>
             </div>
+
+{/* Link al resumen si se seleccionó "Resumen" o si ya hay un link cargado (modo edición) */}
+{(formData.recursos.includes("Resumen") || !!formData.linkResumen) && (
+  <div className="mt-4">
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      Link al resumen (opcional, si deseas compartirlo)
+    </label>
+   <input
+  type="url"
+  value={formData.linkResumen || ""}
+  onChange={(e) => {
+    e.target.setCustomValidity(""); // Limpiar mensaje anterior
+    setFormData({ ...formData, linkResumen: e.target.value });
+  }}
+  onInvalid={(e) =>
+    e.target.setCustomValidity("Por favor, ingresa un enlace válido (por ejemplo, https://drive.google.com/...)")
+  }
+  placeholder="https://drive.google.com/..."
+  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+/>
+    <p className="text-xs text-gray-500 mt-1">
+      Lo ideal es un link a un Drive para visualizarlo y descargarlo.
+    </p>
+  </div>
+)}
+
+
 
             {/* Botones */}
             <div className="flex gap-4 pt-4">
