@@ -177,106 +177,102 @@ export default function PerfilPage() {
   }
 
 return (
-<div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4 flex items-center justify-center">
-  <Card className="w-full max-w-md bg-white/95 shadow-md border border-gray-200 rounded-xl">
-    <CardHeader className="text-center pb-4">
-      <CardTitle className="flex items-center justify-center gap-2 text-lg font-semibold text-blue-700">
-        <User className="h-5 w-5" />
-        Mi Perfil
-      </CardTitle>
-      <CardDescription className="text-sm text-gray-600">
-        Editá tus datos personales
-      </CardDescription>
-    </CardHeader>
+  <div className="min-h-screen bg-white px-4 pt-10 pb-20">
+    <Card className="w-full max-w-3xl mx-auto bg-white shadow-lg border border-blue-200 rounded-xl">
+      <CardHeader className="px-6 py-5 border-b border-blue-100">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800 flex items-center gap-2">
+          <User className="w-6 h-6" />
+          Mi Perfil
+        </CardTitle>
+        <CardDescription className="text-sm text-blue-600 mt-1">
+          Editá tus datos personales
+        </CardDescription>
+      </CardHeader>
 
-    <CardContent className="space-y-4">
-      {/* Campos en una sola columna */}
-      <div className="space-y-3">
+      <CardContent className="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <Label htmlFor="nombreApellido">Nombre y Apellido</Label>
+          <Label htmlFor="nombreApellido" className="text-blue-900">Nombre y Apellido</Label>
           <Input
             id="nombreApellido"
             value={formData.nombreApellido}
             onChange={(e) => handleInputChange("nombreApellido", e.target.value)}
             maxLength={50}
-            className="h-9"
+            className="h-10 border-blue-300 focus:ring-2 focus:ring-blue-400"
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="mail">Email</Label>
+          <Label htmlFor="mail" className="text-blue-900">Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-blue-400" />
             <Input
               id="mail"
               type="email"
               value={formData.mail}
               onChange={(e) => handleInputChange("mail", e.target.value)}
-              className="h-9 pl-10"
+              className="h-10 pl-10 border-blue-300 focus:ring-2 focus:ring-blue-400"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="telefono">Teléfono (opcional)</Label>
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="telefono" className="text-blue-900">Teléfono (opcional)</Label>
           <div className="relative">
-            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-blue-400" />
             <Input
               id="telefono"
               value={formData.telefono}
               onChange={(e) => handleInputChange("telefono", e.target.value)}
-              className="h-9 pl-10"
+              className="h-10 pl-10 border-blue-300 focus:ring-2 focus:ring-blue-400"
               maxLength={15}
             />
           </div>
         </div>
-      </div>
-    </CardContent>
+      </CardContent>
 
-    <CardContent className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
-      <Button
-        onClick={handleActualizar}
-        disabled={updating}
-        className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 text-white"
-      >
-        {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Guardar Cambios
-      </Button>
+      <CardContent className="px-6 pt-2 pb-6 border-t border-blue-100 flex flex-col sm:flex-row gap-3">
+        <Button
+          onClick={handleActualizar}
+          disabled={updating}
+          className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Guardar Cambios
+        </Button>
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="outline"
-            className="flex-1 h-9 border-red-300 text-red-600 hover:bg-red-50"
-            disabled={deleting}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar Cuenta
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará tu cuenta y no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleEliminarCuenta}
-              className="bg-red-600 hover:bg-red-700 text-white"
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="flex-1 h-10 border-red-300 text-red-600 hover:bg-red-50"
               disabled={deleting}
             >
-              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sí, eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </CardContent>
-  </Card>
-</div>
-
-)
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar Cuenta
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-700">¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción eliminará tu cuenta y no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleEliminarCuenta}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={deleting}
+              >
+                {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sí, eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </CardContent>
+    </Card>
+  </div>
+);
 }

@@ -68,7 +68,7 @@ export default function AdminDashboard({ user }) {
             }`}
             onClick={() => handleTabChange("planes")}
           >
-            Planes de Estudio
+            📚 Planes de Estudio
           </button>
           <button
             className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
@@ -78,7 +78,7 @@ export default function AdminDashboard({ user }) {
             }`}
             onClick={() => handleTabChange("estadisticas")}
           >
-            Estadísticas
+            📊 Estadísticas
           </button>
           <button
             className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
