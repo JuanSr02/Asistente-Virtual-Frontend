@@ -1,211 +1,234 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import estadisticasService from "@/services/estadisticasService"
-import planesEstudioService from "@/services/planesEstudioService"
-import PieChart from "@/components/charts/PieChart"
-import BarChart from "@/components/charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton"
-import { useSessionPersistence } from "@/hooks/useSessionPersistence"
+import { useState, useEffect } from "react";
+import estadisticasService from "@/services/estadisticasService";
+import planesEstudioService from "@/services/planesEstudioService";
+import PieChart from "@/components/charts/PieChart";
+import BarChart from "@/components/charts/BarChart";
+import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 
 export default function EstadisticasMateria() {
-  const { estadisticasState, setEstadisticasState } = useSessionPersistence()
+  const { estadisticasState, setEstadisticasState } = useSessionPersistence();
 
   const [estadisticas, setEstadisticas] = useState(() => {
     // Intentar cargar datos guardados del localStorage
-    const savedData = localStorage.getItem("estadisticasMateria")
-    return savedData ? JSON.parse(savedData) : null
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [loadingMessage, setLoadingMessage] = useState("")
+    const savedData = localStorage.getItem("estadisticasMateria");
+    return savedData ? JSON.parse(savedData) : null;
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState("");
 
   // Estados para los comboboxes - usar el estado persistente
-  const [planes, setPlanes] = useState([])
-  const [materias, setMaterias] = useState([])
-  const [planSeleccionado, setPlanSeleccionado] = useState(estadisticasState.planSeleccionado)
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState(estadisticasState.materiaSeleccionada)
+  const [planes, setPlanes] = useState([]);
+  const [materias, setMaterias] = useState([]);
+  const [planSeleccionado, setPlanSeleccionado] = useState(
+    estadisticasState.planSeleccionado
+  );
+  const [materiaSeleccionada, setMateriaSeleccionada] = useState(
+    estadisticasState.materiaSeleccionada
+  );
 
   // Estados de carga
-  const [loadingPlanes, setLoadingPlanes] = useState(true)
-  const [loadingMaterias, setLoadingMaterias] = useState(false)
+  const [loadingPlanes, setLoadingPlanes] = useState(true);
+  const [loadingMaterias, setLoadingMaterias] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(() => {
-    const savedTime = localStorage.getItem("estadisticasMateriaTime")
-    return savedTime ? new Date(savedTime) : null
-  })
+    const savedTime = localStorage.getItem("estadisticasMateriaTime");
+    return savedTime ? new Date(savedTime) : null;
+  });
 
   // Sincronizar estados locales con el estado persistente
   useEffect(() => {
-    setPlanSeleccionado(estadisticasState.planSeleccionado)
-    setMateriaSeleccionada(estadisticasState.materiaSeleccionada)
-  }, [estadisticasState.planSeleccionado, estadisticasState.materiaSeleccionada])
+    setPlanSeleccionado(estadisticasState.planSeleccionado);
+    setMateriaSeleccionada(estadisticasState.materiaSeleccionada);
+  }, [
+    estadisticasState.planSeleccionado,
+    estadisticasState.materiaSeleccionada,
+  ]);
 
   // Cargar planes al montar el componente
   useEffect(() => {
-    cargarPlanes()
-  }, [])
+    cargarPlanes();
+  }, []);
 
   // Cargar materias cuando se selecciona un plan
   useEffect(() => {
     if (planSeleccionado) {
-      setEstadisticasState("planSeleccionado", planSeleccionado)
-      cargarMaterias(planSeleccionado)
+      setEstadisticasState("planSeleccionado", planSeleccionado);
+      cargarMaterias(planSeleccionado);
       // Solo limpiar materia seleccionada si cambia el plan y no estamos cargando desde estado persistente
-      if (materiaSeleccionada && materiaSeleccionada !== estadisticasState.materiaSeleccionada) {
-        setMateriaSeleccionada("")
-        setEstadisticasState("materiaSeleccionada", "")
-        setEstadisticas(null)
-        localStorage.removeItem("estadisticasMateria")
-        localStorage.removeItem("estadisticasMateriaTime")
-        localStorage.removeItem("savedMateriaCode")
+      if (
+        materiaSeleccionada &&
+        materiaSeleccionada !== estadisticasState.materiaSeleccionada
+      ) {
+        setMateriaSeleccionada("");
+        setEstadisticasState("materiaSeleccionada", "");
+        setEstadisticas(null);
+        localStorage.removeItem("estadisticasMateria");
+        localStorage.removeItem("estadisticasMateriaTime");
+        localStorage.removeItem("savedMateriaCode");
       }
     } else {
-      setEstadisticasState("planSeleccionado", "")
-      setMaterias([])
-      setMateriaSeleccionada("")
-      setEstadisticasState("materiaSeleccionada", "")
-      setEstadisticas(null)
-      localStorage.removeItem("estadisticasMateria")
-      localStorage.removeItem("estadisticasMateriaTime")
-      localStorage.removeItem("savedMateriaCode")
+      setEstadisticasState("planSeleccionado", "");
+      setMaterias([]);
+      setMateriaSeleccionada("");
+      setEstadisticasState("materiaSeleccionada", "");
+      setEstadisticas(null);
+      localStorage.removeItem("estadisticasMateria");
+      localStorage.removeItem("estadisticasMateriaTime");
+      localStorage.removeItem("savedMateriaCode");
     }
-  }, [planSeleccionado])
+  }, [planSeleccionado]);
 
   // Cargar estadísticas cuando se selecciona una materia
   useEffect(() => {
     if (materiaSeleccionada) {
-      setEstadisticasState("materiaSeleccionada", materiaSeleccionada)
+      setEstadisticasState("materiaSeleccionada", materiaSeleccionada);
       // Solo cargar si no hay datos guardados para esta materia
-      const savedData = localStorage.getItem("estadisticasMateria")
-      const savedMateria = localStorage.getItem("savedMateriaCode")
+      const savedData = localStorage.getItem("estadisticasMateria");
+      const savedMateria = localStorage.getItem("savedMateriaCode");
       if (!savedData || savedMateria !== materiaSeleccionada) {
-        buscarEstadisticasRapido(materiaSeleccionada)
+        buscarEstadisticasRapido(materiaSeleccionada);
       }
     } else {
-      setEstadisticasState("materiaSeleccionada", "")
-      setEstadisticas(null)
-      localStorage.removeItem("estadisticasMateria")
-      localStorage.removeItem("estadisticasMateriaTime")
-      localStorage.removeItem("savedMateriaCode")
+      setEstadisticasState("materiaSeleccionada", "");
+      setEstadisticas(null);
+      localStorage.removeItem("estadisticasMateria");
+      localStorage.removeItem("estadisticasMateriaTime");
+      localStorage.removeItem("savedMateriaCode");
     }
-  }, [materiaSeleccionada])
+  }, [materiaSeleccionada]);
 
   const cargarPlanes = async () => {
-    setLoadingPlanes(true)
+    setLoadingPlanes(true);
     try {
-      const data = await planesEstudioService.obtenerPlanes()
-      setPlanes(data)
+      const data = await planesEstudioService.obtenerPlanes();
+      setPlanes(data);
 
       // Si hay un plan guardado, verificar que exista en los datos cargados
       if (
         estadisticasState.planSeleccionado &&
         !data.some((plan) => plan.codigo === estadisticasState.planSeleccionado)
       ) {
-        setPlanSeleccionado("")
-        setEstadisticasState("planSeleccionado", "")
-        setEstadisticasState("materiaSeleccionada", "")
-        localStorage.removeItem("estadisticasMateria")
-        localStorage.removeItem("estadisticasMateriaTime")
-        localStorage.removeItem("savedMateriaCode")
+        setPlanSeleccionado("");
+        setEstadisticasState("planSeleccionado", "");
+        setEstadisticasState("materiaSeleccionada", "");
+        localStorage.removeItem("estadisticasMateria");
+        localStorage.removeItem("estadisticasMateriaTime");
+        localStorage.removeItem("savedMateriaCode");
       }
     } catch (err) {
-      console.error("Error al cargar planes:", err)
-      setError("No se pudieron cargar los planes de estudio.")
+      console.error("Error al cargar planes:", err);
+      setError("No se pudieron cargar los planes de estudio.");
     } finally {
-      setLoadingPlanes(false)
+      setLoadingPlanes(false);
     }
-  }
+  };
 
   const cargarMaterias = async (codigoPlan) => {
-    setLoadingMaterias(true)
-    setError(null)
+    setLoadingMaterias(true);
+    setError(null);
     try {
-      const data = await planesEstudioService.obtenerMateriasPorPlan(codigoPlan)
-      setMaterias(data)
+      const data =
+        await planesEstudioService.obtenerMateriasPorPlan(codigoPlan);
+      setMaterias(data);
 
       // Si hay una materia guardada, verificar que exista en los datos cargados
       if (
         estadisticasState.materiaSeleccionada &&
-        !data.some((materia) => materia.codigo === estadisticasState.materiaSeleccionada)
+        !data.some(
+          (materia) => materia.codigo === estadisticasState.materiaSeleccionada
+        )
       ) {
-        setMateriaSeleccionada("")
-        setEstadisticasState("materiaSeleccionada", "")
-        localStorage.removeItem("estadisticasMateria")
-        localStorage.removeItem("estadisticasMateriaTime")
-        localStorage.removeItem("savedMateriaCode")
+        setMateriaSeleccionada("");
+        setEstadisticasState("materiaSeleccionada", "");
+        localStorage.removeItem("estadisticasMateria");
+        localStorage.removeItem("estadisticasMateriaTime");
+        localStorage.removeItem("savedMateriaCode");
       }
     } catch (err) {
-      console.error("Error al cargar materias:", err)
-      setError("No se pudieron cargar las materias del plan seleccionado.")
-      setMaterias([])
+      console.error("Error al cargar materias:", err);
+      setError("No se pudieron cargar las materias del plan seleccionado.");
+      setMaterias([]);
     } finally {
-      setLoadingMaterias(false)
+      setLoadingMaterias(false);
     }
-  }
+  };
 
   // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
   const buscarEstadisticasRapido = async (codigoMateria) => {
-    setLoading(true)
-    setError(null)
-    setLoadingMessage("Cargando estadísticas...")
+    setLoading(true);
+    setError(null);
+    setLoadingMessage("Cargando estadísticas...");
 
     try {
-      const data = await estadisticasService.obtenerEstadisticasMateriaRapido(codigoMateria)
-      setEstadisticas(data)
-      const now = new Date()
-      setLastUpdate(now)
+      const data =
+        await estadisticasService.obtenerEstadisticasMateriaRapido(
+          codigoMateria
+        );
+      setEstadisticas(data);
+      const now = new Date();
+      setLastUpdate(now);
 
       // Guardar en localStorage
-      localStorage.setItem("estadisticasMateria", JSON.stringify(data))
-      localStorage.setItem("estadisticasMateriaTime", now.toISOString())
-      localStorage.setItem("savedMateriaCode", codigoMateria)
+      localStorage.setItem("estadisticasMateria", JSON.stringify(data));
+      localStorage.setItem("estadisticasMateriaTime", now.toISOString());
+      localStorage.setItem("savedMateriaCode", codigoMateria);
     } catch (err) {
-      console.error("Error al cargar estadísticas de materia:", err)
-      setError("No se encontraron estadísticas para la materia seleccionada.")
-      setEstadisticas(null)
+      console.error("Error al cargar estadísticas de materia:", err);
+      setError("No se encontraron estadísticas para la materia seleccionada.");
+      setEstadisticas(null);
     } finally {
-      setLoading(false)
-      setLoadingMessage("")
+      setLoading(false);
+      setLoadingMessage("");
     }
-  }
+  };
 
   // Función para refrescar datos (usando el endpoint completo)
   const refrescarDatos = async () => {
-    if (!materiaSeleccionada) return
+    if (!materiaSeleccionada) return;
 
-    setLoading(true)
-    setError(null)
-    setLoadingMessage("Actualizando estadísticas...")
+    setLoading(true);
+    setError(null);
+    setLoadingMessage("Actualizando estadísticas...");
 
     try {
-      const data = await estadisticasService.obtenerEstadisticasMateria(materiaSeleccionada)
-      setEstadisticas(data)
-      const now = new Date()
-      setLastUpdate(now)
+      const data =
+        await estadisticasService.obtenerEstadisticasMateria(
+          materiaSeleccionada
+        );
+      setEstadisticas(data);
+      const now = new Date();
+      setLastUpdate(now);
 
       // Guardar en localStorage
-      localStorage.setItem("estadisticasMateria", JSON.stringify(data))
-      localStorage.setItem("estadisticasMateriaTime", now.toISOString())
-      localStorage.setItem("savedMateriaCode", materiaSeleccionada)
+      localStorage.setItem("estadisticasMateria", JSON.stringify(data));
+      localStorage.setItem("estadisticasMateriaTime", now.toISOString());
+      localStorage.setItem("savedMateriaCode", materiaSeleccionada);
     } catch (err) {
-      console.error("Error al refrescar estadísticas de materia:", err)
-      setError("No se pudieron actualizar las estadísticas para la materia seleccionada.")
+      console.error("Error al refrescar estadísticas de materia:", err);
+      setError(
+        "No se pudieron actualizar las estadísticas para la materia seleccionada."
+      );
     } finally {
-      setLoading(false)
-      setLoadingMessage("")
+      setLoading(false);
+      setLoadingMessage("");
     }
-  }
+  };
 
   // Función para formatear la fecha correctamente (dd/mm/yyyy)
   const formatearFecha = (fechaStr) => {
-    const fecha = new Date(fechaStr)
-    return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`
-  }
+    const fecha = new Date(fechaStr);
+    return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Estadísticas por Materia</h3>
+        <h3 className="text-xl font-semibold text-gray-800">
+          Estadísticas por Materia
+        </h3>
         <div className="flex items-center gap-4">
           {loadingMessage && (
             <div className="flex items-center gap-2 text-blue-600">
@@ -228,7 +251,10 @@ export default function EstadisticasMateria() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Selector de Plan */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="plan-select" className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
+            <label
+              htmlFor="plan-select"
+              className="font-semibold text-gray-800 text-sm uppercase tracking-wide"
+            >
               Plan de Estudio
             </label>
             <select
@@ -238,10 +264,12 @@ export default function EstadisticasMateria() {
               disabled={loadingPlanes}
               className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
-              <option value="">{loadingPlanes ? "Cargando..." : "Seleccione un plan"}</option>
+              <option value="">
+                {loadingPlanes ? "Cargando..." : "Seleccione un plan"}
+              </option>
               {planes.map((plan) => (
                 <option key={plan.codigo} value={plan.codigo}>
-                  {plan.propuesta + " (" +plan.codigo + ")"}
+                  {plan.propuesta + " (" + plan.codigo + ")"}
                 </option>
               ))}
             </select>
@@ -249,14 +277,19 @@ export default function EstadisticasMateria() {
 
           {/* Selector de Materia */}
           <div className="flex flex-col gap-2">
-            <label htmlFor="materia-select" className="font-semibold text-gray-800 text-sm uppercase tracking-wide">
+            <label
+              htmlFor="materia-select"
+              className="font-semibold text-gray-800 text-sm uppercase tracking-wide"
+            >
               Materia
             </label>
             <select
               id="materia-select"
               value={materiaSeleccionada}
               onChange={(e) => setMateriaSeleccionada(e.target.value)}
-              disabled={!planSeleccionado || loadingMaterias || materias.length === 0}
+              disabled={
+                !planSeleccionado || loadingMaterias || materias.length === 0
+              }
               className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
@@ -323,21 +356,29 @@ export default function EstadisticasMateria() {
         <div>
           {/* Header de la materia */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
-            <h4 className="text-2xl font-bold mb-2">{estadisticas.nombreMateria}</h4>
-            <span className="block text-base opacity-90 mb-2">Código: {estadisticas.codigoMateria}</span>
+            <h4 className="text-2xl font-bold mb-2">
+              {estadisticas.nombreMateria}
+            </h4>
+            <span className="block text-base opacity-90 mb-2">
+              Código: {estadisticas.codigoMateria}
+            </span>
           </div>
 
           {/* Verificar si hay datos */}
           {estadisticas.totalRendidos === 0 ? (
             <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 mx-0">
               <div className="text-6xl mb-6 opacity-60">📊</div>
-              <h4 className="text-2xl text-gray-800 mb-4 font-semibold">No hay estadísticas disponibles</h4>
+              <h4 className="text-2xl text-gray-800 mb-4 font-semibold">
+                No hay estadísticas disponibles
+              </h4>
               <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
-                Esta materia aún no tiene exámenes rendidos registrados en el sistema.
+                Esta materia aún no tiene exámenes rendidos registrados en el
+                sistema.
               </p>
               <div className="flex flex-col gap-3 bg-white p-6 rounded-lg border-l-4 border-orange-500 max-w-md mx-auto text-left">
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  ℹ️ Total de exámenes rendidos: <strong className="text-gray-800 font-semibold">0</strong>
+                  ℹ️ Total de exámenes rendidos:{" "}
+                  <strong className="text-gray-800 font-semibold">0</strong>
                 </span>
                 <span className="text-sm text-gray-600 flex items-center gap-2">
                   ℹ️ No hay datos suficientes para generar estadísticas
@@ -354,31 +395,45 @@ export default function EstadisticasMateria() {
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-blue-500">
                   <div className="text-3xl opacity-80">👥</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Total Rendidos</h5>
-                    <div className="text-3xl font-bold text-gray-800">{estadisticas.totalRendidos}</div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Total Rendidos
+                    </h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.totalRendidos}
+                    </div>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-green-500">
                   <div className="text-3xl opacity-80">✅</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Aprobados</h5>
-                    <div className="text-3xl font-bold text-gray-800">{estadisticas.aprobados}</div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Aprobados
+                    </h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.aprobados}
+                    </div>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-red-500">
                   <div className="text-3xl opacity-80">❌</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Reprobados</h5>
-                    <div className="text-3xl font-bold text-gray-800">{estadisticas.reprobados}</div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Reprobados
+                    </h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.reprobados}
+                    </div>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-orange-500">
                   <div className="text-3xl opacity-80">📊</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">% Aprobados</h5>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      % Aprobados
+                    </h5>
                     <div className="text-3xl font-bold text-gray-800">
                       {estadisticas.porcentajeAprobados.toFixed(1)}%
                     </div>
@@ -391,15 +446,21 @@ export default function EstadisticasMateria() {
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-teal-500">
                   <div className="text-3xl opacity-80">🎯</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Notas</h5>
-                    <div className="text-3xl font-bold text-gray-800">{estadisticas.promedioNotas.toFixed(2)}</div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Promedio Notas
+                    </h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.promedioNotas.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
                   <div className="text-3xl opacity-80">📅</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Días</h5>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Promedio Días
+                    </h5>
                     <div className="text-3xl font-bold text-gray-800">
                       {estadisticas.promedioDiasEstudio.toFixed(1)}
                     </div>
@@ -409,7 +470,9 @@ export default function EstadisticasMateria() {
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
                   <div className="text-3xl opacity-80">⏰</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Horas</h5>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Promedio Horas
+                    </h5>
                     <div className="text-3xl font-bold text-gray-800">
                       {estadisticas.promedioHorasDiarias.toFixed(1)}
                     </div>
@@ -419,8 +482,12 @@ export default function EstadisticasMateria() {
                 <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-purple-500">
                   <div className="text-3xl opacity-80">⭐</div>
                   <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio Dificultad</h5>
-                    <div className="text-3xl font-bold text-gray-800">{estadisticas.promedioDificultad.toFixed(1)}</div>
+                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+                      Promedio Dificultad
+                    </h5>
+                    <div className="text-3xl font-bold text-gray-800">
+                      {estadisticas.promedioDificultad.toFixed(1)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -450,7 +517,18 @@ export default function EstadisticasMateria() {
                   maxBars={10}
                   useIntegers={true}
                   showBaseLabels={true}
-                  baseLabels={["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]}
+                  baseLabels={[
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7",
+                    "8",
+                    "9",
+                    "10",
+                  ]}
                   showHover={false}
                 />
               </div>
@@ -463,12 +541,15 @@ export default function EstadisticasMateria() {
       {!estadisticas && !loading && !error && (
         <div className="text-center py-16 text-gray-500">
           <div className="text-6xl mb-4 opacity-50">📊</div>
-          <h4 className="text-xl text-gray-600 mb-2 font-semibold">Seleccione un plan y una materia</h4>
+          <h4 className="text-xl text-gray-600 mb-2 font-semibold">
+            Seleccione un plan y una materia
+          </h4>
           <p className="text-base text-gray-500 max-w-md mx-auto">
-            Elija un plan de estudio y luego una materia para ver las estadísticas detalladas
+            Elija un plan de estudio y luego una materia para ver las
+            estadísticas detalladas
           </p>
         </div>
       )}
     </div>
-  )
+  );
 }

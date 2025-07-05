@@ -1,41 +1,41 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { supabase } from "@/supabaseClient"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { supabase } from "@/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function ResetPassword() {
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const router = useRouter()
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
 
   const handleReset = async (e) => {
-    e.preventDefault()
-    setErrorMessage("")
+    e.preventDefault();
+    setErrorMessage("");
 
     if (newPassword !== confirmPassword) {
-      setErrorMessage("Las contraseñas no coinciden")
-      return
+      setErrorMessage("Las contraseñas no coinciden");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      setErrorMessage(error.message)
+      setErrorMessage(error.message);
     } else {
-      setSuccess(true)
+      setSuccess(true);
       setTimeout(() => {
-        router.push("/") // redirige al login o dashboard
-      }, 3000)
+        router.push("/"); // redirige al login o dashboard
+      }, 3000);
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -64,7 +64,10 @@ export default function ResetPassword() {
             <form onSubmit={handleReset} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="new-password" className="block mb-2 text-lg font-medium text-gray-700">
+                  <label
+                    htmlFor="new-password"
+                    className="block mb-2 text-lg font-medium text-gray-700"
+                  >
                     Nueva Contraseña:
                   </label>
                   <input
@@ -80,7 +83,10 @@ export default function ResetPassword() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirm-password" className="block mb-2 text-lg font-medium text-gray-700">
+                  <label
+                    htmlFor="confirm-password"
+                    className="block mb-2 text-lg font-medium text-gray-700"
+                  >
                     Confirmar Contraseña:
                   </label>
                   <input
@@ -114,5 +120,5 @@ export default function ResetPassword() {
         </div>
       </div>
     </div>
-  )
+  );
 }

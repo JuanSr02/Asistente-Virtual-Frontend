@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: ["class"],
@@ -16,12 +16,12 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        
+
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
           50: "#eff6ff",
-          100: "#dbeafe", 
+          100: "#dbeafe",
           200: "#bfdbfe",
           300: "#93c5fd",
           400: "#60a5fa",
@@ -32,37 +32,37 @@ const config: Config = {
           900: "#1e3a8a",
           950: "#172554",
         },
-        
+
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
-        
+
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        
+
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        
+
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
-        
+
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-        
+
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        
+
         gray: {
           50: "#f8fafc",
           100: "#f1f5f9",
@@ -76,7 +76,7 @@ const config: Config = {
           900: "#171923",
           950: "#0f1419",
         },
-        
+
         success: {
           50: "#f0fdf4",
           100: "#dcfce7",
@@ -84,7 +84,7 @@ const config: Config = {
           600: "#16a34a",
           700: "#15803d",
         },
-        
+
         warning: {
           50: "#fefce8",
           100: "#fef3c7",
@@ -92,7 +92,7 @@ const config: Config = {
           600: "#ca8a04",
           700: "#a16207",
         },
-        
+
         error: {
           50: "#fef2f2",
           100: "#fee2e2",
@@ -101,14 +101,14 @@ const config: Config = {
           700: "#b91c1c",
         },
       },
-      
+
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
         xs: "calc(var(--radius) - 6px)",
       },
-      
+
       animation: {
         "skeleton-loading": "skeleton-loading 1.5s ease-in-out infinite",
         "spin-slow": "spin 2s linear infinite",
@@ -118,19 +118,19 @@ const config: Config = {
         "scale-in": "scale-in 0.2s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
       },
-      
+
       keyframes: {
         "skeleton-loading": {
-          "0%": { 
+          "0%": {
             backgroundPosition: "200% 0",
-            opacity: "1"
+            opacity: "1",
           },
-          "50%": { 
-            opacity: "0.8" 
+          "50%": {
+            opacity: "0.8",
           },
-          "100%": { 
+          "100%": {
             backgroundPosition: "-200% 0",
-            opacity: "1"
+            opacity: "1",
           },
         },
         "fade-in": {
@@ -138,23 +138,23 @@ const config: Config = {
           "100%": { opacity: "1" },
         },
         "slide-in": {
-          "0%": { 
+          "0%": {
             transform: "translateY(10px)",
-            opacity: "0" 
+            opacity: "0",
           },
-          "100%": { 
+          "100%": {
             transform: "translateY(0)",
-            opacity: "1" 
+            opacity: "1",
           },
         },
         "scale-in": {
-          "0%": { 
+          "0%": {
             transform: "scale(0.95)",
-            opacity: "0" 
+            opacity: "0",
           },
-          "100%": { 
+          "100%": {
             transform: "scale(1)",
-            opacity: "1" 
+            opacity: "1",
           },
         },
         "pulse-soft": {
@@ -162,42 +162,44 @@ const config: Config = {
           "50%": { opacity: "0.7" },
         },
       },
-      
+
       backgroundImage: {
         "gradient-primary": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         "gradient-dark": "linear-gradient(135deg, #1e293b 0%, #334155 100%)",
-        "skeleton": "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
-        "skeleton-dark": "linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%)",
+        skeleton:
+          "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)",
+        "skeleton-dark":
+          "linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%)",
         "gradient-success": "linear-gradient(135deg, #10b981 0%, #059669 100%)",
         "gradient-warning": "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
         "gradient-error": "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
       },
-      
+
       backgroundSize: {
-        "skeleton": "200% 100%",
+        skeleton: "200% 100%",
       },
-      
+
       spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-        '128': '32rem',
+        "18": "4.5rem",
+        "88": "22rem",
+        "128": "32rem",
       },
-      
+
       fontSize: {
-        '2xs': ['0.625rem', { lineHeight: '0.75rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        "2xs": ["0.625rem", { lineHeight: "0.75rem" }],
+        "3xl": ["1.875rem", { lineHeight: "2.25rem" }],
       },
-      
+
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'medium': '0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        'strong': '0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.04)',
+        soft: "0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)",
+        medium:
+          "0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        strong:
+          "0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 2px 10px -2px rgba(0, 0, 0, 0.04)",
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-  ],
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
 
 export default config;

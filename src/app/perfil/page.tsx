@@ -1,11 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,21 +22,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { toast } from "@/components/ui/use-toast"
-import { Loader2, User, Mail, Phone, Trash2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react"
-import { supabase } from "@/supabaseClient"
-import personaService, { type Persona } from "@/services/personaService"
-import perfilService from "@/services/perfilService"
-import type { ActualizarPerfilDTO } from "@/types/perfil"
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/components/ui/use-toast";
+import {
+  Loader2,
+  User,
+  Mail,
+  Phone,
+  Trash2,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { supabase } from "@/supabaseClient";
+import personaService, { type Persona } from "@/services/personaService";
+import perfilService from "@/services/perfilService";
+import type { ActualizarPerfilDTO } from "@/types/perfil";
 
 export default function PerfilPage() {
-  const router = useRouter()
-  const [usuario, setUsuario] = useState<Persona | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [usuario, setUsuario] = useState<Persona | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -38,59 +54,59 @@ export default function PerfilPage() {
     mail: "",
     telefono: "",
     contrasenia: "",
-  })
+  });
 
   const [errors, setErrors] = useState({
     nombreApellido: "",
     mail: "",
     telefono: "",
     contrasenia: "",
-  })
+  });
 
   useEffect(() => {
-    cargarDatosUsuario()
-  }, [])
+    cargarDatosUsuario();
+  }, []);
 
   const cargarDatosUsuario = async () => {
     try {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/auth")
-        return
+        router.push("/auth");
+        return;
       }
 
-      const persona = await personaService.obtenerPersonaPorSupabaseId(user.id)
+      const persona = await personaService.obtenerPersonaPorSupabaseId(user.id);
 
       if (!persona) {
         showToast({
           title: "Error",
           description: "No se pudo cargar la información del usuario",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
-      setUsuario(persona)
+      setUsuario(persona);
     } catch (error) {
-      console.error("Error cargando datos del usuario:", error)
+      console.error("Error cargando datos del usuario:", error);
       showToast({
         title: "Error",
         description: "Error al cargar los datos del usuario",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const showToast = ({
     title,
     description,
     variant = "default",
-    duration = 5000
+    duration = 5000,
   }: {
     title: string;
     description: string;
@@ -102,75 +118,78 @@ export default function PerfilPage() {
       description,
       variant,
       duration,
-    })
-  }
+    });
+  };
 
   const validateField = (field: string, value: string) => {
-    let error = ""
-    
+    let error = "";
+
     switch (field) {
       case "nombreApellido":
         if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
-          error = "El nombre y apellido solo puede contener letras y espacios"
+          error = "El nombre y apellido solo puede contener letras y espacios";
         }
-        break
+        break;
       case "mail":
         if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = "Ingresa un email válido"
+          error = "Ingresa un email válido";
         }
-        break
+        break;
       case "telefono":
         if (value.trim() && !/^[\d\s\-\+\(\)]+$/.test(value)) {
-          error = "El teléfono solo puede contener números, espacios y caracteres +, -, (, )"
+          error =
+            "El teléfono solo puede contener números, espacios y caracteres +, -, (, )";
         }
-        break
+        break;
       case "contrasenia":
         if (value.trim() && value.length < 8) {
-          error = "La contraseña debe tener al menos 8 caracteres"
+          error = "La contraseña debe tener al menos 8 caracteres";
         }
-        break
+        break;
     }
-    
-    setErrors(prev => ({ ...prev, [field]: error }))
-    return error === ""
-  }
+
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return error === "";
+  };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    validateField(field, value)
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
 
   const hasValidChanges = useMemo(() => {
     // Verificar si hay al menos un campo no vacío
-    const hasAnyChanges = 
-      formData.nombreApellido.trim() || 
-      formData.mail.trim() || 
-      formData.telefono.trim() || 
-      formData.contrasenia.trim()
+    const hasAnyChanges =
+      formData.nombreApellido.trim() ||
+      formData.mail.trim() ||
+      formData.telefono.trim() ||
+      formData.contrasenia.trim();
 
-    if (!hasAnyChanges) return false
+    if (!hasAnyChanges) return false;
 
     // Verificar que todos los campos no vacíos sean válidos
-    const allNonEmptyFieldsValid = 
+    const allNonEmptyFieldsValid =
       (!formData.nombreApellido.trim() || !errors.nombreApellido) &&
       (!formData.mail.trim() || !errors.mail) &&
       (!formData.telefono.trim() || !errors.telefono) &&
-      (!formData.contrasenia.trim() || !errors.contrasenia)
+      (!formData.contrasenia.trim() || !errors.contrasenia);
 
-    return allNonEmptyFieldsValid
-  }, [formData, errors])
+    return allNonEmptyFieldsValid;
+  }, [formData, errors]);
 
   const handleActualizar = async () => {
-    if (!usuario) return
+    if (!usuario) return;
 
     // Validar todos los campos antes de enviar
-    const fieldsToValidate = Object.keys(formData) as Array<keyof typeof formData>
-    let hasErrors = false
+    const fieldsToValidate = Object.keys(formData) as Array<
+      keyof typeof formData
+    >;
+    let hasErrors = false;
 
     for (const field of fieldsToValidate) {
-      const isValid = validateField(field, formData[field])
+      const isValid = validateField(field, formData[field]);
       if (!isValid) {
-        hasErrors = true
+        hasErrors = true;
       }
     }
 
@@ -179,52 +198,57 @@ export default function PerfilPage() {
         title: "❌ Error de validación",
         description: "Por favor corrige los errores antes de continuar",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setUpdating(true)
+    setUpdating(true);
     try {
-      const datosActualizacion: ActualizarPerfilDTO = {}
+      const datosActualizacion: ActualizarPerfilDTO = {};
 
       if (formData.nombreApellido.trim()) {
-        datosActualizacion.nombreApellido = formData.nombreApellido.trim()
+        datosActualizacion.nombreApellido = formData.nombreApellido.trim();
       }
 
       if (formData.mail.trim()) {
-        datosActualizacion.mail = formData.mail.trim()
+        datosActualizacion.mail = formData.mail.trim();
       }
 
       if (formData.telefono.trim()) {
-        datosActualizacion.telefono = formData.telefono.trim()
+        datosActualizacion.telefono = formData.telefono.trim();
       }
 
       if (formData.contrasenia.trim()) {
-        datosActualizacion.contrasenia = formData.contrasenia
+        datosActualizacion.contrasenia = formData.contrasenia;
       }
 
       if (Object.keys(datosActualizacion).length === 0) {
         showToast({
           title: "ℹ️ Sin cambios",
           description: "No hay cambios para actualizar",
-        })
-        return
+        });
+        return;
       }
 
-      await perfilService.actualizarPerfil(usuario.id, datosActualizacion, usuario.rol_usuario)
+      await perfilService.actualizarPerfil(
+        usuario.id,
+        datosActualizacion,
+        usuario.rol_usuario
+      );
 
       // Mostrar alerta de éxito con detalles
-      const camposActualizados = []
-      if (datosActualizacion.nombreApellido) camposActualizados.push("nombre y apellido")
-      if (datosActualizacion.mail) camposActualizados.push("email")
-      if (datosActualizacion.telefono) camposActualizados.push("teléfono")
-      if (datosActualizacion.contrasenia) camposActualizados.push("contraseña")
+      const camposActualizados = [];
+      if (datosActualizacion.nombreApellido)
+        camposActualizados.push("nombre y apellido");
+      if (datosActualizacion.mail) camposActualizados.push("email");
+      if (datosActualizacion.telefono) camposActualizados.push("teléfono");
+      if (datosActualizacion.contrasenia) camposActualizados.push("contraseña");
 
       showToast({
         title: "✅ Datos actualizados correctamente",
         description: `Se actualizó: ${camposActualizados.join(", ")}`,
         duration: 5000,
-      })
+      });
 
       // Limpiar formulario después de actualizar
       setFormData({
@@ -232,79 +256,84 @@ export default function PerfilPage() {
         mail: "",
         telefono: "",
         contrasenia: "",
-      })
+      });
 
       // Recargar datos
-      await cargarDatosUsuario()
+      await cargarDatosUsuario();
 
       // Si se cambió la contraseña, mostrar alerta adicional
       if (datosActualizacion.contrasenia) {
         showToast({
           title: "🔐 Contraseña actualizada",
-          description: "Deberás volver a iniciar sesión con tu nueva contraseña",
+          description:
+            "Deberás volver a iniciar sesión con tu nueva contraseña",
           duration: 7000,
-        })
+        });
       }
-
     } catch (error: any) {
-      console.error("Error actualizando perfil:", error)
-      
+      console.error("Error actualizando perfil:", error);
+
       if (error?.status === 500 && error?.message?.includes("Unexpected")) {
         showToast({
           title: "❌ Error al actualizar",
-          description: "Ya existe una cuenta con ese correo electrónico. Por favor, utiliza otro email.",
+          description:
+            "Ya existe una cuenta con ese correo electrónico. Por favor, utiliza otro email.",
           variant: "destructive",
           duration: 6000,
-        })
+        });
       } else {
-        const errorMessage = error?.message || "Error desconocido al actualizar el perfil"
-        
+        const errorMessage =
+          error?.message || "Error desconocido al actualizar el perfil";
+
         showToast({
           title: "❌ Error al actualizar",
           description: errorMessage,
           variant: "destructive",
           duration: 6000,
-        })
+        });
       }
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   const handleEliminarCuenta = async () => {
-    if (!usuario) return
+    if (!usuario) return;
 
-    setDeleting(true)
+    setDeleting(true);
     try {
-      await perfilService.eliminarCuenta(usuario.id, usuario.rol_usuario)
+      await perfilService.eliminarCuenta(usuario.id, usuario.rol_usuario);
 
       showToast({
         title: "✅ Cuenta eliminada",
         description: "Tu cuenta ha sido eliminada correctamente",
-      })
+      });
 
-      router.push("/auth")
+      router.push("/auth");
     } catch (error: any) {
-      console.error("Error eliminando cuenta:", error)
-      
-      const errorMessage = error?.message || error?.error || "Error desconocido al eliminar la cuenta"
-      
+      console.error("Error eliminando cuenta:", error);
+
+      const errorMessage =
+        error?.message ||
+        error?.error ||
+        "Error desconocido al eliminar la cuenta";
+
       showToast({
         title: "❌ Error al eliminar cuenta",
         description: errorMessage,
         variant: "destructive",
         duration: 6000,
-      })
-      setDeleting(false)
+      });
+      setDeleting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!usuario) {
@@ -312,7 +341,7 @@ export default function PerfilPage() {
       <div className="flex items-center justify-center min-h-screen">
         <p>No se pudo cargar la información del usuario</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -331,7 +360,10 @@ export default function PerfilPage() {
         <CardContent className="px-6 py-6 space-y-6">
           {/* Nombre y Apellido */}
           <div className="space-y-3">
-            <Label htmlFor="nombreApellidoActual" className="text-blue-900 font-medium">
+            <Label
+              htmlFor="nombreApellidoActual"
+              className="text-blue-900 font-medium"
+            >
               Nombre y Apellido
             </Label>
             <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md border">
@@ -342,11 +374,16 @@ export default function PerfilPage() {
                 id="nombreApellido"
                 placeholder="Ingresa tu nuevo nombre y apellido"
                 value={formData.nombreApellido}
-                onChange={(e) => handleInputChange("nombreApellido", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("nombreApellido", e.target.value)
+                }
                 maxLength={50}
                 className={`h-10 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                  errors.nombreApellido ? "border-red-500" : 
-                  formData.nombreApellido.trim() && !errors.nombreApellido ? "border-green-500" : ""
+                  errors.nombreApellido
+                    ? "border-red-500"
+                    : formData.nombreApellido.trim() && !errors.nombreApellido
+                      ? "border-green-500"
+                      : ""
                 }`}
               />
               {formData.nombreApellido.trim() && !errors.nombreApellido && (
@@ -379,8 +416,11 @@ export default function PerfilPage() {
                 value={formData.mail}
                 onChange={(e) => handleInputChange("mail", e.target.value)}
                 className={`h-10 pl-10 pr-10 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                  errors.mail ? "border-red-500" : 
-                  formData.mail.trim() && !errors.mail ? "border-green-500" : ""
+                  errors.mail
+                    ? "border-red-500"
+                    : formData.mail.trim() && !errors.mail
+                      ? "border-green-500"
+                      : ""
                 }`}
               />
               {formData.mail.trim() && !errors.mail && (
@@ -397,7 +437,10 @@ export default function PerfilPage() {
 
           {/* Teléfono */}
           <div className="space-y-3">
-            <Label htmlFor="telefonoActual" className="text-blue-900 font-medium">
+            <Label
+              htmlFor="telefonoActual"
+              className="text-blue-900 font-medium"
+            >
               Teléfono
             </Label>
             <p className="text-xs text-gray-500">
@@ -417,8 +460,11 @@ export default function PerfilPage() {
                 value={formData.telefono}
                 onChange={(e) => handleInputChange("telefono", e.target.value)}
                 className={`h-10 pl-10 pr-10 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                  errors.telefono ? "border-red-500" : 
-                  formData.telefono.trim() && !errors.telefono ? "border-green-500" : ""
+                  errors.telefono
+                    ? "border-red-500"
+                    : formData.telefono.trim() && !errors.telefono
+                      ? "border-green-500"
+                      : ""
                 }`}
                 maxLength={15}
               />
@@ -437,7 +483,8 @@ export default function PerfilPage() {
           {/* Contraseña */}
           <div className="space-y-3">
             <Label htmlFor="contrasenia" className="text-blue-900 font-medium">
-              Nueva Contraseña (Tendras que volver a iniciar sesion si cambias la contraseña)
+              Nueva Contraseña (Tendras que volver a iniciar sesion si cambias
+              la contraseña)
             </Label>
             <div className="relative">
               <Input
@@ -445,10 +492,15 @@ export default function PerfilPage() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Ingresa tu nueva contraseña (mínimo 8 caracteres)"
                 value={formData.contrasenia}
-                onChange={(e) => handleInputChange("contrasenia", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("contrasenia", e.target.value)
+                }
                 className={`h-10 pr-20 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                  errors.contrasenia ? "border-red-500" : 
-                  formData.contrasenia.trim() && !errors.contrasenia ? "border-green-500" : ""
+                  errors.contrasenia
+                    ? "border-red-500"
+                    : formData.contrasenia.trim() && !errors.contrasenia
+                      ? "border-green-500"
+                      : ""
                 }`}
               />
               <div className="absolute right-3 top-2.5 flex items-center gap-2">
@@ -463,7 +515,11 @@ export default function PerfilPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="h-4 w-4 text-blue-400 hover:text-blue-600"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -478,8 +534,8 @@ export default function PerfilPage() {
             onClick={handleActualizar}
             disabled={updating || !hasValidChanges}
             className={`flex-1 h-10 ${
-              hasValidChanges 
-                ? "bg-blue-600 hover:bg-blue-700 text-white" 
+              hasValidChanges
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
@@ -500,7 +556,9 @@ export default function PerfilPage() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-700">¿Estás seguro?</AlertDialogTitle>
+                <AlertDialogTitle className="text-red-700">
+                  ¿Estás seguro?
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   Esta acción eliminará tu cuenta y no se puede deshacer.
                 </AlertDialogDescription>
@@ -512,7 +570,9 @@ export default function PerfilPage() {
                   className="bg-red-600 hover:bg-red-700 text-white"
                   disabled={deleting}
                 >
-                  {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {deleting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   Sí, eliminar
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -521,5 +581,5 @@ export default function PerfilPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

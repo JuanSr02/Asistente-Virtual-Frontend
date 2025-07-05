@@ -1,59 +1,64 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import PlanesEstudio from "../planes-estudio/page"
-import Estadisticas from "../estadisticas/page"
-import Perfil from "@/app/perfil/page"
-import { useSessionPersistence } from "@/hooks/useSessionPersistence"
+import { useState, useEffect } from "react";
+import PlanesEstudio from "../planes-estudio/page";
+import Estadisticas from "../estadisticas/page";
+import Perfil from "@/app/perfil/page";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 
 // Dashboard específico para administradores
 export default function AdminDashboard({ user }) {
-  const { dashboardState, setDashboardState, updateLastVisited } = useSessionPersistence()
-  const [activeTab, setActiveTab] = useState(dashboardState.activeTab)
+  const { dashboardState, setDashboardState, updateLastVisited } =
+    useSessionPersistence();
+  const [activeTab, setActiveTab] = useState(dashboardState.activeTab);
 
   // Actualizar la última visita cuando el componente se monta
   useEffect(() => {
-    updateLastVisited()
-  }, [])
+    updateLastVisited();
+  }, []);
 
   // Sincronizar el estado local con el persistente
   useEffect(() => {
-    setActiveTab(dashboardState.activeTab)
-  }, [dashboardState.activeTab])
+    setActiveTab(dashboardState.activeTab);
+  }, [dashboardState.activeTab]);
 
   // Manejar cambio de pestaña
   const handleTabChange = (tab) => {
-    setActiveTab(tab)
-    setDashboardState("activeTab", tab)
-    updateLastVisited()
-  }
+    setActiveTab(tab);
+    setDashboardState("activeTab", tab);
+    updateLastVisited();
+  };
 
   // Escuchar eventos de cambio de pestaña desde otros componentes
   useEffect(() => {
     const handleChangeTab = (event) => {
-      const newTab = event.detail
+      const newTab = event.detail;
       if (newTab && newTab !== activeTab) {
-        handleTabChange(newTab)
+        handleTabChange(newTab);
       }
-    }
+    };
 
-    window.addEventListener("changeTab", handleChangeTab)
-    return () => window.removeEventListener("changeTab", handleChangeTab)
-  }, [activeTab])
+    window.addEventListener("changeTab", handleChangeTab);
+    return () => window.removeEventListener("changeTab", handleChangeTab);
+  }, [activeTab]);
 
   // Renderizar el contenido según la pestaña activa
   const renderContent = () => {
     switch (activeTab) {
       case "planes":
-        return <PlanesEstudio />
+        return <PlanesEstudio />;
       case "estadisticas":
-        return <Estadisticas />
+        return <Estadisticas />;
       case "perfil":
-        return <Perfil />
+        return <Perfil />;
       default:
-        return <div className="text-center py-8 text-gray-500">Seleccione una opción del menú</div>
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Seleccione una opción del menú
+          </div>
+        );
     }
-  }
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -97,7 +102,9 @@ export default function AdminDashboard({ user }) {
       </nav>
 
       {/* Contenido principal */}
-      <div className="flex-1 p-8 max-w-6xl mx-auto w-full">{renderContent()}</div>
+      <div className="flex-1 p-8 max-w-6xl mx-auto w-full">
+        {renderContent()}
+      </div>
     </div>
-  )
+  );
 }

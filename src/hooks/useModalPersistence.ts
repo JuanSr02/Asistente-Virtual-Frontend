@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react";
 
 interface ModalState {
-  isOpen: boolean
-  data: any
-  type: string | null
-  timestamp: number
+  isOpen: boolean;
+  data: any;
+  type: string | null;
+  timestamp: number;
 }
 
 const defaultState: ModalState = {
@@ -14,37 +14,37 @@ const defaultState: ModalState = {
   data: null,
   type: null,
   timestamp: 0,
-}
+};
 
 export function useModalPersistence(storageKey: string) {
-  const [state, setState] = useState<ModalState>(defaultState)
-  const [isInitialized, setIsInitialized] = useState(false)
+  const [state, setState] = useState<ModalState>(defaultState);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Cargar estado inicial desde localStorage
   useEffect(() => {
     try {
-      const savedState = localStorage.getItem(storageKey)
+      const savedState = localStorage.getItem(storageKey);
       if (savedState) {
-        const parsedState = JSON.parse(savedState)
+        const parsedState = JSON.parse(savedState);
 
         // Verificar si el estado no es muy antiguo (5 minutos)
-        const now = Date.now()
-        const maxAge = 5 * 60 * 1000 // 5 minutos
+        const now = Date.now();
+        const maxAge = 5 * 60 * 1000; // 5 minutos
 
         if (parsedState.timestamp && now - parsedState.timestamp < maxAge) {
-          setState(parsedState)
+          setState(parsedState);
         } else {
           // Estado muy antiguo, limpiar
-          localStorage.removeItem(storageKey)
+          localStorage.removeItem(storageKey);
         }
       }
     } catch (error) {
-      console.error("Error al cargar estado del modal:", error)
-      localStorage.removeItem(storageKey)
+      console.error("Error al cargar estado del modal:", error);
+      localStorage.removeItem(storageKey);
     } finally {
-      setIsInitialized(true)
+      setIsInitialized(true);
     }
-  }, [storageKey])
+  }, [storageKey]);
 
   // Guardar estado en localStorage cuando cambie
   useEffect(() => {
@@ -55,13 +55,13 @@ export function useModalPersistence(storageKey: string) {
           JSON.stringify({
             ...state,
             timestamp: Date.now(),
-          }),
-        )
+          })
+        );
       } else {
-        localStorage.removeItem(storageKey)
+        localStorage.removeItem(storageKey);
       }
     }
-  }, [state, storageKey, isInitialized])
+  }, [state, storageKey, isInitialized]);
 
   const openModal = useCallback((data: any, type = "default") => {
     setState({
@@ -69,25 +69,25 @@ export function useModalPersistence(storageKey: string) {
       data,
       type,
       timestamp: Date.now(),
-    })
-  }, [])
+    });
+  }, []);
 
   const closeModal = useCallback(() => {
-    setState(defaultState)
-  }, [])
+    setState(defaultState);
+  }, []);
 
   const updateModalData = useCallback((data: any) => {
     setState((prev) => ({
       ...prev,
       data,
       timestamp: Date.now(),
-    }))
-  }, [])
+    }));
+  }, []);
 
   const clearModal = useCallback(() => {
-    setState(defaultState)
-    localStorage.removeItem(storageKey)
-  }, [storageKey])
+    setState(defaultState);
+    localStorage.removeItem(storageKey);
+  }, [storageKey]);
 
   return {
     isOpen: state.isOpen,
@@ -98,5 +98,5 @@ export function useModalPersistence(storageKey: string) {
     updateModalData,
     clearModal,
     isInitialized,
-  }
+  };
 }

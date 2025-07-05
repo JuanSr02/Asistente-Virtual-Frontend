@@ -1,56 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Modal from "./Modal"
-import planesEstudioService from "@/services/planesEstudioService"
-import { MateriaListSkeleton } from "../Skeleton"
+import { useState, useEffect } from "react";
+import Modal from "./Modal";
+import planesEstudioService from "@/services/planesEstudioService";
+import { MateriaListSkeleton } from "../Skeleton";
 
 export default function MateriasModal({ isOpen, onClose, plan }) {
-  const [materias, setMaterias] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [hasFetchedOnce, setHasFetchedOnce] = useState(false)
+  const [materias, setMaterias] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   useEffect(() => {
     if (isOpen && plan) {
-      const cacheKey = `materias_${plan.codigo}`
+      const cacheKey = `materias_${plan.codigo}`;
 
       // Si ya se cargaron antes, evitamos recargar (y no mostramos skeleton)
-      const saved = sessionStorage.getItem(cacheKey)
+      const saved = sessionStorage.getItem(cacheKey);
       if (saved) {
-        setMaterias(JSON.parse(saved))
-        setLoading(false)
-        setError(null)
-        setHasFetchedOnce(true)
-        return
+        setMaterias(JSON.parse(saved));
+        setLoading(false);
+        setError(null);
+        setHasFetchedOnce(true);
+        return;
       }
 
       // Si nunca se cargaron, ahora sí las cargamos
-      cargarMaterias(plan.codigo)
+      cargarMaterias(plan.codigo);
     }
-  }, [isOpen, plan])
+  }, [isOpen, plan]);
 
   const cargarMaterias = async (codigo) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const data = await planesEstudioService.obtenerMateriasPorPlan(codigo)
-      setMaterias(data)
-      sessionStorage.setItem(`materias_${codigo}`, JSON.stringify(data))
-      setHasFetchedOnce(true)
+      const data = await planesEstudioService.obtenerMateriasPorPlan(codigo);
+      setMaterias(data);
+      sessionStorage.setItem(`materias_${codigo}`, JSON.stringify(data));
+      setHasFetchedOnce(true);
     } catch (err) {
-      console.error("Error al cargar materias:", err)
-      setError("No se pudieron cargar las materias del plan.")
+      console.error("Error al cargar materias:", err);
+      setError("No se pudieron cargar las materias del plan.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title={`Materias del Plan: ${plan?.propuesta || ""} (${plan?.codigo || ""})`} 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Materias del Plan: ${plan?.propuesta || ""} (${plan?.codigo || ""})`}
       maxWidth="50rem"
     >
       <div className="min-h-[18.75rem]">
@@ -70,14 +70,19 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
         ) : materias.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <div className="text-5xl mb-4 opacity-50">📚</div>
-            <h4 className="text-xl text-gray-600 mb-2 font-semibold">No hay materias registradas</h4>
-            <p className="text-gray-500">Este plan de estudio no tiene materias cargadas en el sistema.</p>
+            <h4 className="text-xl text-gray-600 mb-2 font-semibold">
+              No hay materias registradas
+            </h4>
+            <p className="text-gray-500">
+              Este plan de estudio no tiene materias cargadas en el sistema.
+            </p>
           </div>
         ) : (
           <div>
             <div className="mb-6 pb-4 border-b border-gray-200">
               <span className="text-sm text-gray-600 font-medium">
-                {materias.length} materia{materias.length !== 1 ? "s" : ""} encontrada{materias.length !== 1 ? "s" : ""}
+                {materias.length} materia{materias.length !== 1 ? "s" : ""}{" "}
+                encontrada{materias.length !== 1 ? "s" : ""}
               </span>
             </div>
             <div className="flex flex-col gap-3">
@@ -90,8 +95,12 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-800 mb-1">{materia.nombre}</div>
-                    <div className="text-sm text-gray-500">Código: {materia.codigo}</div>
+                    <div className="font-semibold text-gray-800 mb-1">
+                      {materia.nombre}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Código: {materia.codigo}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -100,5 +109,5 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
         )}
       </div>
     </Modal>
-  )
+  );
 }

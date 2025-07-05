@@ -1,5 +1,5 @@
 // 🌐 API
-export const API_BASE_URL = "http://localhost:8080"
+export const API_BASE_URL = "http://localhost:8080";
 
 export const API_ROUTES = {
   ADMIN: {
@@ -26,21 +26,24 @@ export const API_ROUTES = {
     FINALES_PARA_RENDIR: "/api/shared/finales",
     HISTORIA_ACADEMICA: "/api/shared/historia-academica",
   },
-}
+};
 
 // ⚙️ Axios
 export const AXIOS_CONFIG = {
   headers: {
     "Content-Type": "application/json",
   },
-}
+};
 
 // ⚙️ App config
 export const APP_CONFIG = {
   NAME: "Asistente Virtual - Sistema Académico",
   PAGINATION_SIZE: 10,
   FILES: {
-    ALLOWED_TYPES: ["application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+    ALLOWED_TYPES: [
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ],
     ALLOWED_EXTENSIONS: [".xls", ".xlsx"],
   },
-}
+};

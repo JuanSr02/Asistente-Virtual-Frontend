@@ -1,8 +1,14 @@
-import { API_BASE_URL, AXIOS_CONFIG } from "@/lib/config"
-import axios, { AxiosInstance, AxiosRequestConfig,InternalAxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
-import { toast } from 'sonner';
-import { supabase } from '@/supabaseClient';
-import { Session } from '@supabase/supabase-js';
+import { API_BASE_URL, AXIOS_CONFIG } from "@/lib/config";
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+  AxiosError,
+  AxiosResponse,
+} from "axios";
+import { toast } from "sonner";
+import { supabase } from "@/supabaseClient";
+import { Session } from "@supabase/supabase-js";
 
 // Tipos para la configuración
 type ApiConfig = {
@@ -23,7 +29,10 @@ supabase.auth.onAuthStateChange((_event, session) => {
  * @param config - Configuración base de la API
  * @returns Instancia de axios configurada
  */
-const createApiInstance = ({ API_BASE_URL, AXIOS_CONFIG }: ApiConfig): AxiosInstance => {
+const createApiInstance = ({
+  API_BASE_URL,
+  AXIOS_CONFIG,
+}: ApiConfig): AxiosInstance => {
   const api = axios.create({
     baseURL: API_BASE_URL,
     ...AXIOS_CONFIG,
@@ -31,31 +40,33 @@ const createApiInstance = ({ API_BASE_URL, AXIOS_CONFIG }: ApiConfig): AxiosInst
 
   // Interceptor para agregar token JWT a cada request
   api.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {  // Cambiado a InternalAxiosRequestConfig
-    // Intentar usar cache
-    let token = currentSession?.access_token;
+    async (config: InternalAxiosRequestConfig) => {
+      // Cambiado a InternalAxiosRequestConfig
+      // Intentar usar cache
+      let token = currentSession?.access_token;
 
-    // Si no hay cache, pedir la sesión actual
-    if (!token) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        currentSession = session;
-        token = session?.access_token;
-      } catch (error) {
-        console.error('Error obteniendo sesión:', error);
+      // Si no hay cache, pedir la sesión actual
+      if (!token) {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          currentSession = session;
+          token = session?.access_token;
+        } catch (error) {
+          console.error("Error obteniendo sesión:", error);
+        }
       }
-    }
 
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
 
-    return config;
-  },
-  (error: AxiosError) => Promise.reject(error)
-);
-
+      return config;
+    },
+    (error: AxiosError) => Promise.reject(error)
+  );
 
   // Interceptor para manejar errores globalmente
   api.interceptors.response.use(
@@ -76,32 +87,32 @@ const createApiInstance = ({ API_BASE_URL, AXIOS_CONFIG }: ApiConfig): AxiosInst
 const handleApiError = (error: AxiosError): void => {
   if (error.response) {
     const status = error.response.status;
-    const msg = (error.response.data as any)?.message || 'Error desconocido';
+    const msg = (error.response.data as any)?.message || "Error desconocido";
 
     switch (status) {
       case 401:
-        toast.error('Sesión expirada. Redirigiendo al login...');
+        toast.error("Sesión expirada. Redirigiendo al login...");
         setTimeout(() => {
-          window.location.href = '/auth';
+          window.location.href = "/auth";
         }, 1500);
         break;
       case 403:
-        toast.warning('No tenés permisos para esta acción.');
+        toast.warning("No tenés permisos para esta acción.");
         break;
       case 404:
-        toast.info('Recurso no encontrado.');
+        toast.info("Recurso no encontrado.");
         break;
       case 500:
-        toast.error('Error del servidor. Intentalo más tarde.');
+        toast.error("Error del servidor. Intentalo más tarde.");
         break;
       default:
         toast.error(`Error ${status}: ${msg}`);
         break;
     }
   } else if (error.request) {
-    toast.error('No se recibió respuesta del servidor.');
+    toast.error("No se recibió respuesta del servidor.");
   } else {
-    toast.error('Error al enviar la solicitud.');
+    toast.error("Error al enviar la solicitud.");
   }
 };
 

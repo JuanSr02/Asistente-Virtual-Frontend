@@ -1,66 +1,72 @@
-import api from "./api"
-import { supabase } from "@/supabaseClient"
+import api from "./api";
+import { supabase } from "@/supabaseClient";
 
 export interface MateriaParaInscripcion {
-  codigo: string
-  nombre: string
+  codigo: string;
+  nombre: string;
 }
 
 export interface RegistroInscripcionDTO {
-  turno: string
-  anio: number
-  materiaCodigo: string
-  materiaPlan: string
-  estudianteId: number
+  turno: string;
+  anio: number;
+  materiaCodigo: string;
+  materiaPlan: string;
+  estudianteId: number;
 }
 
 export interface InscripcionResponseDTO {
-  id: number
-  turno: string
-  anio: number
-  materiaNombre: string
-  materiaCodigo: string
-  materiaPlan: string
-  estudianteNombre: string
-  estudianteId: number
+  id: number;
+  turno: string;
+  anio: number;
+  materiaNombre: string;
+  materiaCodigo: string;
+  materiaPlan: string;
+  estudianteNombre: string;
+  estudianteId: number;
 }
 
 export interface InscriptoConEmail {
-  id: number
-  turno: string
-  anio: number
-  materiaNombre: string
-  materiaCodigo: string
-  materiaPlan: string
-  estudianteNombre: string
-  estudianteId: number
-  email?: string
+  id: number;
+  turno: string;
+  anio: number;
+  materiaNombre: string;
+  materiaCodigo: string;
+  materiaPlan: string;
+  estudianteNombre: string;
+  estudianteId: number;
+  email?: string;
 }
 
 const inscripcionService = {
   /**
    * Obtiene las materias que puede rendir un estudiante para inscribirse
    */
-  obtenerMateriasParaInscripcion: async (estudianteId: number): Promise<MateriaParaInscripcion[]> => {
+  obtenerMateriasParaInscripcion: async (
+    estudianteId: number
+  ): Promise<MateriaParaInscripcion[]> => {
     try {
-      const response = await api.get(`/api/shared/finales/${estudianteId}/inscripciones`)
-      return response.data
+      const response = await api.get(
+        `/api/shared/finales/${estudianteId}/inscripciones`
+      );
+      return response.data;
     } catch (error) {
-      console.error("Error al obtener materias para inscripción:", error)
-      throw error
+      console.error("Error al obtener materias para inscripción:", error);
+      throw error;
     }
   },
 
   /**
    * Crea una nueva inscripción
    */
-  crearInscripcion: async (dto: RegistroInscripcionDTO): Promise<InscripcionResponseDTO> => {
+  crearInscripcion: async (
+    dto: RegistroInscripcionDTO
+  ): Promise<InscripcionResponseDTO> => {
     try {
-      const response = await api.post("/api/shared/inscripciones", dto)
-      return response.data
+      const response = await api.post("/api/shared/inscripciones", dto);
+      return response.data;
     } catch (error) {
-      console.error("Error al crear inscripción:", error)
-      throw error
+      console.error("Error al crear inscripción:", error);
+      throw error;
     }
   },
 
@@ -69,47 +75,55 @@ const inscripcionService = {
    */
   eliminarInscripcion: async (id: number): Promise<void> => {
     try {
-      await api.delete(`/api/shared/inscripciones/${id}`)
+      await api.delete(`/api/shared/inscripciones/${id}`);
     } catch (error) {
-      console.error("Error al eliminar inscripción:", error)
-      throw error
+      console.error("Error al eliminar inscripción:", error);
+      throw error;
     }
   },
 
   /**
    * Obtiene los inscriptos a una materia específica
    */
-  obtenerInscriptos: async (codigoMateria: string, anio: number, turno: string): Promise<InscripcionResponseDTO[]> => {
+  obtenerInscriptos: async (
+    codigoMateria: string,
+    anio: number,
+    turno: string
+  ): Promise<InscripcionResponseDTO[]> => {
     try {
       const response = await api.get("/api/shared/inscripciones", {
         params: { codigoMateria, anio, turno },
-      })
-      return response.data
+      });
+      return response.data;
     } catch (error) {
-      console.error("Error al obtener inscriptos:", error)
-      throw error
+      console.error("Error al obtener inscriptos:", error);
+      throw error;
     }
   },
 
   /**
    * Obtiene las inscripciones de un estudiante específico
    */
-  obtenerInscripcionesEstudiante: async (estudianteId: number): Promise<InscripcionResponseDTO[]> => {
+  obtenerInscripcionesEstudiante: async (
+    estudianteId: number
+  ): Promise<InscripcionResponseDTO[]> => {
     try {
       // Obtener inscripciones desde Supabase
       const { data, error } = await supabase
         .from("registro_inscripcion")
-        .select(`
+        .select(
+          `
           id,
           anio,
           turno,
           materia_codigo,
           materia_plan_codigo
-        `)
-        .eq("persona_id_estudiante", estudianteId)
+        `
+        )
+        .eq("persona_id_estudiante", estudianteId);
 
       if (error) {
-        throw error
+        throw error;
       }
 
       // Transformar los datos al formato esperado
@@ -122,10 +136,10 @@ const inscripcionService = {
         materiaPlan: inscripcion.materia_plan_codigo,
         estudianteNombre: "", // No necesario para las propias inscripciones
         estudianteId: estudianteId,
-      }))
+      }));
     } catch (error) {
-      console.error("Error al obtener inscripciones del estudiante:", error)
-      throw error
+      console.error("Error al obtener inscripciones del estudiante:", error);
+      throw error;
     }
   },
 
@@ -135,14 +149,18 @@ const inscripcionService = {
   obtenerInscriptosConEmails: async (
     codigoMateria: string,
     anio: number,
-    turno: string,
+    turno: string
   ): Promise<InscriptoConEmail[]> => {
     try {
       // Primero obtener los inscriptos del backend
-      const inscriptos = await inscripcionService.obtenerInscriptos(codigoMateria, anio, turno)
+      const inscriptos = await inscripcionService.obtenerInscriptos(
+        codigoMateria,
+        anio,
+        turno
+      );
 
       // Luego obtener los emails desde Supabase
-      const inscriptosConEmails: InscriptoConEmail[] = []
+      const inscriptosConEmails: InscriptoConEmail[] = [];
 
       for (const inscripto of inscriptos) {
         try {
@@ -150,24 +168,27 @@ const inscripcionService = {
             .from("persona")
             .select("mail")
             .eq("id", inscripto.estudianteId)
-            .single()
+            .single();
 
           inscriptosConEmails.push({
             ...inscripto,
             email: error ? undefined : data?.mail,
-          })
+          });
         } catch (emailError) {
-          console.warn(`No se pudo obtener email para estudiante ${inscripto.estudianteId}:`, emailError)
-          inscriptosConEmails.push(inscripto)
+          console.warn(
+            `No se pudo obtener email para estudiante ${inscripto.estudianteId}:`,
+            emailError
+          );
+          inscriptosConEmails.push(inscripto);
         }
       }
 
-      return inscriptosConEmails
+      return inscriptosConEmails;
     } catch (error) {
-      console.error("Error al obtener inscriptos con emails:", error)
-      throw error
+      console.error("Error al obtener inscriptos con emails:", error);
+      throw error;
     }
   },
-}
+};
 
-export default inscripcionService
+export default inscripcionService;

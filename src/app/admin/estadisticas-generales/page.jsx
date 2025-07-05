@@ -1,85 +1,92 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import estadisticasService from "@/services/estadisticasService"
-import PieChart from "@/components/charts/PieChart"
-import BarChart from "@/components/charts/BarChart"
-import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton"
+import { useState, useEffect } from "react";
+import estadisticasService from "@/services/estadisticasService";
+import PieChart from "@/components/charts/PieChart";
+import BarChart from "@/components/charts/BarChart";
+import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
 
 export default function EstadisticasGenerales() {
   const [estadisticas, setEstadisticas] = useState(() => {
     // Intentar cargar datos guardados del localStorage
-    const savedData = localStorage.getItem("estadisticasGenerales")
-    return savedData ? JSON.parse(savedData) : null
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [loadingMessage, setLoadingMessage] = useState("")
+    const savedData = localStorage.getItem("estadisticasGenerales");
+    return savedData ? JSON.parse(savedData) : null;
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [lastUpdate, setLastUpdate] = useState(() => {
-    const savedTime = localStorage.getItem("estadisticasGeneralesTime")
-    return savedTime ? new Date(savedTime) : null
-  })
+    const savedTime = localStorage.getItem("estadisticasGeneralesTime");
+    return savedTime ? new Date(savedTime) : null;
+  });
 
   useEffect(() => {
     // Si no hay datos guardados, cargar automáticamente
     if (!estadisticas) {
-      cargarEstadisticasGeneralesRapido()
+      cargarEstadisticasGeneralesRapido();
     }
-  }, [])
+  }, []);
 
   // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
   const cargarEstadisticasGeneralesRapido = async () => {
-    setLoading(true)
-    setError(null)
-    setLoadingMessage("Cargando estadísticas...")
+    setLoading(true);
+    setError(null);
+    setLoadingMessage("Cargando estadísticas...");
 
     try {
-      const data = await estadisticasService.obtenerEstadisticasGeneralesRapido()
-      setEstadisticas(data)
-      const now = new Date()
-      setLastUpdate(now)
+      const data =
+        await estadisticasService.obtenerEstadisticasGeneralesRapido();
+      setEstadisticas(data);
+      const now = new Date();
+      setLastUpdate(now);
 
       // Guardar en localStorage
-      localStorage.setItem("estadisticasGenerales", JSON.stringify(data))
-      localStorage.setItem("estadisticasGeneralesTime", now.toISOString())
+      localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
+      localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
     } catch (err) {
-      console.error("Error al cargar estadísticas generales:", err)
-      setError("No se pudieron cargar las estadísticas generales. Por favor, intente nuevamente.")
+      console.error("Error al cargar estadísticas generales:", err);
+      setError(
+        "No se pudieron cargar las estadísticas generales. Por favor, intente nuevamente."
+      );
     } finally {
-      setLoading(false)
-      setLoadingMessage("")
+      setLoading(false);
+      setLoadingMessage("");
     }
-  }
+  };
 
   // Función para refrescar datos (usando el endpoint completo)
   const refrescarDatos = async () => {
-    setLoading(true)
-    setError(null)
-    setLoadingMessage("Actualizando estadísticas...")
+    setLoading(true);
+    setError(null);
+    setLoadingMessage("Actualizando estadísticas...");
 
     try {
-      const data = await estadisticasService.obtenerEstadisticasGenerales()
-      setEstadisticas(data)
-      const now = new Date()
-      setLastUpdate(now)
+      const data = await estadisticasService.obtenerEstadisticasGenerales();
+      setEstadisticas(data);
+      const now = new Date();
+      setLastUpdate(now);
 
       // Guardar en localStorage
-      localStorage.setItem("estadisticasGenerales", JSON.stringify(data))
-      localStorage.setItem("estadisticasGeneralesTime", now.toISOString())
+      localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
+      localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
     } catch (err) {
-      console.error("Error al refrescar estadísticas generales:", err)
-      setError("No se pudieron actualizar las estadísticas generales. Por favor, intente nuevamente.")
+      console.error("Error al refrescar estadísticas generales:", err);
+      setError(
+        "No se pudieron actualizar las estadísticas generales. Por favor, intente nuevamente."
+      );
     } finally {
-      setLoading(false)
-      setLoadingMessage("")
+      setLoading(false);
+      setLoadingMessage("");
     }
-  }
+  };
 
   if (loading) {
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">Estadísticas Generales del Sistema</h3>
+          <h3 className="text-xl font-semibold text-gray-800">
+            Estadísticas Generales del Sistema
+          </h3>
           {loadingMessage && (
             <div className="flex items-center gap-2 text-blue-600">
               <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
@@ -104,7 +111,7 @@ export default function EstadisticasGenerales() {
           <ChartSkeleton type="bar" />
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -122,17 +129,23 @@ export default function EstadisticasGenerales() {
           Reintentar
         </button>
       </div>
-    )
+    );
   }
 
   if (!estadisticas) {
-    return <div className="text-center py-8 text-gray-400 italic">No hay datos disponibles</div>
+    return (
+      <div className="text-center py-8 text-gray-400 italic">
+        No hay datos disponibles
+      </div>
+    );
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">Estadísticas Generales del Sistema</h3>
+        <h3 className="text-xl font-semibold text-gray-800">
+          Estadísticas Generales del Sistema
+        </h3>
         <div className="flex items-center gap-4">
           <button
             onClick={refrescarDatos}
@@ -149,31 +162,45 @@ export default function EstadisticasGenerales() {
         <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-blue-500">
           <div className="text-3xl opacity-80">👥</div>
           <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Estudiantes Activos</h4>
-            <div className="text-3xl font-bold text-gray-800">{estadisticas.estudiantesActivos}</div>
+            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+              Estudiantes Activos
+            </h4>
+            <div className="text-3xl font-bold text-gray-800">
+              {estadisticas.estudiantesActivos}
+            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
           <div className="text-3xl opacity-80">📚</div>
           <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Total Materias</h4>
-            <div className="text-3xl font-bold text-gray-800">{estadisticas.totalMaterias}</div>
+            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+              Total Materias
+            </h4>
+            <div className="text-3xl font-bold text-gray-800">
+              {estadisticas.totalMaterias}
+            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-green-500">
           <div className="text-3xl opacity-80">📝</div>
           <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Exámenes Rendidos</h4>
-            <div className="text-3xl font-bold text-gray-800">{estadisticas.totalExamenesRendidos}</div>
+            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+              Exámenes Rendidos
+            </h4>
+            <div className="text-3xl font-bold text-gray-800">
+              {estadisticas.totalExamenesRendidos}
+            </div>
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-orange-500">
           <div className="text-3xl opacity-80">📊</div>
           <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">% Aprobados General</h4>
+            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+              % Aprobados General
+            </h4>
             <div className="text-3xl font-bold text-gray-800">
               {estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%
             </div>
@@ -183,8 +210,12 @@ export default function EstadisticasGenerales() {
         <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-teal-500">
           <div className="text-3xl opacity-80">🎯</div>
           <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">Promedio General</h4>
-            <div className="text-3xl font-bold text-gray-800">{estadisticas.promedioGeneral.toFixed(2)}</div>
+            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
+              Promedio General
+            </h4>
+            <div className="text-3xl font-bold text-gray-800">
+              {estadisticas.promedioGeneral.toFixed(2)}
+            </div>
           </div>
         </div>
       </div>
@@ -199,12 +230,19 @@ export default function EstadisticasGenerales() {
           />
 
           <div className="bg-white rounded-xl p-6 shadow-md">
-            <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">Materia Más Rendida</h4>
+            <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">
+              Materia Más Rendida
+            </h4>
             <div className="text-center p-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white shadow-lg">
-              <div className="text-xl font-bold mb-4">{estadisticas.materiaMasRendida.nombre}</div>
-              <div className="text-2xl font-bold mb-2">{estadisticas.cantidadMateriaMasRendida} exámenes</div>
+              <div className="text-xl font-bold mb-4">
+                {estadisticas.materiaMasRendida.nombre}
+              </div>
+              <div className="text-2xl font-bold mb-2">
+                {estadisticas.cantidadMateriaMasRendida} exámenes
+              </div>
               <div className="text-lg opacity-90">
-                {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% aprobación
+                {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}%
+                aprobación
               </div>
             </div>
           </div>
@@ -223,71 +261,87 @@ export default function EstadisticasGenerales() {
       {/* Rankings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-md">
-          <h4 className="text-base text-gray-600 mb-4 font-semibold">🏆 Top 5 Materias Más Aprobadas</h4>
+          <h4 className="text-base text-gray-600 mb-4 font-semibold">
+            🏆 Top 5 Materias Más Aprobadas
+          </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Aprobadas.map((materia, index) => (
               <div
                 key={materia.codigoMateria}
                 className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500 transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="font-bold text-lg text-gray-600 min-w-[30px]">#{index + 1}</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800">{materia.nombre}</div>
+                <div className="font-bold text-lg text-gray-600 min-w-[30px]">
+                  #{index + 1}
                 </div>
-                <div className="font-bold text-lg text-gray-800">{materia.porcentaje.toFixed(1)}%</div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">
+                    {materia.nombre}
+                  </div>
+                </div>
+                <div className="font-bold text-lg text-gray-800">
+                  {materia.porcentaje.toFixed(1)}%
+                </div>
               </div>
             ))}
           </div>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-md">
-          <h4 className="text-base text-gray-600 mb-4 font-semibold">📉 Top 5 Materias Más Reprobadas</h4>
+          <h4 className="text-base text-gray-600 mb-4 font-semibold">
+            📉 Top 5 Materias Más Reprobadas
+          </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Reprobadas.map((materia, index) => (
               <div
                 key={materia.codigoMateria}
                 className="flex items-center gap-4 p-4 bg-orange-50 rounded-lg border-l-4 border-red-500 transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="font-bold text-lg text-gray-600 min-w-[30px]">#{index + 1}</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800">{materia.nombre}</div>
+                <div className="font-bold text-lg text-gray-600 min-w-[30px]">
+                  #{index + 1}
                 </div>
-                <div className="font-bold text-lg text-gray-800">{materia.porcentaje.toFixed(1)}%</div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-800">
+                    {materia.nombre}
+                  </div>
+                </div>
+                <div className="font-bold text-lg text-gray-800">
+                  {materia.porcentaje.toFixed(1)}%
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-{/* Materias con notas promedio más altas */}
-<div className="mt-8">
-  <BarChart
-    data={Object.entries(estadisticas.promedioNotasPorMateria)
-      .sort((a, b) => b[1] - a[1]) // Orden descendente
-      .slice(0, 15) // Tomar las 15 mejores
-      .reduce((obj, [key, value]) => ({...obj, [key]: value}), {})}
-    title="Materias con nota promedio más alta"
-    colors={["#38b2ac", "#9f7aea", "#f56565"]}
-    maxBars={15}
-    useIntegers={false}
-    showNameBelow={true}
-  />
-</div>
+      {/* Materias con notas promedio más altas */}
+      <div className="mt-8">
+        <BarChart
+          data={Object.entries(estadisticas.promedioNotasPorMateria)
+            .sort((a, b) => b[1] - a[1]) // Orden descendente
+            .slice(0, 15) // Tomar las 15 mejores
+            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
+          title="Materias con nota promedio más alta"
+          colors={["#38b2ac", "#9f7aea", "#f56565"]}
+          maxBars={15}
+          useIntegers={false}
+          showNameBelow={true}
+        />
+      </div>
 
-{/* Materias con notas promedio más bajas */}
-<div className="mt-8">
-  <BarChart
-    data={Object.entries(estadisticas.promedioNotasPorMateria)
-      .sort((a, b) => a[1] - b[1]) // Orden ascendente
-      .slice(0, 15) // Tomar las 15 peores
-      .reduce((obj, [key, value]) => ({...obj, [key]: value}), {})}
-    title="Materias con nota promedio más baja"
-    colors={["#f56565", "#9f7aea", "#38b2ac"]}
-    maxBars={15}
-    useIntegers={false}
-    showNameBelow={true}
-  />
-</div>
+      {/* Materias con notas promedio más bajas */}
+      <div className="mt-8">
+        <BarChart
+          data={Object.entries(estadisticas.promedioNotasPorMateria)
+            .sort((a, b) => a[1] - b[1]) // Orden ascendente
+            .slice(0, 15) // Tomar las 15 peores
+            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
+          title="Materias con nota promedio más baja"
+          colors={["#f56565", "#9f7aea", "#38b2ac"]}
+          maxBars={15}
+          useIntegers={false}
+          showNameBelow={true}
+        />
+      </div>
     </div>
-  )
+  );
 }

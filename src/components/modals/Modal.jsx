@@ -1,42 +1,48 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, memo } from "react"
+import { useEffect, useRef, memo } from "react";
 
-const Modal = memo(function Modal({ isOpen, onClose, title, children, maxWidth = "32rem" }) {
-  const modalRef = useRef(null)
+const Modal = memo(function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = "32rem",
+}) {
+  const modalRef = useRef(null);
 
   // Cerrar con Escape
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === "Escape") onClose()
-    }
+      if (e.key === "Escape") onClose();
+    };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape)
+      document.addEventListener("keydown", handleEscape);
       // Prevenir scroll del body cuando el modal está abierto
-      document.body.style.overflow = "hidden"
+      document.body.style.overflow = "hidden";
       // Asegurar que el modal cubra toda la pantalla
-      document.documentElement.style.overflow = "hidden"
+      document.documentElement.style.overflow = "hidden";
       // Agregar clase para evitar problemas de scroll
-      document.body.classList.add("modal-open")
+      document.body.classList.add("modal-open");
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = "unset"
-      document.documentElement.style.overflow = "unset"
-      document.body.classList.remove("modal-open")
-    }
-  }, [isOpen, onClose])
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "unset";
+      document.body.classList.remove("modal-open");
+    };
+  }, [isOpen, onClose]);
 
   // Enfocar modal al abrir
   useEffect(() => {
     if (isOpen && modalRef.current) {
-      modalRef.current.focus()
+      modalRef.current.focus();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
@@ -66,7 +72,9 @@ const Modal = memo(function Modal({ isOpen, onClose, title, children, maxWidth =
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 relative">
-          <h3 className="text-xl font-semibold text-gray-800 m-0 pr-8">{title}</h3>
+          <h3 className="text-xl font-semibold text-gray-800 m-0 pr-8">
+            {title}
+          </h3>
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-full transition-colors text-xl leading-none w-8 h-8 flex items-center justify-center"
@@ -78,10 +86,12 @@ const Modal = memo(function Modal({ isOpen, onClose, title, children, maxWidth =
         </div>
 
         {/* Contenido */}
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">{children}</div>
+        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+          {children}
+        </div>
       </div>
     </div>
-  )
-})
+  );
+});
 
-export default Modal
+export default Modal;
