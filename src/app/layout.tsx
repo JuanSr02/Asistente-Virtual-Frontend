@@ -6,7 +6,7 @@ import { supabase } from "@/supabaseClient";
 import Auth from "@/app/auth/page";
 import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
-import { Toaster } from "@/components/ui/toaster"; // Importa el Toaster
+import { Toaster } from "@/components/ui/toaster";
 
 const publicRoutes = ["/reset-password", "/auth"];
 
@@ -125,6 +125,7 @@ export default function RootLayout({
 
   return (
     <html lang="es">
+      <title>Asistente Virtual</title>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <main className="flex-1">
           {!isPublicRoute && !session ? (
@@ -136,12 +137,11 @@ export default function RootLayout({
           )}
         </main>
 
-        {/* Añade el Toaster aquí, preferiblemente cerca del final del body */}
         <Toaster />
 
         <footer className="bg-gray-100 text-center text-sm text-black py-4 border-t border-gray-200">
-          Universidad Nacional de San Luis · Departamento de Informática · 2025
-          © Juan Sánchez (juanma2002123@gmail.com)
+          Asistente Virtual - Universidad Nacional de San Luis · Departamento de
+          Informática · 2025 © Juan Sánchez (juanma2002123@gmail.com)
         </footer>
       </body>
     </html>
