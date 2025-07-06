@@ -10,11 +10,11 @@ import { Toaster } from "@/components/ui/toaster";
 
 const publicRoutes = ["/reset-password", "/auth"];
 
-// Componente separado para el loading
+// Componente separado para el loading (sin cambios, ya es responsive)
 const LoadingScreen = () => (
   <html lang="es">
     <body>
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
         <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
       </div>
     </body>
@@ -32,16 +32,12 @@ export default function RootLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  // Función para inicializar autenticación
+  // --- TODA LA LÓGICA DE AUTENTICACIÓN PERMANECE INTACTA ---
   const initializeAuth = useCallback(async () => {
     try {
       console.log("Inicializando autenticación...");
-
-      // Agregar un pequeño delay para evitar problemas de timing
       await new Promise((resolve) => setTimeout(resolve, 100));
-
       const { data, error } = await supabase.auth.getSession();
-
       if (error) {
         console.error("Error al obtener sesión:", error);
         setSession(null);
@@ -61,52 +57,40 @@ export default function RootLayout({
     }
   }, []);
 
-  // Efecto para inicializar autenticación
   useEffect(() => {
     let isMounted = true;
-
     if (!isInitialized) {
       initializeAuth();
     }
-
-    // Listener para cambios de autenticación
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         if (!isMounted) return;
-
         console.log(
           "Auth state changed:",
           event,
           newSession?.user?.email || "No session"
         );
         setSession(newSession);
-
-        // Si se está inicializando y hay un cambio de auth, marcar como inicializado
         if (!isInitialized) {
           setLoading(false);
           setIsInitialized(true);
         }
       }
     );
-
     return () => {
       isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, [initializeAuth, isInitialized]);
 
-  // Efecto para manejo de redirecciones
   useEffect(() => {
     if (!isInitialized || loading) return;
-
     const isPublicRoute = publicRoutes.includes(pathname || "");
-
     console.log("Checking redirects:", {
       session: !!session,
       pathname,
       isPublicRoute,
     });
-
     if (!session && !isPublicRoute) {
       console.log("Redirecting to auth...");
       router.replace("/auth");
@@ -116,7 +100,6 @@ export default function RootLayout({
     }
   }, [session, pathname, loading, router, isInitialized]);
 
-  // Mostrar loading mientras se inicializa
   if (!isInitialized || loading) {
     return <LoadingScreen />;
   }
@@ -124,24 +107,52 @@ export default function RootLayout({
   const isPublicRoute = publicRoutes.includes(pathname || "");
 
   return (
-    <html lang="es">
-      <title>Asistente Virtual</title>
+    <html lang="es" className="scroll-smooth">
+      <head>
+        {/* Next.js maneja el viewport, pero si quisieras añadir algo más, va aquí */}
+        <title>Asistente Virtual</title>
+      </head>
+      {/* 
+        La estructura de flex-col con min-h-screen en el body y flex-1 en main
+        es una excelente base para un "sticky footer" y ya es inherentemente responsive.
+        No se necesita cambiar.
+      */}
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <main className="flex-1">
-          {!isPublicRoute && !session ? (
-            <Auth />
-          ) : session && !isPublicRoute ? (
-            <Dashboard user={session.user} />
-          ) : (
-            children
-          )}
+          {
+            /* El contenido principal crece para empujar el footer hacia abajo */
+            !isPublicRoute && !session ? (
+              <Auth />
+            ) : session && !isPublicRoute ? (
+              <Dashboard user={session.user} />
+            ) : (
+              children
+            )
+          }
         </main>
 
         <Toaster />
 
-        <footer className="bg-gray-100 text-center text-sm text-black py-4 border-t border-gray-200">
-          Asistente Virtual - Universidad Nacional de San Luis · Departamento de
-          Informática · 2025 © Juan Sánchez (juanma2002123@gmail.com)
+        {/* --- FOOTER RESPONSIVE --- */}
+        <footer
+          className="
+            bg-muted text-muted-foreground border-t border-border
+            py-4 px-4 sm:px-6 lg:px-8
+          "
+        >
+          <div
+            className="
+              container mx-auto flex flex-col sm:flex-row items-center justify-between
+              text-center sm:text-left gap-2
+            "
+          >
+            <span className="text-sm">
+              Asistente Virtual - UNSL · Dept. de Informática · © 2025
+            </span>
+            <span className="text-xs text-muted-foreground/80">
+              Juan Sánchez (juanma2002123@gmail.com)
+            </span>
+          </div>
         </footer>
       </body>
     </html>

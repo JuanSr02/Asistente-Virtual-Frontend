@@ -7,12 +7,19 @@ import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
 import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import {
+  Loader2,
+  RefreshCw,
+  AlertTriangle,
+  BarChartBig,
+  Info,
+} from "lucide-react";
 
+// --- TODA LA LÓGICA PERMANECE INTACTA ---
 export default function EstadisticasMateria() {
   const { estadisticasState, setEstadisticasState } = useSessionPersistence();
 
   const [estadisticas, setEstadisticas] = useState(() => {
-    // Intentar cargar datos guardados del localStorage
     const savedData = localStorage.getItem("estadisticasMateria");
     return savedData ? JSON.parse(savedData) : null;
   });
@@ -20,7 +27,6 @@ export default function EstadisticasMateria() {
   const [error, setError] = useState(null);
   const [loadingMessage, setLoadingMessage] = useState("");
 
-  // Estados para los comboboxes - usar el estado persistente
   const [planes, setPlanes] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [planSeleccionado, setPlanSeleccionado] = useState(
@@ -30,7 +36,6 @@ export default function EstadisticasMateria() {
     estadisticasState.materiaSeleccionada
   );
 
-  // Estados de carga
   const [loadingPlanes, setLoadingPlanes] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(() => {
@@ -38,7 +43,6 @@ export default function EstadisticasMateria() {
     return savedTime ? new Date(savedTime) : null;
   });
 
-  // Sincronizar estados locales con el estado persistente
   useEffect(() => {
     setPlanSeleccionado(estadisticasState.planSeleccionado);
     setMateriaSeleccionada(estadisticasState.materiaSeleccionada);
@@ -47,17 +51,14 @@ export default function EstadisticasMateria() {
     estadisticasState.materiaSeleccionada,
   ]);
 
-  // Cargar planes al montar el componente
   useEffect(() => {
     cargarPlanes();
   }, []);
 
-  // Cargar materias cuando se selecciona un plan
   useEffect(() => {
     if (planSeleccionado) {
       setEstadisticasState("planSeleccionado", planSeleccionado);
       cargarMaterias(planSeleccionado);
-      // Solo limpiar materia seleccionada si cambia el plan y no estamos cargando desde estado persistente
       if (
         materiaSeleccionada &&
         materiaSeleccionada !== estadisticasState.materiaSeleccionada
@@ -81,11 +82,9 @@ export default function EstadisticasMateria() {
     }
   }, [planSeleccionado]);
 
-  // Cargar estadísticas cuando se selecciona una materia
   useEffect(() => {
     if (materiaSeleccionada) {
       setEstadisticasState("materiaSeleccionada", materiaSeleccionada);
-      // Solo cargar si no hay datos guardados para esta materia
       const savedData = localStorage.getItem("estadisticasMateria");
       const savedMateria = localStorage.getItem("savedMateriaCode");
       if (!savedData || savedMateria !== materiaSeleccionada) {
@@ -105,8 +104,6 @@ export default function EstadisticasMateria() {
     try {
       const data = await planesEstudioService.obtenerPlanes();
       setPlanes(data);
-
-      // Si hay un plan guardado, verificar que exista en los datos cargados
       if (
         estadisticasState.planSeleccionado &&
         !data.some((plan) => plan.codigo === estadisticasState.planSeleccionado)
@@ -133,8 +130,6 @@ export default function EstadisticasMateria() {
       const data =
         await planesEstudioService.obtenerMateriasPorPlan(codigoPlan);
       setMaterias(data);
-
-      // Si hay una materia guardada, verificar que exista en los datos cargados
       if (
         estadisticasState.materiaSeleccionada &&
         !data.some(
@@ -156,12 +151,10 @@ export default function EstadisticasMateria() {
     }
   };
 
-  // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
   const buscarEstadisticasRapido = async (codigoMateria) => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
-
     try {
       const data =
         await estadisticasService.obtenerEstadisticasMateriaRapido(
@@ -170,8 +163,6 @@ export default function EstadisticasMateria() {
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
-
-      // Guardar en localStorage
       localStorage.setItem("estadisticasMateria", JSON.stringify(data));
       localStorage.setItem("estadisticasMateriaTime", now.toISOString());
       localStorage.setItem("savedMateriaCode", codigoMateria);
@@ -185,14 +176,11 @@ export default function EstadisticasMateria() {
     }
   };
 
-  // Función para refrescar datos (usando el endpoint completo)
   const refrescarDatos = async () => {
     if (!materiaSeleccionada) return;
-
     setLoading(true);
     setError(null);
     setLoadingMessage("Actualizando estadísticas...");
-
     try {
       const data =
         await estadisticasService.obtenerEstadisticasMateria(
@@ -201,8 +189,6 @@ export default function EstadisticasMateria() {
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
-
-      // Guardar en localStorage
       localStorage.setItem("estadisticasMateria", JSON.stringify(data));
       localStorage.setItem("estadisticasMateriaTime", now.toISOString());
       localStorage.setItem("savedMateriaCode", materiaSeleccionada);
@@ -217,43 +203,44 @@ export default function EstadisticasMateria() {
     }
   };
 
-  // Función para formatear la fecha correctamente (dd/mm/yyyy)
   const formatearFecha = (fechaStr) => {
     const fecha = new Date(fechaStr);
     return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
   };
 
+  // --- JSX RESPONSIVE ---
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">
+    <div className="p-4 sm:p-6 lg:p-8">
+      {/* --- HEADER --- */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+        <h3 className="text-2xl font-bold text-gray-800">
           Estadísticas por Materia
         </h3>
         <div className="flex items-center gap-4">
           {loadingMessage && (
             <div className="flex items-center gap-2 text-blue-600">
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm">{loadingMessage}</span>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm font-medium">{loadingMessage}</span>
             </div>
           )}
           <button
             onClick={refrescarDatos}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed text-sm font-semibold"
             disabled={!materiaSeleccionada || loading}
           >
-            <span>🔄</span> Refrescar
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Refrescar</span>
           </button>
         </div>
       </div>
 
-      {/* Selectores en cascada */}
-      <div className="bg-gray-50 rounded-xl p-8 mb-8 border border-gray-200">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Selector de Plan */}
-          <div className="flex flex-col gap-2">
+      {/* --- FILTROS --- */}
+      <div className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div>
             <label
               htmlFor="plan-select"
-              className="font-semibold text-gray-800 text-sm uppercase tracking-wide"
+              className="text-sm font-semibold text-gray-700 block mb-2"
             >
               Plan de Estudio
             </label>
@@ -262,24 +249,22 @@ export default function EstadisticasMateria() {
               value={planSeleccionado}
               onChange={(e) => setPlanSeleccionado(e.target.value)}
               disabled={loadingPlanes}
-              className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
                 {loadingPlanes ? "Cargando..." : "Seleccione un plan"}
               </option>
               {planes.map((plan) => (
                 <option key={plan.codigo} value={plan.codigo}>
-                  {plan.propuesta + " (" + plan.codigo + ")"}
+                  {`${plan.propuesta} (${plan.codigo})`}
                 </option>
               ))}
             </select>
           </div>
-
-          {/* Selector de Materia */}
-          <div className="flex flex-col gap-2">
+          <div>
             <label
               htmlFor="materia-select"
-              className="font-semibold text-gray-800 text-sm uppercase tracking-wide"
+              className="text-sm font-semibold text-gray-700 block mb-2"
             >
               Materia
             </label>
@@ -290,7 +275,7 @@ export default function EstadisticasMateria() {
               disabled={
                 !planSeleccionado || loadingMaterias || materias.length === 0
               }
-              className="px-4 py-3 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-all cursor-pointer focus:outline-none focus:border-blue-500 focus:shadow-lg disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
                 {!planSeleccionado
@@ -311,197 +296,139 @@ export default function EstadisticasMateria() {
         </div>
       </div>
 
-      {/* Mensajes de estado */}
+      {/* --- ESTADOS DE LA UI --- */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span>⚠️</span>
-            <strong>Error al cargar estadísticas</strong>
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500" />
+          <div>
+            <strong className="font-semibold block">
+              Error al cargar estadísticas
+            </strong>
+            <p className="text-sm mt-1">{error}</p>
+            {materiaSeleccionada && (
+              <button
+                onClick={() => buscarEstadisticasRapido(materiaSeleccionada)}
+                className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+              >
+                Reintentar
+              </button>
+            )}
           </div>
-          <p className="mb-3">{error}</p>
-          {materiaSeleccionada && (
-            <button
-              onClick={() => buscarEstadisticasRapido(materiaSeleccionada)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
-            >
-              Reintentar
-            </button>
-          )}
         </div>
       )}
 
-      {/* Indicador de carga */}
       {loading && (
         <div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {Array.from({ length: 8 }).map((_, index) => (
               <MetricSkeleton key={index} />
             ))}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-8">
-            <MetricSkeleton />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <ChartSkeleton type="pie" />
+            <ChartSkeleton type="pie" />
           </div>
-          <div className="mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <ChartSkeleton type="pie" />
-              <ChartSkeleton type="pie" />
-            </div>
-            <ChartSkeleton type="bar" />
-          </div>
+          <ChartSkeleton type="bar" />
         </div>
       )}
 
-      {/* Resultados */}
-      {estadisticas && (
-        <div>
-          {/* Header de la materia */}
+      {/* --- RESULTADOS --- */}
+      {estadisticas && !loading && (
+        <div className="animate-fade-in">
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
-            <h4 className="text-2xl font-bold mb-2">
+            <h4 className="text-xl sm:text-2xl font-bold mb-1">
               {estadisticas.nombreMateria}
             </h4>
-            <span className="block text-base opacity-90 mb-2">
+            <span className="block text-sm sm:text-base opacity-90">
               Código: {estadisticas.codigoMateria}
             </span>
           </div>
 
-          {/* Verificar si hay datos */}
           {estadisticas.totalRendidos === 0 ? (
-            <div className="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 mx-0">
-              <div className="text-6xl mb-6 opacity-60">📊</div>
-              <h4 className="text-2xl text-gray-800 mb-4 font-semibold">
+            <div className="text-center py-12 px-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+              <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
+              <h4 className="text-xl sm:text-2xl text-gray-800 mb-2 font-semibold">
                 No hay estadísticas disponibles
               </h4>
-              <p className="text-lg text-gray-600 mb-8 max-w-lg mx-auto">
+              <p className="text-base text-gray-600 mb-6 max-w-lg mx-auto">
                 Esta materia aún no tiene exámenes rendidos registrados en el
                 sistema.
               </p>
-              <div className="flex flex-col gap-3 bg-white p-6 rounded-lg border-l-4 border-orange-500 max-w-md mx-auto text-left">
+              <div className="bg-white p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 max-w-md mx-auto text-left space-y-2">
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  ℹ️ Total de exámenes rendidos:{" "}
-                  <strong className="text-gray-800 font-semibold">0</strong>
+                  <Info className="h-4 w-4 text-orange-500" /> Total de exámenes
+                  rendidos: <strong className="text-gray-800">0</strong>
                 </span>
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  ℹ️ No hay datos suficientes para generar estadísticas
-                </span>
-                <span className="text-sm text-gray-600 flex items-center gap-2">
-                  ℹ️ Las estadísticas aparecerán cuando se registren exámenes
+                  <Info className="h-4 w-4 text-orange-500" /> Los datos
+                  aparecerán cuando se registren exámenes.
                 </span>
               </div>
             </div>
           ) : (
             <>
-              {/* Métricas principales - Primera fila */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-blue-500">
-                  <div className="text-3xl opacity-80">👥</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Total Rendidos
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.totalRendidos}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-green-500">
-                  <div className="text-3xl opacity-80">✅</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Aprobados
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.aprobados}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-red-500">
-                  <div className="text-3xl opacity-80">❌</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Reprobados
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.reprobados}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-orange-500">
-                  <div className="text-3xl opacity-80">📊</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      % Aprobados
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.porcentajeAprobados.toFixed(1)}%
-                    </div>
-                  </div>
-                </div>
+              {/* --- MÉTRICAS PRINCIPALES --- */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* Métricas como componentes para evitar repetición, pero aquí las dejamos inline por simplicidad */}
+                <MetricCard
+                  icon="👥"
+                  title="Total Rendidos"
+                  value={estadisticas.totalRendidos}
+                  color="blue"
+                />
+                <MetricCard
+                  icon="✅"
+                  title="Aprobados"
+                  value={estadisticas.aprobados}
+                  color="green"
+                />
+                <MetricCard
+                  icon="❌"
+                  title="Reprobados"
+                  value={estadisticas.reprobados}
+                  color="red"
+                />
+                <MetricCard
+                  icon="📊"
+                  title="% Aprobados"
+                  value={`${estadisticas.porcentajeAprobados.toFixed(1)}%`}
+                  color="orange"
+                />
+                <MetricCard
+                  icon="🎯"
+                  title="Promedio Notas"
+                  value={estadisticas.promedioNotas.toFixed(2)}
+                  color="teal"
+                />
+                <MetricCard
+                  icon="📅"
+                  title="Promedio Días"
+                  value={estadisticas.promedioDiasEstudio.toFixed(1)}
+                  color="gray"
+                />
+                <MetricCard
+                  icon="⏰"
+                  title="Promedio Horas"
+                  value={estadisticas.promedioHorasDiarias.toFixed(1)}
+                  color="gray"
+                />
+                <MetricCard
+                  icon="⭐"
+                  title="Promedio Dificultad"
+                  value={estadisticas.promedioDificultad.toFixed(1)}
+                  color="purple"
+                />
               </div>
 
-              {/* Métricas principales - Segunda fila */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-teal-500">
-                  <div className="text-3xl opacity-80">🎯</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Promedio Notas
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioNotas.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
-                  <div className="text-3xl opacity-80">📅</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Promedio Días
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioDiasEstudio.toFixed(1)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
-                  <div className="text-3xl opacity-80">⏰</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Promedio Horas
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioHorasDiarias.toFixed(1)}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-purple-500">
-                  <div className="text-3xl opacity-80">⭐</div>
-                  <div>
-                    <h5 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-                      Promedio Dificultad
-                    </h5>
-                    <div className="text-3xl font-bold text-gray-800">
-                      {estadisticas.promedioDificultad.toFixed(1)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gráficos de distribución */}
-              <div className="mb-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
+              {/* --- GRÁFICOS --- */}
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <PieChart
                     data={estadisticas.distribucionModalidad}
                     title="Distribución por Modalidad"
                     colors={["#4299e1", "#48bb78", "#ed8936"]}
                     showHover={false}
                   />
-
                   <PieChart
                     data={estadisticas.distribucionRecursos}
                     title="Recursos Utilizados"
@@ -509,11 +436,10 @@ export default function EstadisticasMateria() {
                     showHover={false}
                   />
                 </div>
-
                 <BarChart
                   data={estadisticas.distribucionDificultad}
                   title="Distribución de Dificultad (1-10)"
-                  colors={["#9f7aea", "#38b2ac", "#f56565"]}
+                  colors={["#9f7aea"]}
                   maxBars={10}
                   useIntegers={true}
                   showBaseLabels={true}
@@ -537,19 +463,48 @@ export default function EstadisticasMateria() {
         </div>
       )}
 
-      {/* Estado vacío */}
+      {/* --- ESTADO VACÍO INICIAL --- */}
       {!estadisticas && !loading && !error && (
-        <div className="text-center py-16 text-gray-500">
-          <div className="text-6xl mb-4 opacity-50">📊</div>
-          <h4 className="text-xl text-gray-600 mb-2 font-semibold">
+        <div className="text-center py-16 px-4 text-gray-500">
+          <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
+          <h4 className="text-xl sm:text-2xl text-gray-600 mb-2 font-semibold">
             Seleccione un plan y una materia
           </h4>
           <p className="text-base text-gray-500 max-w-md mx-auto">
             Elija un plan de estudio y luego una materia para ver las
-            estadísticas detalladas
+            estadísticas detalladas.
           </p>
         </div>
       )}
     </div>
   );
 }
+
+// Componente auxiliar para las tarjetas de métricas
+const MetricCard = ({ icon, title, value, color }) => {
+  const colorClasses = {
+    blue: "border-blue-500",
+    green: "border-green-500",
+    red: "border-red-500",
+    orange: "border-orange-500",
+    teal: "border-teal-500",
+    gray: "border-gray-500",
+    purple: "border-purple-500",
+  };
+
+  return (
+    <div
+      className={`bg-white rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
+    >
+      <div className="text-2xl sm:text-3xl opacity-80">{icon}</div>
+      <div>
+        <h5 className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide mb-1">
+          {title}
+        </h5>
+        <div className="text-2xl sm:text-3xl font-bold text-gray-800">
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+};

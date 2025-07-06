@@ -9,12 +9,22 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, CheckCircle, XCircle, Lock, Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import {
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  Lock,
+  Loader2,
+  PartyPopper,
+} from "lucide-react";
+// Usamos el toast de shadcn/ui que ya está configurado en el proyecto
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
@@ -24,24 +34,21 @@ export default function ResetPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const { toast } = useToast(); // Hook de shadcn/ui
 
   const [errors, setErrors] = useState({
     newPassword: "",
     confirmPassword: "",
   });
 
+  // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
   const showToast = ({
     title,
     description,
     variant = "default",
     duration = 5000,
   }) => {
-    toast({
-      title,
-      description,
-      variant,
-      duration,
-    });
+    toast({ title, description, variant, duration });
   };
 
   const validatePassword = (password) => {
@@ -62,8 +69,6 @@ export default function ResetPassword() {
     setNewPassword(value);
     const passwordError = validatePassword(value);
     setErrors((prev) => ({ ...prev, newPassword: passwordError }));
-
-    // Re-validar confirmación si ya hay algo escrito
     if (confirmPassword.trim()) {
       const confirmError = validateConfirmPassword(value, confirmPassword);
       setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
@@ -88,16 +93,10 @@ export default function ResetPassword() {
 
   const handleReset = async (e) => {
     e.preventDefault();
-
-    // Validar campos antes de enviar
     const passwordError = validatePassword(newPassword);
     const confirmError = validateConfirmPassword(newPassword, confirmPassword);
-
     if (passwordError || confirmError) {
-      setErrors({
-        newPassword: passwordError,
-        confirmPassword: confirmError,
-      });
+      setErrors({ newPassword: passwordError, confirmPassword: confirmError });
       showToast({
         title: "❌ Error de validación",
         description: "Por favor corrige los errores antes de continuar",
@@ -105,14 +104,11 @@ export default function ResetPassword() {
       });
       return;
     }
-
     setLoading(true);
-
     try {
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
-
       if (error) {
         showToast({
           title: "❌ Error al actualizar",
@@ -127,10 +123,9 @@ export default function ResetPassword() {
           description: "Tu contraseña ha sido actualizada correctamente",
           duration: 5000,
         });
-
         setTimeout(() => {
-          router.push("/");
-        }, 3000);
+          router.push("/auth");
+        }, 3000); // Redirigir a la página de login
       }
     } catch (error) {
       showToast({
@@ -144,33 +139,47 @@ export default function ResetPassword() {
     }
   };
 
+  // Función para clases de input, similar al componente de Perfil
+  const inputClasses = (hasError, hasContent) =>
+    `h-10 border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-0
+     pr-20
+     ${hasError ? "border-red-500 focus-visible:ring-red-400" : ""}
+     ${!hasError && hasContent ? "border-green-500 focus-visible:ring-green-400" : ""}`;
+
+  // --- JSX RESPONSIVE ---
   return (
-    <div className="min-h-screen bg-white px-4 pt-10 pb-20">
-      <Card className="w-full max-w-2xl mx-auto bg-white shadow-lg border border-blue-200 rounded-xl">
-        <CardHeader className="px-6 py-5 border-b border-blue-100">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-blue-800 flex items-center gap-2">
-            <Lock className="w-6 h-6" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md mx-auto bg-white shadow-lg border border-gray-200 rounded-xl">
+        <CardHeader className="p-6 text-center">
+          <Lock className="mx-auto h-10 w-10 text-blue-600 mb-3" />
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
             Restablecer Contraseña
           </CardTitle>
-          <CardDescription className="text-sm text-blue-600 mt-1">
-            Ingresá tu nueva contraseña
+          <CardDescription className="text-sm text-gray-500 mt-1">
+            Ingresa y confirma tu nueva contraseña.
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="px-6 py-6">
+        <CardContent className="p-6">
           {success ? (
-            <div className="text-center space-y-4">
-              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                ✅ ¡Contraseña actualizada con éxito! Serás redirigido...
-              </div>
+            <div className="text-center space-y-4 py-8 animate-fade-in">
+              <PartyPopper className="mx-auto h-16 w-16 text-green-500" />
+              <h3 className="text-xl font-semibold text-gray-800">
+                ¡Contraseña Actualizada!
+              </h3>
+              <p className="text-gray-600">
+                Serás redirigido a la página de inicio de sesión en unos
+                segundos.
+              </p>
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-400" />
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">
               {/* Nueva Contraseña */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Label
                   htmlFor="newPassword"
-                  className="text-blue-900 font-medium"
+                  className="font-semibold text-gray-700"
                 >
                   Nueva Contraseña
                 </Label>
@@ -178,28 +187,31 @@ export default function ResetPassword() {
                   <Input
                     id="newPassword"
                     type={showNewPassword ? "text" : "password"}
-                    placeholder="Ingresa tu nueva contraseña (mínimo 8 caracteres)"
+                    placeholder="Mínimo 8 caracteres"
                     value={newPassword}
                     onChange={(e) => handleNewPasswordChange(e.target.value)}
-                    className={`h-10 pr-20 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                      errors.newPassword
-                        ? "border-red-500"
-                        : newPassword.trim() && !errors.newPassword
-                          ? "border-green-500"
-                          : ""
-                    }`}
-                  />
-                  <div className="absolute right-3 top-2.5 flex items-center gap-2">
-                    {newPassword.trim() && !errors.newPassword && (
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    className={inputClasses(
+                      !!errors.newPassword,
+                      !!newPassword
                     )}
-                    {errors.newPassword && (
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                    {errors.newPassword ? (
                       <XCircle className="h-4 w-4 text-red-500" />
+                    ) : (
+                      newPassword && (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      )
                     )}
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="h-4 w-4 text-blue-400 hover:text-blue-600"
+                      className="text-gray-500 hover:text-gray-700"
+                      aria-label={
+                        showNewPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
                     >
                       {showNewPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -210,15 +222,17 @@ export default function ResetPassword() {
                   </div>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-red-500 text-sm">{errors.newPassword}</p>
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.newPassword}
+                  </p>
                 )}
               </div>
 
               {/* Confirmar Contraseña */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Label
                   htmlFor="confirmPassword"
-                  className="text-blue-900 font-medium"
+                  className="font-semibold text-gray-700"
                 >
                   Confirmar Contraseña
                 </Label>
@@ -226,36 +240,38 @@ export default function ResetPassword() {
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Repetí tu contraseña"
+                    placeholder="Repite tu contraseña"
                     value={confirmPassword}
                     onChange={(e) =>
                       handleConfirmPasswordChange(e.target.value)
                     }
-                    className={`h-10 pr-20 border-blue-300 focus:ring-2 focus:ring-blue-400 ${
-                      errors.confirmPassword
-                        ? "border-red-500"
-                        : confirmPassword.trim() &&
-                            !errors.confirmPassword &&
-                            newPassword === confirmPassword
-                          ? "border-green-500"
-                          : ""
-                    }`}
+                    className={inputClasses(
+                      !!errors.confirmPassword,
+                      !!confirmPassword &&
+                        !errors.confirmPassword &&
+                        newPassword === confirmPassword
+                    )}
                   />
-                  <div className="absolute right-3 top-2.5 flex items-center gap-2">
-                    {confirmPassword.trim() &&
-                      !errors.confirmPassword &&
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                    {errors.confirmPassword ? (
+                      <XCircle className="h-4 w-4 text-red-500" />
+                    ) : (
+                      confirmPassword &&
                       newPassword === confirmPassword && (
                         <CheckCircle className="h-4 w-4 text-green-500" />
-                      )}
-                    {errors.confirmPassword && (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      )
                     )}
                     <button
                       type="button"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="h-4 w-4 text-blue-400 hover:text-blue-600"
+                      className="text-gray-500 hover:text-gray-700"
+                      aria-label={
+                        showConfirmPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -266,29 +282,33 @@ export default function ResetPassword() {
                   </div>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-sm">
+                  <p className="text-red-500 text-xs mt-1">
                     {errors.confirmPassword}
                   </p>
                 )}
               </div>
-
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  disabled={loading || !hasValidPasswords()}
-                  className={`w-full h-10 ${
-                    hasValidPasswords()
-                      ? "bg-blue-600 hover:bg-blue-700 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {loading ? "Actualizando..." : "Actualizar Contraseña"}
-                </Button>
-              </div>
             </form>
           )}
         </CardContent>
+        {!success && (
+          <CardFooter className="p-6">
+            <Button
+              type="submit"
+              onClick={handleReset} // El botón está fuera del form, necesita su propio onClick
+              disabled={loading || !hasValidPasswords()}
+              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Actualizando...
+                </>
+              ) : (
+                "Actualizar Contraseña"
+              )}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

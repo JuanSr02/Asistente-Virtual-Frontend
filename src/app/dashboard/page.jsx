@@ -6,30 +6,18 @@ import StudentDashboard from "../student/studentDashboard/page";
 import { supabase } from "@/supabaseClient";
 import { useState } from "react";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import { Loader2, LogOut, ShieldAlert, UserCircle } from "lucide-react";
 
-// Componente principal del dashboard que decide qué vista mostrar
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Dashboard({ user }) {
   const { role, loading, error } = useUserRole(user);
   const [signingOut, setSigningOut] = useState(false);
   const { clearAllSession } = useSessionPersistence();
 
-  console.log(
-    "Dashboard - Usuario:",
-    user?.email,
-    "Rol:",
-    role,
-    "Loading:",
-    loading,
-    "Error:",
-    error
-  );
-
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
-      // Limpiar toda la sesión persistente antes de cerrar sesión
       clearAllSession();
-
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Error al cerrar sesión:", error);
@@ -43,87 +31,127 @@ export default function Dashboard({ user }) {
     }
   };
 
-  // Función para ir a la tab de perfil
   const handleGoToProfile = () => {
-    // Disparar evento personalizado para cambiar a la tab de perfil
     const event = new CustomEvent("changeTab", { detail: "perfil" });
     window.dispatchEvent(event);
   };
 
+  // --- ESTADO DE CARGA (LOADING) RESPONSIVE Y CON TEMA DE COLOR ORIGINAL ---
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-gray-600">Verificando permisos de usuario...</p>
-        <p className="text-sm text-gray-500">Usuario: {user?.email}</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background p-4 text-center">
+        {/* Usamos los colores de tu paleta `primary` para el spinner */}
+        <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        <p className="text-foreground font-semibold">
+          Verificando permisos de usuario...
+        </p>
+        <p className="text-sm text-muted-foreground">{user?.email}</p>
       </div>
     );
   }
 
+  // --- ESTADO DE ERROR RESPONSIVE Y CON TEMA DE COLOR ORIGINAL ---
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto mt-8 text-center p-8 bg-white rounded-xl shadow-md border-l-4 border-red-500">
-        <h2 className="text-xl font-bold text-red-600 mb-4">
-          ⚠️ Error al cargar el dashboard
-        </h2>
-        <p className="mb-2 text-gray-600">
-          <strong>Error:</strong> {error}
-        </p>
-        <p className="mb-6 text-gray-600">
-          <strong>Usuario:</strong> {user?.email}
-        </p>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            🔄 Reintentar
-          </button>
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
-          >
-            {signingOut ? "Cerrando..." : "🚪 Cerrar Sesión"}
-          </button>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
+        <div className="w-full max-w-lg mx-auto text-center p-6 sm:p-8 bg-card rounded-xl shadow-strong border-l-4 border-error-500">
+          <ShieldAlert className="mx-auto h-12 w-12 text-error-500 mb-4" />
+          <h2 className="text-xl font-bold text-error-700 mb-2">
+            Error al Cargar el Dashboard
+          </h2>
+          <p className="mb-4 text-muted-foreground text-sm">
+            No pudimos verificar tu rol de usuario.
+          </p>
+          <div className="bg-muted p-3 rounded-md text-left text-xs mb-6">
+            <p className="text-muted-foreground">
+              <strong className="text-foreground">Usuario:</strong>{" "}
+              {user?.email}
+            </p>
+            <p className="text-muted-foreground break-words mt-1">
+              <strong className="text-foreground">Error:</strong> {error}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="
+                w-full sm:w-auto h-11 px-6 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold
+                text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700
+                transition-all transform hover:-translate-y-0.5 shadow-md hover:shadow-lg
+              "
+            >
+              🔄 Reintentar
+            </button>
+            <button
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="
+                w-full sm:w-auto h-11 px-6 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold
+                bg-gray-200 hover:bg-gray-300 text-gray-700
+                transition-colors disabled:opacity-50
+              "
+            >
+              {signingOut ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "🚪 Cerrar Sesión"
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Renderizar el dashboard según el rol
+  // --- RENDERIZADO DEL DASHBOARD RESPONSIVE Y CON EL HEADER ORIGINAL ---
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 shadow-lg">
-        <div className="max-w-6xl mx-auto px-8">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen flex flex-col bg-background">
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg sticky top-0 z-40">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo/Título */}
             <div>
-              <h1 className="text-2xl font-semibold text-white border-b-2 border-white inline-block pb-1 ml-2">
+              <h1 className="text-lg sm:text-xl font-bold">
                 Asistente Virtual
               </h1>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Acciones de Usuario */}
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={handleGoToProfile}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide transition-all cursor-pointer"
+                className="
+                  flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
+                  bg-white/10 hover:bg-white/20 transition-colors
+                "
                 title="Ir a Perfil"
               >
-                {role}
+                <UserCircle className="h-4 w-4 hidden sm:block" />
+                <span className="capitalize">{role?.toLowerCase()}</span>
               </button>
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="bg-white bg-opacity-10 hover:bg-opacity-20 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                className="
+                  h-9 w-9 inline-flex items-center justify-center whitespace-nowrap rounded-md
+                  text-sm font-medium text-white hover:bg-white/20
+                  transition-colors disabled:opacity-50
+                "
+                title="Cerrar Sesión"
               >
-                {signingOut ? "Cerrando..." : "Cerrar Sesión"}
+                {signingOut ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <LogOut className="h-5 w-5" />
+                )}
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col">
+      {/* El contenido principal ya está configurado para ser flexible */}
+      <main className="flex-1">
         {role === "ADMINISTRADOR" ? (
           <AdminDashboard user={user} />
         ) : (

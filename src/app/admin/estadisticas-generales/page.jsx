@@ -5,10 +5,59 @@ import estadisticasService from "@/services/estadisticasService";
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
 import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
+import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
+
+// Componente auxiliar para las tarjetas de métricas
+const MetricCard = ({ icon, title, value, color }) => {
+  const colorClasses = {
+    blue: "border-blue-500",
+    gray: "border-gray-500",
+    green: "border-green-500",
+    orange: "border-orange-500",
+    teal: "border-teal-500",
+  };
+  return (
+    <div
+      className={`bg-white rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
+    >
+      <div className="text-2xl sm:text-3xl opacity-80">{icon}</div>
+      <div>
+        <h5 className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide mb-1">
+          {title}
+        </h5>
+        <div className="text-2xl sm:text-3xl font-bold text-gray-800">
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Componente auxiliar para las listas de ranking
+const RankingListItem = ({ rank, name, value, color }) => {
+  const colorClasses = {
+    green: "bg-green-50 border-green-500",
+    red: "bg-red-50 border-red-500",
+  };
+  return (
+    <div
+      className={`flex items-center gap-4 p-3 rounded-lg border-l-4 transition-all hover:-translate-y-0.5 hover:shadow-md ${colorClasses[color]}`}
+    >
+      <div className="font-bold text-lg text-gray-500 w-8 text-center">
+        #{rank}
+      </div>
+      <div className="flex-1 text-sm font-semibold text-gray-800 truncate">
+        {name}
+      </div>
+      <div className="font-bold text-base sm:text-lg text-gray-800">
+        {value}%
+      </div>
+    </div>
+  );
+};
 
 export default function EstadisticasGenerales() {
   const [estadisticas, setEstadisticas] = useState(() => {
-    // Intentar cargar datos guardados del localStorage
     const savedData = localStorage.getItem("estadisticasGenerales");
     return savedData ? JSON.parse(savedData) : null;
   });
@@ -20,324 +69,257 @@ export default function EstadisticasGenerales() {
     return savedTime ? new Date(savedTime) : null;
   });
 
+  // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
   useEffect(() => {
-    // Si no hay datos guardados, cargar automáticamente
     if (!estadisticas) {
       cargarEstadisticasGeneralesRapido();
     }
   }, []);
 
-  // Función para cargar estadísticas rápidas (cacheadas con fallback automático)
   const cargarEstadisticasGeneralesRapido = async () => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
-
     try {
       const data =
         await estadisticasService.obtenerEstadisticasGeneralesRapido();
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
-
-      // Guardar en localStorage
       localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
       localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
     } catch (err) {
       console.error("Error al cargar estadísticas generales:", err);
-      setError(
-        "No se pudieron cargar las estadísticas generales. Por favor, intente nuevamente."
-      );
+      setError("No se pudieron cargar las estadísticas generales.");
     } finally {
       setLoading(false);
       setLoadingMessage("");
     }
   };
 
-  // Función para refrescar datos (usando el endpoint completo)
   const refrescarDatos = async () => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Actualizando estadísticas...");
-
     try {
       const data = await estadisticasService.obtenerEstadisticasGenerales();
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
-
-      // Guardar en localStorage
       localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
       localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
     } catch (err) {
       console.error("Error al refrescar estadísticas generales:", err);
-      setError(
-        "No se pudieron actualizar las estadísticas generales. Por favor, intente nuevamente."
-      );
+      setError("No se pudieron actualizar las estadísticas generales.");
     } finally {
       setLoading(false);
       setLoadingMessage("");
     }
   };
 
+  // --- RENDERIZADO ---
   if (loading) {
     return (
-      <div>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-semibold text-gray-800">
-            Estadísticas Generales del Sistema
-          </h3>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex justify-end items-center mb-6">
           {loadingMessage && (
             <div className="flex items-center gap-2 text-blue-600">
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm">{loadingMessage}</span>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm font-medium">{loadingMessage}</span>
             </div>
           )}
         </div>
-
-        {/* Métricas skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           {Array.from({ length: 5 }).map((_, index) => (
             <MetricSkeleton key={index} />
           ))}
         </div>
-
-        {/* Gráficos skeleton */}
-        <div className="mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <ChartSkeleton type="pie" />
-            <ChartSkeleton type="bar" />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <ChartSkeleton type="pie" />
           <ChartSkeleton type="bar" />
         </div>
+        <ChartSkeleton type="bar" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <span>⚠️</span>
-          <strong>Error al cargar estadísticas</strong>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500" />
+          <div>
+            <strong className="font-semibold block">
+              Error al cargar estadísticas
+            </strong>
+            <p className="text-sm mt-1">{error}</p>
+            <button
+              onClick={cargarEstadisticasGeneralesRapido}
+              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
         </div>
-        <p className="mb-3">{error}</p>
-        <button
-          onClick={cargarEstadisticasGeneralesRapido}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
-        >
-          Reintentar
-        </button>
       </div>
     );
   }
 
   if (!estadisticas) {
     return (
-      <div className="text-center py-8 text-gray-400 italic">
-        No hay datos disponibles
+      <div className="p-4 sm:p-6 lg:p-8 text-center text-gray-500">
+        No hay datos disponibles para mostrar.
       </div>
     );
   }
 
+  // --- JSX RESPONSIVE ---
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800">
-          Estadísticas Generales del Sistema
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
+          Vista General del Sistema
         </h3>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={refrescarDatos}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-            disabled={loading}
-          >
-            <span>🔄</span> Refrescar
-          </button>
-        </div>
+        <button
+          onClick={refrescarDatos}
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 w-full sm:w-auto text-sm font-semibold"
+          disabled={loading}
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>Refrescar</span>
+        </button>
       </div>
 
-      {/* Métricas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-blue-500">
-          <div className="text-3xl opacity-80">👥</div>
-          <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              Estudiantes Activos
-            </h4>
-            <div className="text-3xl font-bold text-gray-800">
-              {estadisticas.estudiantesActivos}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-500">
-          <div className="text-3xl opacity-80">📚</div>
-          <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              Total Materias
-            </h4>
-            <div className="text-3xl font-bold text-gray-800">
-              {estadisticas.totalMaterias}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-green-500">
-          <div className="text-3xl opacity-80">📝</div>
-          <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              Exámenes Rendidos
-            </h4>
-            <div className="text-3xl font-bold text-gray-800">
-              {estadisticas.totalExamenesRendidos}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-orange-500">
-          <div className="text-3xl opacity-80">📊</div>
-          <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              % Aprobados General
-            </h4>
-            <div className="text-3xl font-bold text-gray-800">
-              {estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-teal-500">
-          <div className="text-3xl opacity-80">🎯</div>
-          <div>
-            <h4 className="text-sm text-gray-500 uppercase tracking-wide mb-2">
-              Promedio General
-            </h4>
-            <div className="text-3xl font-bold text-gray-800">
-              {estadisticas.promedioGeneral.toFixed(2)}
-            </div>
-          </div>
-        </div>
+      {/* --- MÉTRICAS PRINCIPALES --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <MetricCard
+          icon="👥"
+          title="Estudiantes"
+          value={estadisticas.estudiantesActivos}
+          color="blue"
+        />
+        <MetricCard
+          icon="📚"
+          title="Materias"
+          value={estadisticas.totalMaterias}
+          color="gray"
+        />
+        <MetricCard
+          icon="📝"
+          title="Exámenes"
+          value={estadisticas.totalExamenesRendidos}
+          color="green"
+        />
+        <MetricCard
+          icon="📊"
+          title="% Aprobados"
+          value={`${estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%`}
+          color="orange"
+        />
+        <MetricCard
+          icon="🎯"
+          title="Promedio Gral."
+          value={estadisticas.promedioGeneral.toFixed(2)}
+          color="teal"
+        />
       </div>
 
-      {/* Gráficos de distribución */}
-      <div className="mb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      {/* --- GRÁFICOS Y MATERIA MÁS RENDIDA --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-3">
           <PieChart
             data={estadisticas.distribucionEstudiantesPorCarrera}
             title="Distribución de Estudiantes por Carrera"
             showHover={false}
           />
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">
-              Materia Más Rendida
-            </h4>
-            <div className="text-center p-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white shadow-lg">
-              <div className="text-xl font-bold mb-4">
-                {estadisticas.materiaMasRendida.nombre}
-              </div>
-              <div className="text-2xl font-bold mb-2">
-                {estadisticas.cantidadMateriaMasRendida} exámenes
-              </div>
-              <div className="text-lg opacity-90">
-                {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}%
-                aprobación
-              </div>
-            </div>
+        </div>
+        <div className="lg:col-span-2 flex flex-col justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
+          <h4 className="text-base font-semibold mb-2 opacity-90">
+            Materia Más Rendida
+          </h4>
+          <p className="text-xl font-bold truncate">
+            {estadisticas.materiaMasRendida.nombre}
+          </p>
+          <div className="my-4">
+            <p className="text-4xl font-extrabold">
+              {estadisticas.cantidadMateriaMasRendida}
+            </p>
+            <p className="opacity-80">exámenes</p>
+          </div>
+          <div className="text-lg opacity-90">
+            {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% de
+            aprobación
           </div>
         </div>
-
-        <BarChart
-          data={estadisticas.distribucionExamenesPorMateria}
-          title="Materias mas rendidas"
-          colors={["#4299e1", "#48bb78", "#ed8936"]}
-          maxBars={15}
-          useIntegers={true}
-          showNameBelow={true}
-        />
       </div>
 
-      {/* Rankings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <h4 className="text-base text-gray-600 mb-4 font-semibold">
-            🏆 Top 5 Materias Más Aprobadas
+      {/* --- GRÁFICO DE MATERIAS MÁS RENDIDAS --- */}
+      <BarChart
+        data={estadisticas.distribucionExamenesPorMateria}
+        title="Top 15 Materias más Rendidas"
+        colors={["#4299e1"]}
+        maxBars={15}
+        useIntegers={true}
+        showNameBelow={true}
+      />
+
+      {/* --- RANKINGS --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+          <h4 className="text-base font-semibold text-gray-700 mb-4">
+            🏆 Top 5 Materias con Mayor Aprobación
           </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Aprobadas.map((materia, index) => (
-              <div
+              <RankingListItem
                 key={materia.codigoMateria}
-                className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500 transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="font-bold text-lg text-gray-600 min-w-[30px]">
-                  #{index + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800">
-                    {materia.nombre}
-                  </div>
-                </div>
-                <div className="font-bold text-lg text-gray-800">
-                  {materia.porcentaje.toFixed(1)}%
-                </div>
-              </div>
+                rank={index + 1}
+                name={materia.nombre}
+                value={materia.porcentaje.toFixed(1)}
+                color="green"
+              />
             ))}
           </div>
         </div>
-
-        <div className="bg-white rounded-xl p-6 shadow-md">
-          <h4 className="text-base text-gray-600 mb-4 font-semibold">
-            📉 Top 5 Materias Más Reprobadas
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+          <h4 className="text-base font-semibold text-gray-700 mb-4">
+            📉 Top 5 Materias con Menor Aprobación
           </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Reprobadas.map((materia, index) => (
-              <div
+              <RankingListItem
                 key={materia.codigoMateria}
-                className="flex items-center gap-4 p-4 bg-orange-50 rounded-lg border-l-4 border-red-500 transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="font-bold text-lg text-gray-600 min-w-[30px]">
-                  #{index + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-800">
-                    {materia.nombre}
-                  </div>
-                </div>
-                <div className="font-bold text-lg text-gray-800">
-                  {materia.porcentaje.toFixed(1)}%
-                </div>
-              </div>
+                rank={index + 1}
+                name={materia.nombre}
+                value={materia.porcentaje.toFixed(1)}
+                color="red"
+              />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Materias con notas promedio más altas */}
-      <div className="mt-8">
+      {/* --- GRÁFICOS DE PROMEDIOS --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <BarChart
           data={Object.entries(estadisticas.promedioNotasPorMateria)
-            .sort((a, b) => b[1] - a[1]) // Orden descendente
-            .slice(0, 15) // Tomar las 15 mejores
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Materias con nota promedio más alta"
-          colors={["#38b2ac", "#9f7aea", "#f56565"]}
-          maxBars={15}
+          title="Top 10 - Mejor Promedio de Notas"
+          colors={["#38b2ac"]}
+          maxBars={10}
           useIntegers={false}
           showNameBelow={true}
         />
-      </div>
-
-      {/* Materias con notas promedio más bajas */}
-      <div className="mt-8">
         <BarChart
           data={Object.entries(estadisticas.promedioNotasPorMateria)
-            .sort((a, b) => a[1] - b[1]) // Orden ascendente
-            .slice(0, 15) // Tomar las 15 peores
+            .sort((a, b) => a[1] - b[1])
+            .slice(0, 10)
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Materias con nota promedio más baja"
-          colors={["#f56565", "#9f7aea", "#38b2ac"]}
-          maxBars={15}
+          title="Top 10 - Peor Promedio de Notas"
+          colors={["#f56565"]}
+          maxBars={10}
           useIntegers={false}
           showNameBelow={true}
         />
