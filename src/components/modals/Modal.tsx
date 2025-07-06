@@ -4,29 +4,26 @@ import {
   useEffect,
   useRef,
   memo,
+  useState,
   type FC,
   type HTMLAttributes,
   type ReactNode,
 } from "react";
+// 1. IMPORTAR createPortal
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// --- TIPADO CORREGIDO ---
-// En lugar de extender HTMLAttributes, definimos nuestras props específicas
-// y luego permitimos que el resto de las props de un div se pasen.
-// Esto evita conflictos de tipos.
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: ReactNode;
   children: ReactNode;
   maxWidth?: string;
-  className?: string; // Permitimos pasar clases al contenedor del modal
+  className?: string;
 }
 
-// Usamos `Omit` para quitar `title` de HTMLAttributes y evitar la colisión.
-// Luego, unimos nuestras ModalProps con el resto de los atributos de un div.
 type CombinedModalProps = ModalProps &
   Omit<HTMLAttributes<HTMLDivElement>, "title">;
 
@@ -37,22 +34,35 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
   children,
   maxWidth = "32rem",
   className,
-  ...props // El resto de las props se aplican al overlay
+  ...props
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
+  // 2. AÑADIR ESTADO PARA MANEJAR SSR
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // Marcar como montado solo en el cliente
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
+
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+      };
     }
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen, onClose]);
 
   useEffect(() => {
@@ -61,9 +71,14 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // 3. LA LÓGICA DEL PORTAL
+  // No renderizar nada si no está abierto o si no estamos en el cliente
+  if (!isMounted || !isOpen) {
+    return null;
+  }
 
-  return (
+  // Renderizar el modal en el div #modal-root usando un Portal
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in"
       onClick={onClose}
@@ -100,7 +115,8 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root") as HTMLElement // El punto de aterrizaje
   );
 });
 
