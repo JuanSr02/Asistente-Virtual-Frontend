@@ -7,27 +7,31 @@ import Inscripcion from "../inscripcion/page";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import ExperienciasExamen from "../experiencias-examen/page";
 import Perfil from "@/app/perfil/page";
+import {
+  GraduationCap,
+  MessageSquareQuote,
+  PencilRuler,
+  BarChart3,
+  UserCircle,
+  LayoutDashboard,
+} from "lucide-react";
 
-// Dashboard específico para estudiantes
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function StudentDashboard({ user }) {
   const { dashboardState, setDashboardState, updateLastVisited } =
     useSessionPersistence();
 
-  // Estado inicial específico para estudiantes (por defecto "recomendacion")
   const [activeTab, setActiveTab] = useState(
     dashboardState?.activeTab === "planes"
       ? "recomendacion"
       : dashboardState?.activeTab || "recomendacion"
   );
 
-  // Actualizar la última visita cuando el componente se monta
   useEffect(() => {
     updateLastVisited();
   }, []);
 
-  // Sincronizar el estado local con el persistente
   useEffect(() => {
-    // Si viene de admin dashboard, cambiar a recomendacion por defecto
     if (dashboardState?.activeTab === "planes") {
       setActiveTab("recomendacion");
       setDashboardState("activeTab", "recomendacion");
@@ -36,14 +40,12 @@ export default function StudentDashboard({ user }) {
     }
   }, [dashboardState?.activeTab]);
 
-  // Manejar cambio de pestaña
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setDashboardState("activeTab", tab);
     updateLastVisited();
   };
 
-  // Escuchar eventos de cambio de pestaña desde otros componentes
   useEffect(() => {
     const handleChangeTab = (event) => {
       const newTab = event.detail;
@@ -51,12 +53,19 @@ export default function StudentDashboard({ user }) {
         handleTabChange(newTab);
       }
     };
-
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
   }, [activeTab]);
 
-  // Renderizar el contenido según la pestaña activa
+  // Array de pestañas para un código más limpio
+  const tabs = [
+    { id: "recomendacion", label: "Recomendación", icon: GraduationCap },
+    { id: "experiencias", label: "Experiencias", icon: MessageSquareQuote },
+    { id: "inscripcion", label: "Inscripción", icon: PencilRuler },
+    { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
+    { id: "perfil", label: "Perfil", icon: UserCircle },
+  ];
+
   const renderContent = () => {
     switch (activeTab) {
       case "recomendacion":
@@ -71,79 +80,70 @@ export default function StudentDashboard({ user }) {
         return <Perfil />;
       default:
         return (
-          <div className="text-center py-8 text-gray-500">
-            Seleccione una opción del menú
+          <div className="text-center py-16 text-gray-500 flex flex-col items-center gap-4">
+            <LayoutDashboard className="w-12 h-12 text-gray-300" />
+            <p className="text-lg">
+              Selecciona una opción del menú para comenzar.
+            </p>
           </div>
         );
     }
   };
 
+  // --- JSX RESPONSIVE ---
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Barra de navegación horizontal */}
-      <nav className="bg-white px-8 py-2 border-b border-gray-200 flex justify-between items-center">
-        <div className="flex gap-4">
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "recomendacion"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("recomendacion")}
-          >
-            📚 Recomendación
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "experiencias"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("experiencias")}
-          >
-            💭 Experiencias de Examen
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "inscripcion"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("inscripcion")}
-          >
-            ✏️ Inscripción
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "estadisticas"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("estadisticas")}
-          >
-            📊 Estadísticas por Materia
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "perfil"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("perfil")}
-          >
-            👤 Perfil
-          </button>
-        </div>
+    <div className="flex-1 flex flex-col bg-gray-50">
+      {/* Barra de navegación de pestañas */}
+      <nav className="bg-white border-b border-gray-200 sticky top-16 z-30">
+        <div className="container mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            {/* Contenedor de pestañas con scroll horizontal en móvil */}
+            <div className="flex-1 overflow-x-auto whitespace-nowrap">
+              <div className="inline-flex items-center">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`
+                      inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3 
+                      text-sm font-medium border-b-2 transition-colors duration-200
+                      ${
+                        activeTab === tab.id
+                          ? "text-blue-600 border-blue-600"
+                          : "text-gray-500 border-transparent hover:text-blue-600 hover:bg-gray-50"
+                      }
+                    `}
+                    aria-current={activeTab === tab.id ? "page" : undefined}
+                  >
+                    <tab.icon className="h-5 w-5 flex-shrink-0" />
+                    {/* El texto se muestra a partir de 'sm' para algunas y 'md' para otras */}
+                    <span
+                      className={`
+                        ${["perfil", "estadisticas"].includes(tab.id) ? "hidden sm:inline" : ""}
+                        ${["recomendacion", "experiencias", "inscripcion"].includes(tab.id) ? "hidden md:inline" : ""}
+                    `}
+                    >
+                      {tab.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        <div className="flex flex-col items-end">
-          <span className="text-sm text-gray-600">Usuario: {user.email}</span>
+            {/* Información del usuario (oculto en pantallas muy pequeñas) */}
+            <div className="hidden lg:block text-right pl-4">
+              <span className="text-xs text-gray-500 truncate">
+                Usuario: {user.email}
+              </span>
+            </div>
+          </div>
         </div>
       </nav>
 
       {/* Contenido principal */}
-      <div className="flex-1 p-8 max-w-6xl mx-auto w-full">
+      <main className="flex-1 w-full container mx-auto p-4 sm:p-6 lg:p-8">
         {renderContent()}
-      </div>
+      </main>
     </div>
   );
 }

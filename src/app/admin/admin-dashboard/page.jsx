@@ -5,31 +5,28 @@ import PlanesEstudio from "../planes-estudio/page";
 import Estadisticas from "../estadisticas/page";
 import Perfil from "@/app/perfil/page";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import { BookOpen, BarChart3, UserCircle, LayoutDashboard } from "lucide-react";
 
-// Dashboard específico para administradores
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function AdminDashboard({ user }) {
   const { dashboardState, setDashboardState, updateLastVisited } =
     useSessionPersistence();
   const [activeTab, setActiveTab] = useState(dashboardState.activeTab);
 
-  // Actualizar la última visita cuando el componente se monta
   useEffect(() => {
     updateLastVisited();
   }, []);
 
-  // Sincronizar el estado local con el persistente
   useEffect(() => {
     setActiveTab(dashboardState.activeTab);
   }, [dashboardState.activeTab]);
 
-  // Manejar cambio de pestaña
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setDashboardState("activeTab", tab);
     updateLastVisited();
   };
 
-  // Escuchar eventos de cambio de pestaña desde otros componentes
   useEffect(() => {
     const handleChangeTab = (event) => {
       const newTab = event.detail;
@@ -37,12 +34,17 @@ export default function AdminDashboard({ user }) {
         handleTabChange(newTab);
       }
     };
-
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
   }, [activeTab]);
 
-  // Renderizar el contenido según la pestaña activa
+  // Array de pestañas para evitar repetición en el JSX
+  const tabs = [
+    { id: "planes", label: "Planes de Estudio", icon: BookOpen },
+    { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
+    { id: "perfil", label: "Perfil", icon: UserCircle },
+  ];
+
   const renderContent = () => {
     switch (activeTab) {
       case "planes":
@@ -53,58 +55,61 @@ export default function AdminDashboard({ user }) {
         return <Perfil />;
       default:
         return (
-          <div className="text-center py-8 text-gray-500">
-            Seleccione una opción del menú
+          <div className="text-center py-16 text-gray-500 flex flex-col items-center gap-4">
+            <LayoutDashboard className="w-12 h-12 text-gray-300" />
+            <p className="text-lg">
+              Selecciona una opción del menú para comenzar.
+            </p>
           </div>
         );
     }
   };
 
+  // --- JSX RESPONSIVE ---
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Barra de navegación horizontal */}
-      <nav className="bg-white px-8 py-2 border-b border-gray-200 flex justify-between items-center">
-        <div className="flex gap-4">
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "planes"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("planes")}
-          >
-            📚 Planes de Estudio
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "estadisticas"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("estadisticas")}
-          >
-            📊 Estadísticas
-          </button>
-          <button
-            className={`px-6 py-3 text-base font-medium cursor-pointer border-b-2 transition-all ${
-              activeTab === "perfil"
-                ? "text-blue-500 border-blue-500 font-semibold"
-                : "text-gray-600 border-transparent hover:text-gray-800"
-            }`}
-            onClick={() => handleTabChange("perfil")}
-          >
-            👤 Perfil
-          </button>
-        </div>
-        <div className="flex flex-col items-end">
-          <span className="text-sm text-gray-600">Usuario: {user.email}</span>
+    <div className="flex-1 flex flex-col bg-gray-50">
+      {/* Barra de navegación de pestañas */}
+      <nav className="bg-white border-b border-gray-200 sticky top-16 z-30">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            {/* Pestañas de navegación */}
+            <div className="flex items-center">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabChange(tab.id)}
+                  className={`
+                    inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3 
+                    text-sm font-medium border-b-2 transition-colors duration-200
+                    ${
+                      activeTab === tab.id
+                        ? "text-blue-600 border-blue-600"
+                        : "text-gray-500 border-transparent hover:text-blue-600 hover:bg-gray-50"
+                    }
+                  `}
+                  aria-current={activeTab === tab.id ? "page" : undefined}
+                >
+                  <tab.icon className="h-5 w-5" />
+                  {/* El texto de la pestaña se muestra solo en pantallas 'sm' y más grandes */}
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Información del usuario (oculto en pantallas muy pequeñas) */}
+            <div className="hidden md:block text-right">
+              <span className="text-xs text-gray-500">
+                Usuario: {user.email}
+              </span>
+            </div>
+          </div>
         </div>
       </nav>
 
       {/* Contenido principal */}
-      <div className="flex-1 p-8 max-w-6xl mx-auto w-full">
+      <main className="flex-1 w-full container mx-auto p-4 sm:p-6 lg:p-8">
         {renderContent()}
-      </div>
+      </main>
     </div>
   );
 }

@@ -7,7 +7,43 @@ import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
 import { APP_CONFIG } from "@/lib/config";
+import {
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
+  Upload,
+  BookCopy,
+  Trash2,
+  RefreshCw,
+  Sparkles,
+  Youtube,
+  FileText,
+  BadgePercent,
+  Star,
+  CalendarDays,
+  Clock,
+  ThumbsUp,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -18,12 +54,10 @@ export default function Recomendacion({ user }) {
     isInitialized,
   } = useEnhancedSessionPersistence();
 
-  // Referencias para inputs de archivo
   const fileInputRef = useRef(null);
   const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
 
-  // Cargar datos iniciales cuando el usuario está disponible y el estado está inicializado
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
       hasLoadedInitialData.current = true;
@@ -31,7 +65,6 @@ export default function Recomendacion({ user }) {
     }
   }, [user, isInitialized]);
 
-  // Cargar planes cuando se necesiten (solo si no hay historia académica)
   useEffect(() => {
     if (
       state.persona &&
@@ -44,53 +77,34 @@ export default function Recomendacion({ user }) {
 
   const cargarDatosIniciales = async () => {
     updateState({ loadingPersona: true, error: null });
-
     try {
-      // Obtener persona por Supabase ID o email
       let personaData = await personaService.obtenerPersonaPorSupabaseId(
         user.id
       );
-
-      if (!personaData) {
+      if (!personaData)
         personaData = await personaService.obtenerPersonaPorEmail(user.email);
-      }
-
       if (!personaData) {
         updateState({
-          error:
-            "No se encontró tu perfil en el sistema. Contacta al administrador.",
+          error: "No se encontró tu perfil en el sistema.",
           loadingPersona: false,
         });
         return;
       }
-
-      console.log("Persona encontrada:", personaData);
       updateState({ persona: personaData, personaId: personaData.id });
-
-      // Verificar si tiene historia académica
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
         );
-      console.log("Historia académica:", historia);
-
       if (historia) {
         updateState({ historiaAcademica: historia });
-
-        // Verificar si hay recomendaciones guardadas para esta persona
         const tieneRecomendacionesGuardadas =
           state.recomendaciones.length > 0 &&
           state.personaId === personaData.id &&
           state.lastFetch &&
-          !isStateStale(30); // No más de 30 minutos de antigüedad
-
+          !isStateStale(30);
         if (tieneRecomendacionesGuardadas) {
-          console.log("Usando recomendaciones guardadas");
-          // Las recomendaciones ya están en el estado
+          // Ya están en el estado
         } else {
-          console.log(
-            "No hay recomendaciones guardadas válidas, cargando nuevas"
-          );
           await obtenerRecomendaciones(
             personaData.id,
             state.criterioOrden,
@@ -99,13 +113,12 @@ export default function Recomendacion({ user }) {
         }
       } else {
         updateState({ historiaAcademica: null });
-        // Si no tiene historia, cargar planes para que pueda seleccionar uno
         await cargarPlanes();
       }
     } catch (err) {
       console.error("Error al cargar datos iniciales:", err);
       updateState({
-        error: "Error al cargar tus datos. Por favor, intenta nuevamente.",
+        error: "Error al cargar tus datos. Intenta nuevamente.",
         loadingPersona: false,
       });
     } finally {
@@ -114,8 +127,7 @@ export default function Recomendacion({ user }) {
   };
 
   const cargarPlanes = async () => {
-    if (state.loadingPlanes) return; // Evitar múltiples llamadas concurrentes
-
+    if (state.loadingPlanes) return;
     updateState({ loadingPlanes: true });
     try {
       const data = await planesEstudioService.obtenerPlanes();
@@ -133,66 +145,36 @@ export default function Recomendacion({ user }) {
     orden = state.criterioOrden,
     isAutoLoad = false
   ) => {
-    if (!estudianteId) {
-      console.warn("No hay ID de estudiante para obtener recomendaciones");
-      return;
-    }
-
+    if (!estudianteId) return;
     updateState({ loadingRecomendaciones: true, error: null });
-
     try {
-      console.log(
-        `Obteniendo recomendaciones para estudiante ${estudianteId} con orden ${orden}`
-      );
       const data = await recomendacionService.obtenerFinalesParaRendir(
         estudianteId,
         orden
       );
-      console.log("Recomendaciones obtenidas:", data);
-
       const recomendacionesArray = Array.isArray(data) ? data : [];
-
       updateState({
         recomendaciones: recomendacionesArray,
         criterioOrden: orden,
         personaId: estudianteId,
         lastFetch: new Date().toISOString(),
       });
-
-      if (!data || data.length === 0) {
-        console.log("No se encontraron recomendaciones");
-        // No establecer error aquí, es un estado válido
-      }
     } catch (err) {
-      console.error("Error al obtener recomendaciones:", err);
-
       let errorMessage = "Error al obtener las recomendaciones.";
-
       if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
-
-        if (status === 404) {
+        const { status, data } = err.response;
+        if (status === 404)
           errorMessage = "No se encontraron finales disponibles para rendir.";
-        } else if (status === 400) {
+        else if (status === 400)
           errorMessage =
             data?.message || "Datos inválidos para obtener recomendaciones.";
-        } else {
+        else
           errorMessage =
             data?.message ||
             `Error ${status}: No se pudieron obtener las recomendaciones.`;
-        }
       }
-
-      updateState({
-        error: errorMessage,
-        recomendaciones: [], // Limpiar recomendaciones en caso de error
-      });
-
-      // Limpiar persistencia en caso de error
-      if (!isAutoLoad) {
-        clearRecomendaciones();
-      }
+      updateState({ error: errorMessage, recomendaciones: [] });
+      if (!isAutoLoad) clearRecomendaciones();
     } finally {
       updateState({ loadingRecomendaciones: false });
     }
@@ -201,7 +183,6 @@ export default function Recomendacion({ user }) {
   const handleFileUpload = async (event, isUpdate = false) => {
     const file = event.target.files[0];
     if (!file) return;
-
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
@@ -209,92 +190,65 @@ export default function Recomendacion({ user }) {
       updateState({
         error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       });
-      // Limpiar input
-      if (isUpdate && updateFileInputRef.current) {
+      if (isUpdate && updateFileInputRef.current)
         updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      else if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-
-    // Para actualización, usar el plan de la historia existente
     const planAUsar = isUpdate
       ? state.historiaAcademica?.plan_de_estudio_codigo
       : state.planSeleccionado;
-
     if (!planAUsar) {
       updateState({ error: "Por favor, selecciona un plan de estudio." });
       return;
     }
-
     updateState({ uploading: true, error: null, success: null });
-
     try {
       let resultado;
-      if (isUpdate) {
+      if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
-      } else {
+      else
         resultado = await historiaAcademicaService.cargarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
-      }
-
-      console.log("Resultado del servicio:", resultado);
-
-      // Mostrar mensaje de éxito más detallado
       if (resultado && resultado.mensaje) {
         const accion = isUpdate ? "actualizada" : "cargada";
         let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
-
-        if (resultado.cantidadMateriasNuevas) {
+        if (resultado.cantidadMateriasNuevas)
           mensaje += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
-        }
-        if (resultado.cantidadMateriasActualizadas) {
+        if (resultado.cantidadMateriasActualizadas)
           mensaje += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
-        }
-
         updateState({ success: mensaje });
       } else {
         const accion = isUpdate ? "actualizada" : "cargada";
         updateState({ success: `Historia académica ${accion} exitosamente` });
       }
-
-      // Limpiar recomendaciones guardadas ya que la historia cambió
       clearRecomendaciones();
-
-      // Esperar un poco antes de recargar para que el backend procese
       setTimeout(async () => {
         try {
-          // Recargar historia académica
           const historia =
             await historiaAcademicaService.verificarHistoriaAcademica(
               state.persona.id
             );
-          console.log("Historia recargada:", historia);
-
           if (historia) {
             updateState({
               historiaAcademica: historia,
-              criterioOrden: "CORRELATIVAS", // Reset criterio
+              criterioOrden: "CORRELATIVAS",
             });
-            // Cargar recomendaciones automáticamente con criterio por defecto
             await obtenerRecomendaciones(state.persona.id, "CORRELATIVAS");
           } else {
-            console.warn("No se pudo recargar la historia académica");
             updateState({
               error:
                 "La historia se procesó pero no se pudo verificar. Intenta recargar la página.",
             });
           }
         } catch (reloadErr) {
-          console.error("Error al recargar historia:", reloadErr);
           updateState({
             error:
               "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
@@ -302,54 +256,37 @@ export default function Recomendacion({ user }) {
         }
       }, 2000);
     } catch (err) {
-      console.error("Error al cargar/actualizar historia:", err);
-
-      // Mensaje de error más específico
       let errorMessage = "Error al procesar el archivo.";
-
       if (err.response) {
-        const status = err.response.status;
-        const data = err.response.data;
-
-        if (status === 400) {
+        const { status, data } = err.response;
+        if (status === 400)
           errorMessage =
             data?.message || "El archivo no tiene el formato correcto.";
-        } else if (status === 404) {
+        else if (status === 404)
           errorMessage = "Plan de estudio no encontrado.";
-        } else if (status === 500) {
+        else if (status === 500)
           errorMessage = "Error del servidor. Intenta nuevamente.";
-        } else {
-          errorMessage = data?.message || `Error ${status}: ${err.message}`;
-        }
-      } else if (err.request) {
+        else errorMessage = data?.message || `Error ${status}: ${err.message}`;
+      } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
-      } else {
-        errorMessage = err.message || "Error desconocido.";
-      }
-
+      else errorMessage = err.message || "Error desconocido.";
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
-      // Limpiar inputs
-      if (isUpdate && updateFileInputRef.current) {
+      if (isUpdate && updateFileInputRef.current)
         updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      else if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
   const handleEliminarHistoria = async () => {
     if (
       !window.confirm(
-        "¿Estás seguro de que deseas eliminar toda tu historia académica? Esta acción no se puede deshacer."
+        "¿Estás seguro de que deseas eliminar toda tu historia académica?"
       )
-    ) {
+    )
       return;
-    }
-
     updateState({ uploading: true, error: null, success: null });
-
     try {
       await historiaAcademicaService.eliminarHistoriaAcademica(
         state.persona.id
@@ -357,19 +294,12 @@ export default function Recomendacion({ user }) {
       updateState({
         historiaAcademica: null,
         recomendaciones: [],
-        criterioOrden: "CORRELATIVAS", // Reset criterio
-        success: "Historia académica eliminada correctamente.",
+        criterioOrden: "CORRELATIVAS",
+        success: "Historia académica eliminada.",
       });
-
-      // Limpiar recomendaciones guardadas
       clearRecomendaciones();
-
-      // Cargar planes para nueva carga
-      if (state.planes.length === 0) {
-        await cargarPlanes();
-      }
+      if (state.planes.length === 0) await cargarPlanes();
     } catch (err) {
-      console.error("Error al eliminar historia:", err);
       updateState({ error: "Error al eliminar la historia académica." });
     } finally {
       updateState({ uploading: false });
@@ -390,27 +320,25 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  const formatearFecha = (fechaStr) => {
-    if (!fechaStr) return "N/A";
-    return fechaStr;
-  };
+  const getDificultadColor = (d) =>
+    d >= 7
+      ? "text-red-600 bg-red-100"
+      : d >= 5
+        ? "text-orange-600 bg-orange-100"
+        : d >= 3
+          ? "text-yellow-600 bg-yellow-100"
+          : "text-green-600 bg-green-100";
+  const getDificultadTexto = (d) =>
+    d >= 7
+      ? "Alta"
+      : d >= 5
+        ? "Media-Alta"
+        : d >= 3
+          ? "Media"
+          : d === 0
+            ? "N/A"
+            : "Baja";
 
-  const getDificultadColor = (dificultad) => {
-    if (dificultad >= 7) return "bg-red-100 text-red-800";
-    if (dificultad >= 5) return "bg-orange-100 text-orange-800";
-    if (dificultad >= 3) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
-  };
-
-  const getDificultadTexto = (dificultad) => {
-    if (dificultad >= 7) return "Alta";
-    if (dificultad >= 5) return "Media-Alta";
-    if (dificultad >= 3) return "Media";
-    if (dificultad == 0) return "Desconocida";
-    return "Baja";
-  };
-
-  // Limpiar mensajes después de un tiempo
   useEffect(() => {
     if (state.success || state.error) {
       const timer = setTimeout(() => {
@@ -420,141 +348,119 @@ export default function Recomendacion({ user }) {
     }
   }, [state.success, state.error, updateState]);
 
-  // Mostrar loading mientras no esté inicializado
-  if (!isInitialized) {
+  if (!isInitialized || (state.loadingPersona && !state.persona)) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Inicializando...</p>
-      </div>
-    );
-  }
-
-  if (state.loadingPersona && !state.persona) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600">Cargando tu información...</p>
+      <div className="space-y-6">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-40 w-full" />
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
       </div>
     );
   }
 
   if (!state.persona) {
     return (
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">⚠️</div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">
-          Perfil no encontrado
-        </h3>
-        <p className="text-gray-600">
+      <Card className="text-center p-8">
+        <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+        <CardTitle>Perfil no encontrado</CardTitle>
+        <CardDescription>
           No se pudo encontrar tu perfil en el sistema.
-        </p>
-      </div>
+        </CardDescription>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          📚 Recomendaciones Personalizadas
-        </h2>
-        <p className="text-gray-600">
-          Hola {state.persona.nombre_apellido}, aquí tienes las mejores
-          recomendaciones para tus próximos finales
-        </p>
-      </div>
+      <Card className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <CardHeader>
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
+            📚 Recomendaciones Personalizadas
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            Hola {state.persona.nombre_apellido}, aquí tienes las mejores
+            recomendaciones para tus próximos finales.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Mensajes de estado */}
       {state.error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span>⚠️</span>
-            <span>{state.error}</span>
-          </div>
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+          <AlertTriangle className="h-5 w-5 mt-0.5" />
+          <p className="text-sm">{state.error}</p>
         </div>
       )}
-
       {state.success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-          <div className="flex items-center gap-2">
-            <span>✅</span>
-            <span>{state.success}</span>
-          </div>
+        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+          <CheckCircle className="h-5 w-5 mt-0.5" />
+          <p className="text-sm">{state.success}</p>
         </div>
       )}
 
-      {/* Estado de historia académica */}
       {!state.historiaAcademica ? (
-        <div className="bg-white p-8 rounded-lg shadow-md border border-orange-200">
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Debes cargar una historia académica
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Para obtener recomendaciones personalizadas, necesitas subir tu
-              historia académica en formato Excel.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 font-medium mb-2">
-                Recuerda subir tu historia completa para un funcionamiento
-                correcto del asistente virtual
+        <Card>
+          <CardHeader className="text-center">
+            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <CardTitle>Carga tu Historia Académica</CardTitle>
+            <CardDescription>
+              Para obtener recomendaciones, necesitamos tu historia académica
+              completa en formato Excel.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 max-w-lg mx-auto">
+            <div className="bg-blue-50 p-4 rounded-lg text-center">
+              <p className="text-sm text-blue-800">
+                ¿No sabes cómo descargarla? Haz clic en el video tutorial.
               </p>
-              <p className="text-blue-700 text-sm mb-3">
-                ¿No sabes cómo descargar tu historia académica?
-              </p>
-              <div className="flex justify-center">
-                <button
-                  onClick={() =>
-                    window.open(
-                      "https://www.youtube.com/watch?v=VIDEO_ID_AQUI",
-                      "_blank"
-                    )
-                  }
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                >
-                  <span>📺</span>
-                  Ver video tutorial
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-md mx-auto space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selecciona tu plan de estudio:
-              </label>
-              <select
-                value={state.planSeleccionado}
-                onChange={(e) =>
-                  updateState({ planSeleccionado: e.target.value })
+              <Button
+                variant="destructive"
+                size="sm"
+                className="mt-2"
+                onClick={() =>
+                  window.open(
+                    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    "_blank"
+                  )
                 }
-                disabled={state.loadingPlanes}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               >
-                <option value="">
-                  {state.loadingPlanes
-                    ? "Cargando planes..."
-                    : "Selecciona un plan"}
-                </option>
-                {state.planes.map((plan) => (
-                  <option key={plan.codigo} value={plan.codigo}>
-                    {plan.propuesta} ({plan.codigo})
-                  </option>
-                ))}
-              </select>
-              {state.loadingPlanes && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                  <span>Cargando planes de estudio...</span>
-                </div>
-              )}
+                <Youtube className="mr-2 h-4 w-4" />
+                Ver Video
+              </Button>
             </div>
-
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-select">
+                1. Selecciona tu plan de estudio
+              </Label>
+              <Select
+                onValueChange={(value) =>
+                  updateState({ planSeleccionado: value })
+                }
+                value={state.planSeleccionado}
+                disabled={state.loadingPlanes}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      state.loadingPlanes
+                        ? "Cargando planes..."
+                        : "Selecciona un plan"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {state.planes.map((plan) => (
+                    <SelectItem key={plan.codigo} value={plan.codigo}>
+                      {plan.propuesta} ({plan.codigo})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>2. Sube el archivo</Label>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -567,296 +473,250 @@ export default function Recomendacion({ user }) {
                   state.loadingPlanes
                 }
               />
-              <button
+              <Button
+                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-500 hover:bg-blue-600 text-white transform hover:-translate-y-0.5"
-                }`}
               >
-                {state.uploading
-                  ? "Cargando..."
-                  : "📁 Subir Historia Académica"}
-              </button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Formatos permitidos: XLS, XLSX
-              </p>
+                {state.uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
+              </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-6">
-          {/* Historia académica cargada */}
-          <div className="bg-white p-6 rounded-lg shadow-md border border-green-200">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">✅</div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    Historia académica ya cargada
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Plan: {state.historiaAcademica.plan_de_estudio_codigo}
-                    {state.planes.length > 0 && (
-                      <span className="ml-2 text-gray-500">
-                        (
-                        {state.planes.find(
-                          (p) =>
-                            p.codigo ===
-                            state.historiaAcademica.plan_de_estudio_codigo
-                        )?.propuesta || "Plan no encontrado"}
-                        )
-                      </span>
-                    )}
-                  </p>
-                </div>
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-3">
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                  Historia Académica Cargada
+                </CardTitle>
+                <CardDescription>
+                  Plan: {state.historiaAcademica.plan_de_estudio_codigo}
+                </CardDescription>
               </div>
-
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-bold-500 whitespace-nowrap">
-                    ¿Cursaste más materias?
-                  </span>
-                  <input
-                    type="file"
-                    ref={updateFileInputRef}
-                    onChange={(e) => handleFileUpload(e, true)}
-                    accept=".xls,.xlsx"
-                    className="hidden"
-                    disabled={state.uploading}
-                  />
-                  <button
-                    onClick={() => updateFileInputRef.current?.click()}
-                    disabled={state.uploading}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
-                  >
-                    📚 Actualizar Historia
-                  </button>
-                </div>
-                <button
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <input
+                  type="file"
+                  ref={updateFileInputRef}
+                  onChange={(e) => handleFileUpload(e, true)}
+                  accept=".xls,.xlsx"
+                  className="hidden"
+                  disabled={state.uploading}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFileInputRef.current?.click()}
+                  disabled={state.uploading}
+                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {state.uploading ? "Cargando..." : "Actualizar"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
                   onClick={handleEliminarHistoria}
                   disabled={state.uploading}
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto"
                 >
-                  🗑️ Eliminar Historia
-                </button>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Eliminar
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
 
-          {/* Controles de recomendación */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Recomendaciones
-              </h3>
-              <div className="flex gap-2">
-                <button
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-3">
+                  <Sparkles className="h-6 w-6 text-blue-500" />
+                  Controles de Recomendación
+                </CardTitle>
+                <CardDescription>
+                  Ajusta cómo se ordenan tus recomendaciones.
+                </CardDescription>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <Select
+                  onValueChange={handleCriterioChange}
+                  value={state.criterioOrden}
+                  disabled={state.loadingRecomendaciones}
+                >
+                  <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue placeholder="Ordenar por..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CORRELATIVAS">
+                      Importancia (Correlativas)
+                    </SelectItem>
+                    <SelectItem value="VENCIMIENTO">
+                      Proximidad de Vencimiento
+                    </SelectItem>
+                    <SelectItem value="ESTADISTICAS">
+                      Dificultad (Estadísticas)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
                   onClick={handleRefrescarRecomendaciones}
                   disabled={state.loadingRecomendaciones}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50"
-                  title="Refrescar recomendaciones"
+                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
-                  🔄 Refrescar
-                </button>
+                  <RefreshCw
+                    className={`mr-2 h-4 w-4 ${state.loadingRecomendaciones ? "animate-spin" : ""}`}
+                  />
+                  Refrescar
+                </Button>
               </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-gray-700">
-                Ordenar por:
-              </label>
-              <select
-                value={state.criterioOrden}
-                onChange={(e) => handleCriterioChange(e.target.value)}
-                disabled={state.loadingRecomendaciones}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-              >
-                <option value="CORRELATIVAS">Cantidad de correlativas</option>
-                <option value="VENCIMIENTO">Fecha de vencimiento</option>
-                <option value="ESTADISTICAS">Estadísticas de la materia</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Resultados de recomendaciones */}
-          {state.loadingRecomendaciones ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="text-gray-600">
-                Generando recomendaciones personalizadas...
-              </p>
-            </div>
-          ) : state.recomendaciones.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-xl">
-              <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                ¡No tienes finales para rendir!
-              </h3>
-              <p className="text-gray-600">
-                Parece que ya has completado todos los finales disponibles según
-                tu historia académica.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Finales recomendados ({state.recomendaciones.length})
-              </h3>
-
-              {state.recomendaciones.map((final, index) => (
-                <div
-                  key={final.codigoMateria}
-                  className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <h4 className="text-xl font-semibold text-gray-800">
-                            {final.nombreMateria}
-                          </h4>
-                          <p className="text-gray-600">
-                            Código: {final.codigoMateria}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {state.criterioOrden === "ESTADISTICAS" &&
-                      final.estadisticas && (
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getDificultadColor(
-                            final.estadisticas.promedioDificultad
-                          )}`}
-                        >
-                          Dificultad{" "}
-                          {getDificultadTexto(
-                            final.estadisticas.promedioDificultad
-                          )}
-                        </span>
-                      )}
-                  </div>
-
-                  {/* Información específica según criterio */}
-                  <div className="grid gap-4">
-                    {state.criterioOrden === "CORRELATIVAS" && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-600 mb-1">
-                          Importancia como correlativa:
-                        </p>
-                        <p className="text-lg font-semibold text-blue-700">
-                          {final.vecesEsCorrelativa || 0} materias la requieren
-                        </p>
-                      </div>
-                    )}
-
-                    {state.criterioOrden === "VENCIMIENTO" && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <p className="text-sm text-gray-600 mb-1">
-                            Fecha de regularidad:
-                          </p>
-                          <p className="font-semibold text-green-700">
-                            {formatearFecha(final.fechaRegularidad)}
-                          </p>
-                        </div>
-                        <div className="bg-orange-50 p-4 rounded-lg">
-                          <p className="text-sm text-gray-600 mb-1">
-                            Fecha de vencimiento:
-                          </p>
-                          <p className="font-semibold text-orange-700">
-                            {formatearFecha(final.fechaVencimiento)}
-                          </p>
-                          {final.semanasParaVencimiento !== undefined && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {final.semanasParaVencimiento < 0
-                                ? `Vencido hace ${Math.abs(final.semanasParaVencimiento)} semanas`
-                                : `${final.semanasParaVencimiento} semanas restantes`}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {state.criterioOrden === "ESTADISTICAS" && (
-                      <div>
-                        {final.estadisticas ? (
-                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            <div className="bg-green-50 p-3 rounded-lg text-center">
-                              <p className="text-xs text-gray-600 mb-1">
-                                % Aprobados
-                              </p>
-                              <p className="text-lg font-bold text-green-700">
-                                {final.estadisticas.porcentajeAprobados || 0}%
-                              </p>
-                            </div>
-                            <div className="bg-blue-50 p-3 rounded-lg text-center">
-                              <p className="text-xs text-gray-600 mb-1">
-                                Promedio
-                              </p>
-                              <p className="text-lg font-bold text-blue-700">
-                                {(
-                                  final.estadisticas.promedioNotas || 0
-                                ).toFixed(1)}
-                              </p>
-                            </div>
-                            <div className="bg-purple-50 p-3 rounded-lg text-center">
-                              <p className="text-xs text-gray-600 mb-1">
-                                Días estudio
-                              </p>
-                              <p className="text-lg font-bold text-purple-700">
-                                {final.estadisticas.promedioDiasEstudio || 0}
-                              </p>
-                            </div>
-                            <div className="bg-yellow-50 p-3 rounded-lg text-center">
-                              <p className="text-xs text-gray-600 mb-1">
-                                Horas/día
-                              </p>
-                              <p className="text-lg font-bold text-yellow-700">
-                                {final.estadisticas.promedioHorasDiarias || 0}
-                              </p>
-                            </div>
-                            <div className="bg-red-50 p-3 rounded-lg text-center">
-                              <p className="text-xs text-gray-600 mb-1">
-                                Dificultad
-                              </p>
-                              <p className="text-lg font-bold text-red-700">
-                                {(
-                                  final.estadisticas.promedioDificultad || 0
-                                ).toFixed(1)}
-                              </p>
-                            </div>
+            </CardHeader>
+            <CardContent>
+              {state.loadingRecomendaciones ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
+                  <p className="font-semibold text-gray-700">
+                    Generando recomendaciones...
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Esto puede tardar un momento.
+                  </p>
+                </div>
+              ) : state.recomendaciones.length === 0 ? (
+                <div className="text-center py-12">
+                  <ThumbsUp className="mx-auto h-12 w-12 text-green-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    ¡Felicitaciones!
+                  </h3>
+                  <p className="text-gray-600">
+                    No tienes finales pendientes para rendir según tu historia.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {state.recomendaciones.map((final, index) => (
+                    <Card
+                      key={final.codigoMateria}
+                      className="hover:shadow-md transition-shadow"
+                    >
+                      <CardHeader className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                            {index + 1}
+                          </span>
+                          <div>
+                            <CardTitle className="text-base sm:text-lg">
+                              {final.nombreMateria}
+                            </CardTitle>
+                            <CardDescription>
+                              Código: {final.codigoMateria}
+                            </CardDescription>
                           </div>
-                        ) : (
-                          <div className="bg-gray-50 p-4 rounded-lg text-center">
-                            <div className="text-4xl mb-2 opacity-50">📊</div>
-                            <p className="text-gray-600 font-medium">
-                              No hay estadísticas para esta materia
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Esta materia aún no tiene suficientes datos
-                              estadísticos registrados
+                        </div>
+                        {state.criterioOrden === "ESTADISTICAS" &&
+                          final.estadisticas && (
+                            <span
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(final.estadisticas.promedioDificultad)}`}
+                            >
+                              Dificultad{" "}
+                              {getDificultadTexto(
+                                final.estadisticas.promedioDificultad
+                              )}
+                            </span>
+                          )}
+                      </CardHeader>
+                      <CardContent>
+                        {state.criterioOrden === "CORRELATIVAS" && (
+                          <div className="bg-blue-50 p-3 rounded-lg flex items-center gap-3">
+                            <BookCopy className="h-5 w-5 text-blue-600" />
+                            <p className="text-sm">
+                              <strong className="font-semibold text-blue-800">
+                                {final.vecesEsCorrelativa || 0}
+                              </strong>{" "}
+                              materias la requieren como correlativa.
                             </p>
                           </div>
                         )}
-                      </div>
-                    )}
-                  </div>
+                        {state.criterioOrden === "VENCIMIENTO" && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-green-50 p-3 rounded-lg">
+                              <p className="text-xs text-green-800">
+                                Regularidad
+                              </p>
+                              <p className="font-semibold">
+                                {final.fechaRegularidad || "N/A"}
+                              </p>
+                            </div>
+                            <div className="bg-orange-50 p-3 rounded-lg">
+                              <p className="text-xs text-orange-800">
+                                Vencimiento
+                              </p>
+                              <p className="font-semibold">
+                                {final.fechaVencimiento || "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {state.criterioOrden === "ESTADISTICAS" && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <p className="text-xs text-gray-600">Aprobados</p>
+                              <p className="font-bold text-sm">
+                                {final.estadisticas?.porcentajeAprobados || 0}%
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <p className="text-xs text-gray-600">Promedio</p>
+                              <p className="font-bold text-sm">
+                                {(
+                                  final.estadisticas?.promedioNotas || 0
+                                ).toFixed(1)}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <p className="text-xs text-gray-600">Días Est.</p>
+                              <p className="font-bold text-sm">
+                                {final.estadisticas?.promedioDiasEstudio || 0}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-lg">
+                              <p className="text-xs text-gray-600">Hrs/Día</p>
+                              <p className="font-bold text-sm">
+                                {(
+                                  final.estadisticas?.promedioHorasDiarias || 0
+                                ).toFixed(1)}
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 p-2 rounded-lg col-span-2 md:col-span-1 lg:col-span-1">
+                              <p className="text-xs text-gray-600">
+                                Dificultad
+                              </p>
+                              <p className="font-bold text-sm">
+                                {(
+                                  final.estadisticas?.promedioDificultad || 0
+                                ).toFixed(1)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

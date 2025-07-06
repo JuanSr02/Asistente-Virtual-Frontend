@@ -6,8 +6,26 @@ import { APP_CONFIG } from "@/lib/config";
 import { TableSkeleton } from "@/components/Skeleton";
 import MateriasModal from "@/components/modals/MateriasModal";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import {
+  Upload,
+  RefreshCw,
+  BookOpen,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
+  FileText,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-// Tiempo en milisegundos para considerar los datos como "frescos" (5 minutos)
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 const DATA_FRESHNESS_THRESHOLD = 5 * 60 * 1000;
 
 export default function PlanesEstudio() {
@@ -26,21 +44,18 @@ export default function PlanesEstudio() {
   );
   const fileInputRef = useRef(null);
 
-  // Sincronizar el estado local con el persistente cuando cambia planesState
   useEffect(() => {
     if (planesState.planes) setPlanes(planesState.planes);
     setSelectedPlan(planesState.selectedPlan || null);
     setShowMateriasModal(planesState.showMateriasModal || false);
   }, [planesState]);
 
-  // Verificar si los datos están desactualizados
   const shouldRefreshData = () => {
     if (!planesState.lastFetch) return true;
     const lastFetchTime = new Date(planesState.lastFetch).getTime();
     return Date.now() - lastFetchTime > DATA_FRESHNESS_THRESHOLD;
   };
 
-  // Cargar planes solo si es necesario
   useEffect(() => {
     const loadInitialData = async () => {
       if (planesState.planes.length === 0 || shouldRefreshData()) {
@@ -56,11 +71,8 @@ export default function PlanesEstudio() {
     try {
       const data = await planesEstudioService.obtenerPlanes();
       setPlanes(data);
-      // Guardar en el estado persistente
       setPlanesState("planes", data);
       setPlanesState("lastFetch", new Date().toISOString());
-
-      // Validar si el plan seleccionado existe en la nueva lista
       if (
         planesState.selectedPlan &&
         !data.some((plan) => plan.codigo === planesState.selectedPlan.codigo)
@@ -70,9 +82,7 @@ export default function PlanesEstudio() {
       }
     } catch (err) {
       console.error("Error al cargar planes:", err);
-      setError(
-        "No se pudieron cargar los planes de estudio. Por favor, intente nuevamente."
-      );
+      setError("No se pudieron cargar los planes de estudio.");
     } finally {
       setLoading(false);
     }
@@ -87,7 +97,6 @@ export default function PlanesEstudio() {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
@@ -98,23 +107,19 @@ export default function PlanesEstudio() {
       fileInputRef.current.value = "";
       return;
     }
-
     setUploading(true);
     setError(null);
     setUploadSuccess(null);
-
     try {
       const resultado = await planesEstudioService.cargarPlan(file);
       setUploadSuccess(
-        `Plan de estudio cargado exitosamente: ${resultado.propuesta} (${resultado.cantidadMateriasCargadas} materias)`
+        `Plan cargado: ${resultado.propuesta} (${resultado.cantidadMateriasCargadas} materias)`
       );
       await cargarPlanes();
       setPlanesState("lastUpdate", new Date().toISOString());
     } catch (err) {
       console.error("Error al cargar archivo:", err);
-      setError(
-        "Error al cargar el plan de estudio. Verifique el formato del archivo."
-      );
+      setError("Error al cargar el plan. Verifique el formato del archivo.");
     } finally {
       setUploading(false);
       fileInputRef.current.value = "";
@@ -123,14 +128,12 @@ export default function PlanesEstudio() {
 
   const handleDeletePlan = async () => {
     if (!selectedPlan) return;
-
     if (
       !window.confirm(
         `¿Está seguro que desea eliminar el plan ${selectedPlan.propuesta}?`
       )
     )
       return;
-
     setLoading(true);
     setError(null);
     try {
@@ -138,13 +141,11 @@ export default function PlanesEstudio() {
       setSelectedPlan(null);
       setPlanesState("selectedPlan", null);
       await cargarPlanes();
-      setUploadSuccess("Plan de estudio eliminado correctamente");
+      setUploadSuccess("Plan de estudio eliminado correctamente.");
       setPlanesState("lastUpdate", new Date().toISOString());
     } catch (err) {
       console.error("Error al eliminar plan:", err);
-      setError(
-        "No se pudo eliminar el plan de estudio. Por favor, intente nuevamente."
-      );
+      setError("No se pudo eliminar el plan de estudio.");
     } finally {
       setLoading(false);
     }
@@ -161,165 +162,161 @@ export default function PlanesEstudio() {
     setPlanesState("showMateriasModal", false);
   };
 
+  // --- JSX RESPONSIVE ---
   return (
-    <div className="bg-white rounded-lg shadow-md p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-blue-600 pb-2 border-b border-blue-300">
+    <Card className="w-full shadow-lg border border-gray-200">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <FileText className="w-6 h-6 text-blue-600" />
           Planes de Estudio
-        </h2>
-      </div>
-
-      <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-        <div className="flex flex-col relative">
-          <input
-            type="file"
-            id="file-upload"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept=".xls,.xlsx"
-            className="absolute w-0 h-0 opacity-0 overflow-hidden -z-10"
-            disabled={uploading}
-          />
-          <label
-            htmlFor="file-upload"
-            className={`inline-block px-6 py-3 rounded-lg font-semibold transition-all cursor-pointer ${
-              uploading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 transform hover:-translate-y-0.5"
-            } text-white`}
-          >
-            {uploading ? "Cargando..." : "Cargar Plan de Estudio"}
-          </label>
-          <p className="text-xs text-gray-500 mt-2">
-            Formatos permitidos: XLS, XLSX
-          </p>
-        </div>
-
-        <div className="flex gap-4">
-          <button
-            onClick={cargarPlanes}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+        </CardTitle>
+        <CardDescription className="text-sm text-gray-500 mt-1">
+          Administra los planes de estudio cargados en el sistema.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6 space-y-6">
+        {/* --- BARRA DE ACCIONES --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-gray-50 border rounded-lg">
+          <div className="relative">
+            <input
+              type="file"
+              id="file-upload"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".xls,.xlsx"
+              className="hidden"
+              disabled={uploading}
+            />
+            <Button
+              asChild
+              className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700"
+              disabled={uploading}
             >
-              <path
-                fillRule="evenodd"
-                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Actualizar
-          </button>
-
-          <button
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              !selectedPlan
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600 text-white transform hover:-translate-y-0.5"
-            }`}
-            onClick={handleVerMaterias}
-            disabled={!selectedPlan}
-          >
-            📚 Ver Materias
-          </button>
-
-          <button
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-              !selectedPlan || loading
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-red-500 hover:bg-red-600 text-white transform hover:-translate-y-0.5"
-            }`}
-            onClick={handleDeletePlan}
-            disabled={!selectedPlan || loading}
-          >
-            🗑️ Eliminar Plan
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
-      {uploadSuccess && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-          {uploadSuccess}
-        </div>
-      )}
-
-      <div className="w-full overflow-hidden">
-        {loading ? (
-          <TableSkeleton rows={5} columns={3} />
-        ) : planes.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">
-            <div className="text-6xl mb-4 opacity-50">📋</div>
-            <h4 className="text-xl text-gray-600 mb-2 font-semibold">
-              No hay planes de estudio cargados
-            </h4>
-            <p className="text-sm text-gray-400">
-              Cargue un archivo Excel para comenzar
+              <label htmlFor="file-upload" className="cursor-pointer">
+                {uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {uploading ? "Cargando..." : "Cargar Plan"}
+              </label>
+            </Button>
+            <p className="text-xs text-gray-500 mt-2">
+              Formatos permitidos: XLS, XLSX
             </p>
           </div>
-        ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Código
-                </th>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Propuesta
-                </th>
-                <th className="px-4 py-4 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600">
-                  Cantidad de Materias
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {planes.map((plan) => (
-                <tr
-                  key={plan.codigo}
-                  className={`cursor-pointer transition-all duration-200 border-l-4 ${
-                    selectedPlan?.codigo === plan.codigo
-                      ? "bg-blue-50 border-l-blue-500 shadow-sm"
-                      : "border-l-transparent hover:bg-gray-50 hover:border-l-gray-300 hover:transform hover:translate-x-0.5"
-                  }`}
-                  onClick={() => handleSelectPlan(plan)}
-                >
-                  <td className="px-4 py-4 border-b border-gray-200">
-                    {plan.codigo}
-                  </td>
-                  <td className="px-4 py-4 border-b border-gray-200">
-                    {plan.propuesta}
-                  </td>
-                  <td className="px-4 py-4 border-b border-gray-200">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        selectedPlan?.codigo === plan.codigo
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {plan.cantidadMateriasCargadas}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={cargarPlanes}
+              className="w-full sm:w-auto  bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Actualizar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleVerMaterias}
+              disabled={!selectedPlan}
+              className="w-full sm:w-auto"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Ver Materias
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePlan}
+              disabled={!selectedPlan || loading}
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar Plan
+            </Button>
+          </div>
+        </div>
 
-      <MateriasModal
-        isOpen={showMateriasModal}
-        onClose={handleCloseMateriasModal}
-        plan={selectedPlan}
-      />
-    </div>
+        {/* --- MENSAJES DE ESTADO --- */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 mt-0.5" />
+            <div>
+              <strong className="font-semibold">Error</strong>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+        {uploadSuccess && (
+          <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 mt-0.5" />
+            <div>
+              <strong className="font-semibold">Éxito</strong>
+              <p className="text-sm">{uploadSuccess}</p>
+            </div>
+          </div>
+        )}
+
+        {/* --- TABLA DE PLANES --- */}
+        <div className="w-full overflow-x-auto rounded-lg border">
+          {loading ? (
+            <TableSkeleton rows={5} columns={3} />
+          ) : planes.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <FileText className="mx-auto text-6xl mb-4 text-gray-300" />
+              <h4 className="text-xl text-gray-700 mb-2 font-semibold">
+                No hay planes de estudio
+              </h4>
+              <p className="text-sm text-gray-500">
+                Cargue un archivo para comenzar a administrar los planes.
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                    Código
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                    Propuesta
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                    Cant. Materias
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {planes.map((plan) => (
+                  <tr
+                    key={plan.codigo}
+                    onClick={() => handleSelectPlan(plan)}
+                    className={`cursor-pointer transition-colors duration-200 ${selectedPlan?.codigo === plan.codigo ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                  >
+                    <td className="px-4 py-3 font-mono text-gray-700">
+                      {plan.codigo}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-900">
+                      {plan.propuesta}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2.5 py-1 rounded-full font-semibold ${selectedPlan?.codigo === plan.codigo ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                      >
+                        {plan.cantidadMateriasCargadas}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <MateriasModal
+          isOpen={showMateriasModal}
+          onClose={handleCloseMateriasModal}
+          plan={selectedPlan}
+        />
+      </CardContent>
+    </Card>
   );
 }

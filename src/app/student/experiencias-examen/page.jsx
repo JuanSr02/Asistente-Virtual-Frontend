@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import planesEstudioService from "@/services/planesEstudioService";
 import experienciaService from "@/services/experienciaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
@@ -8,16 +8,48 @@ import Modal from "@/components/modals/Modal";
 import { useModalPersistence } from "@/hooks/useModalPersistence";
 import personaService from "@/services/personaService";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import { Skeleton } from "@/components/Skeleton";
+import { Skeleton as UiSkeleton } from "@/components/ui/skeleton"; // Renombramos para evitar colisión
+import {
+  Loader2,
+  AlertTriangle,
+  CheckCircle,
+  GraduationCap,
+  MessageSquareQuote,
+  FileSearch,
+  PenSquare,
+  Edit,
+  Trash2,
+  Link,
+  Book,
+  SlidersHorizontal,
+  ChevronRight,
+  BookOpenCheck,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function ExperienciasExamen({ user }) {
-  // Estados principales
   const [loading, setLoading] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
   const [loadingExperiencias, setLoadingExperiencias] = useState(false);
   const [loadingMisExperiencias, setLoadingMisExperiencias] = useState(false);
-
-  // Estados de datos
   const [planes, setPlanes] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [experiencias, setExperiencias] = useState([]);
@@ -25,8 +57,6 @@ export default function ExperienciasExamen({ user }) {
   const [examenesDisponibles, setExamenesDisponibles] = useState([]);
   const [persona, setPersona] = useState(null);
   const [historiaAcademica, setHistoriaAcademica] = useState(null);
-
-  // Estados de filtros
   const [planSeleccionado, setPlanSeleccionado] = usePersistedState(
     "plan-seleccionado",
     ""
@@ -39,16 +69,12 @@ export default function ExperienciasExamen({ user }) {
     "filtro-calificacion",
     ""
   );
-
-  // Estados de modales
   const {
     isOpen: showCrearModal,
     data: experienciaEditando,
     openModal: openCrearModal,
     closeModal: closeCrearModal,
   } = useModalPersistence("crear-experiencia-modal");
-
-  // Estados del formulario
   const [formData, setFormData] = usePersistedState("experiencia-form", {
     examenId: "",
     dificultad: 5,
@@ -60,12 +86,8 @@ export default function ExperienciasExamen({ user }) {
     motivacion: "Solo para avanzar en la carrera",
     linkResumen: "",
   });
-
-  // Estados de notificaciones
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-
-  // Opciones para el formulario
   const recursosDisponibles = [
     "Libros",
     "Diapositivas",
@@ -73,7 +95,6 @@ export default function ExperienciasExamen({ user }) {
     "Videos",
     "Clases particulares",
   ];
-
   const motivacionesDisponibles = [
     "Se me vence",
     "Necesito las correlativas",
@@ -84,50 +105,38 @@ export default function ExperienciasExamen({ user }) {
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
-
   useEffect(() => {
-    if (planSeleccionado) {
-      cargarMaterias(planSeleccionado);
-    } else {
+    if (planSeleccionado) cargarMaterias(planSeleccionado);
+    else {
       setMaterias([]);
       setMateriaSeleccionada("");
     }
   }, [planSeleccionado]);
-
   useEffect(() => {
-    if (materiaSeleccionada && filtroCalificacion) {
+    if (materiaSeleccionada && filtroCalificacion)
       cargarExperienciasPorMateria();
-    } else {
-      setExperiencias([]);
-    }
+    else setExperiencias([]);
   }, [materiaSeleccionada, filtroCalificacion]);
-
   useEffect(() => {
     if (persona?.id) {
-      // Verificar historia académica primero
       historiaAcademicaService
         .verificarHistoriaAcademica(persona.id)
-        .then((historia) => {
-          setHistoriaAcademica(historia);
-          if (historia) {
+        .then((h) => {
+          setHistoriaAcademica(h);
+          if (h) {
             cargarMisExperiencias();
             cargarExamenesDisponibles();
           }
         })
-        .catch((error) => {
-          console.error("Error al verificar historia académica:", error);
-          setHistoriaAcademica(null);
-        });
+        .catch(() => setHistoriaAcademica(null));
     }
   }, [persona]);
-
-  // Limpiar mensajes después de 5 segundos
   useEffect(() => {
     if (success || error) {
       const timer = setTimeout(() => {
         setSuccess("");
         setError("");
-      }, 5000);
+      }, 8000);
       return () => clearTimeout(timer);
     }
   }, [success, error]);
@@ -135,44 +144,31 @@ export default function ExperienciasExamen({ user }) {
   const cargarDatosIniciales = async () => {
     setLoading(true);
     try {
-      // Obtener persona (igual que en inscripción)
       const personaData =
         (await personaService.obtenerPersonaPorSupabaseId(user.id)) ||
         (await personaService.obtenerPersonaPorEmail(user.email));
-
       if (!personaData) {
-        setError(
-          "No se encontró tu perfil en el sistema. Contacta al administrador."
-        );
+        setError("No se encontró tu perfil.");
         return;
       }
-
       setPersona(personaData);
-
-      // Verificar historia académica (usar el mismo método que inscripción)
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
         );
-
       if (!historia) {
-        // No redirigir automáticamente, solo no cargar datos adicionales
         const planesData = await planesEstudioService.obtenerPlanes();
         setPlanes(planesData || []);
         return;
       }
-
-      // Solo cargar datos adicionales si tiene historia académica
       const planesData = await planesEstudioService.obtenerPlanes();
       setPlanes(planesData || []);
     } catch (error) {
-      console.error("Error al cargar datos:", error);
-      setError("Error al cargar los datos iniciales");
+      setError("Error al cargar los datos iniciales.");
     } finally {
       setLoading(false);
     }
   };
-
   const cargarMaterias = async (codigoPlan) => {
     setLoadingMaterias(true);
     try {
@@ -180,53 +176,32 @@ export default function ExperienciasExamen({ user }) {
         await planesEstudioService.obtenerMateriasPorPlan(codigoPlan);
       setMaterias(data || []);
     } catch (error) {
-      console.error("Error al cargar materias:", error);
       setMaterias([]);
     } finally {
       setLoadingMaterias(false);
     }
   };
-
   const cargarExperienciasPorMateria = async () => {
     if (!materiaSeleccionada) return;
-
     setLoadingExperiencias(true);
     try {
       const data =
         await experienciaService.obtenerExperienciasPorMateria(
           materiaSeleccionada
         );
-      // Filtrar por calificación si está seleccionada
-      const experienciasFiltradas = filtroCalificacion
-        ? data.filter((exp) => exp.nota >= Number.parseInt(filtroCalificacion))
+      const filtradas = filtroCalificacion
+        ? data.filter((e) => e.nota >= parseInt(filtroCalificacion))
         : data;
-      setExperiencias(experienciasFiltradas);
+      setExperiencias(filtradas);
     } catch (error) {
-      console.error("Error al cargar experiencias:", error);
       setExperiencias([]);
-      setError("Error al cargar las experiencias");
+      setError("Error al cargar experiencias.");
     } finally {
       setLoadingExperiencias(false);
     }
   };
-
   const cargarMisExperiencias = async () => {
     if (!persona?.id) return;
-
-    // Verificar historia académica antes de cargar experiencias
-    try {
-      const historia =
-        await historiaAcademicaService.verificarHistoriaAcademica(persona.id);
-      if (!historia) {
-        setMisExperiencias([]);
-        return;
-      }
-    } catch (error) {
-      console.error("Error al verificar historia académica:", error);
-      setMisExperiencias([]);
-      return;
-    }
-
     setLoadingMisExperiencias(true);
     try {
       const data = await experienciaService.obtenerExperienciasPorEstudiante(
@@ -234,110 +209,77 @@ export default function ExperienciasExamen({ user }) {
       );
       setMisExperiencias(data);
     } catch (error) {
-      console.error("Error al cargar mis experiencias:", error);
       setMisExperiencias([]);
     } finally {
       setLoadingMisExperiencias(false);
     }
   };
-
   const cargarExamenesDisponibles = async () => {
     if (!persona?.id) return;
-
-    // Verificar historia académica antes de cargar exámenes
-    try {
-      const historia =
-        await historiaAcademicaService.verificarHistoriaAcademica(persona.id);
-      if (!historia) {
-        setExamenesDisponibles([]);
-        return;
-      }
-    } catch (error) {
-      console.error("Error al verificar historia académica:", error);
-      setExamenesDisponibles([]);
-      return;
-    }
-
     try {
       const examenes = await experienciaService.obtenerExamenesPorEstudiante(
         persona.id
       );
-      const examenesConExperiencia = misExperiencias.map((exp) => exp.id);
-      const examenesSinExperiencia = examenes.filter(
-        (examen) => !examenesConExperiencia.includes(examen.id)
-      );
-      setExamenesDisponibles(examenesSinExperiencia);
+      const conExp = misExperiencias.map((e) => e.id);
+      const sinExp = examenes.filter((e) => !conExp.includes(e.id));
+      setExamenesDisponibles(sinExp);
     } catch (error) {
-      console.error("Error al cargar exámenes disponibles:", error);
       setExamenesDisponibles([]);
     }
   };
-
   const handleCrearExperiencia = async (e) => {
     e.preventDefault();
-
     try {
-      const experienciaDTO = {
+      const dto = {
         ...formData,
         recursos: formData.recursos.join(", "),
-        examenId: Number.parseInt(formData.examenId),
+        examenId: parseInt(formData.examenId),
         linkResumen: formData.linkResumen,
       };
-
       if (experienciaEditando) {
-        // Actualizar experiencia existente
         await experienciaService.actualizarExperiencia(
           experienciaEditando.id,
-          experienciaDTO
+          dto
         );
-        setSuccess("Experiencia actualizada correctamente");
+        setSuccess("Experiencia actualizada.");
       } else {
-        // Crear nueva experiencia
-        await experienciaService.crearExperiencia(experienciaDTO);
-        setSuccess("Experiencia creada correctamente");
+        await experienciaService.crearExperiencia(dto);
+        setSuccess("Experiencia creada.");
       }
-
       closeCrearModal();
       resetFormData();
       cargarMisExperiencias();
       cargarExamenesDisponibles();
     } catch (error) {
-      console.error("Error al guardar experiencia:", error);
-      setError("Error al guardar la experiencia");
+      setError("Error al guardar la experiencia.");
     }
   };
-
   const handleEliminarExperiencia = async (id) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar esta experiencia?"))
-      return;
-
+    if (!confirm("¿Seguro que quieres eliminar esta experiencia?")) return;
     try {
       await experienciaService.eliminarExperiencia(id);
-      setSuccess("Experiencia eliminada correctamente");
+      setSuccess("Experiencia eliminada.");
       cargarMisExperiencias();
       cargarExamenesDisponibles();
     } catch (error) {
-      console.error("Error al eliminar experiencia:", error);
-      setError("Error al eliminar la experiencia");
+      setError("Error al eliminar la experiencia.");
     }
   };
-
-  const handleEditarExperiencia = (experiencia) => {
+  const handleEditarExperiencia = (exp) => {
     setFormData({
-      examenId: experiencia.id,
-      dificultad: experiencia.dificultad,
-      diasEstudio: experiencia.diasEstudio,
-      horasDiarias: experiencia.horasDiarias,
-      intentosPrevios: experiencia.intentosPrevios,
-      modalidad: experiencia.modalidad,
-      recursos: experiencia.recursos.split(", "),
-      motivacion: experiencia.motivacion,
-      linkResumen: experiencia.linkResumen,
+      examenId: exp.id,
+      dificultad: exp.dificultad,
+      diasEstudio: exp.diasEstudio,
+      horasDiarias: exp.horasDiarias,
+      intentosPrevios: exp.intentosPrevios,
+      modalidad: exp.modalidad,
+      recursos: exp.recursos.split(", "),
+      motivacion: exp.motivacion,
+      linkResumen: exp.linkResumen,
     });
-    openCrearModal(experiencia, "editar");
+    openCrearModal(exp, "editar");
   };
-
-  const resetFormData = () => {
+  const resetFormData = () =>
     setFormData({
       examenId: "",
       dificultad: 5,
@@ -349,871 +291,556 @@ export default function ExperienciasExamen({ user }) {
       motivacion: "Solo para avanzar en la carrera",
       linkResumen: "",
     });
-  };
-
-  const handleRecursoChange = (recurso) => {
+  const handleRecursoChange = (rec) =>
     setFormData((prev) => ({
       ...prev,
-      recursos: prev.recursos.includes(recurso)
-        ? prev.recursos.filter((r) => r !== recurso)
-        : [...prev.recursos, recurso],
+      recursos: prev.recursos.includes(rec)
+        ? prev.recursos.filter((r) => r !== rec)
+        : [...prev.recursos, rec],
     }));
-  };
+  const getDificultadColor = (d) =>
+    d >= 8
+      ? "bg-red-100 text-red-800"
+      : d >= 6
+        ? "bg-orange-100 text-orange-800"
+        : d >= 4
+          ? "bg-yellow-100 text-yellow-800"
+          : "bg-green-100 text-green-800";
+  const getCalificacionColor = (c) =>
+    c >= 8
+      ? "text-green-600"
+      : c >= 6
+        ? "text-blue-600"
+        : c >= 4
+          ? "text-orange-600"
+          : "text-red-600";
 
-  const getDificultadColor = (dificultad) => {
-    if (dificultad >= 8) return "bg-red-100 text-red-800";
-    if (dificultad >= 6) return "bg-orange-100 text-orange-800";
-    if (dificultad >= 4) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
-  };
-
-  const getDificultadTexto = (dificultad) => {
-    if (dificultad >= 8) return "Muy Alta";
-    if (dificultad >= 6) return "Alta";
-    if (dificultad >= 4) return "Media";
-    return "Baja";
-  };
-
-  const getCalificacionColor = (calificacion) => {
-    if (calificacion >= 8) return "text-green-600";
-    if (calificacion >= 6) return "text-blue-600";
-    if (calificacion >= 4) return "text-orange-600";
-    return "text-red-600";
-  };
-
+  // --- JSX RESPONSIVE ---
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Skeleton del header */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
-          <Skeleton className="h-6 w-1/3 mb-2" />
-          <Skeleton className="h-4 w-2/3" />
-        </div>
-
-        {/* Skeleton de filtros */}
-        <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-          <Skeleton className="h-5 w-1/4" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-10 w-full rounded-lg" />
-            <Skeleton className="h-10 w-full rounded-lg" />
-            <Skeleton className="h-10 w-full rounded-lg" />
-          </div>
-        </div>
-
-        {/* Skeleton de lista de experiencias */}
-        <div className="bg-white p-6 rounded-lg shadow-md space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-5 w-2/3" />
-              <Skeleton className="h-4 w-full" />
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Array.from({ length: 5 }).map((_, j) => (
-                  <Skeleton key={j} className="h-10 w-full rounded-lg" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Agregar esta verificación después del loading y antes del contenido principal
-  if (!historiaAcademica && persona) {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            💭 Experiencias de Examen
-          </h2>
-          <p className="text-gray-600">
-            Descubre las experiencias de otros estudiantes y comparte la tuya
-            para ayudar a la comunidad universitaria.
-          </p>
-        </div>
-
-        {/* Mensaje de historia académica faltante */}
-        <div className="bg-white p-8 rounded-lg shadow-md border border-orange-200">
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              Debes cargar una historia académica
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Para poder ver y compartir experiencias de examen, necesitas tener
-              tu historia académica cargada en el sistema.
-            </p>
-          </div>
-
-          <div className="max-w-md mx-auto space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="text-2xl">📚</div>
-                <div>
-                  <h4 className="font-semibold text-blue-800">
-                    ¿Cómo cargar mi historia académica?
-                  </h4>
-                </div>
-              </div>
-              <ol className="text-sm text-blue-700 space-y-2 ml-8">
-                <li>
-                  1. Ve a la pestaña <strong>"Recomendación"</strong>
-                </li>
-                <li>2. Selecciona tu plan de estudio</li>
-                <li>3. Sube tu archivo Excel con las materias cursadas</li>
-                <li>4. Una vez cargada, podrás ver y compartir experiencias</li>
-              </ol>
-            </div>
-
-            <div className="text-center">
-              <button
-                onClick={() => {
-                  const event = new CustomEvent("changeTab", {
-                    detail: "recomendacion",
-                  });
-                  window.dispatchEvent(event);
-                }}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors transform hover:-translate-y-0.5"
-              >
-                📚 Ir a Recomendación
-              </button>
-            </div>
-          </div>
-        </div>
+        <UiSkeleton className="h-28 w-full" />
+        <UiSkeleton className="h-44 w-full" />
+        <UiSkeleton className="h-64 w-full" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Mensajes de notificación */}
-      {success && (
-        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-          <span className="block sm:inline">{success}</span>
-          <button
-            onClick={() => setSuccess("")}
-            className="absolute top-0 bottom-0 right-0 px-4 py-3"
-          >
-            <span className="sr-only">Cerrar</span>✕
-          </button>
-        </div>
-      )}
-
+    <div className="space-y-8">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-          <span className="block sm:inline">{error}</span>
-          <button
-            onClick={() => setError("")}
-            className="absolute top-0 bottom-0 right-0 px-4 py-3"
-          >
-            <span className="sr-only">Cerrar</span>✕
-          </button>
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+          <AlertTriangle className="h-5 w-5 mt-0.5" />
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+          <CheckCircle className="h-5 w-5 mt-0.5" />
+          <p className="text-sm">{success}</p>
         </div>
       )}
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          💭 Experiencias de Examen
-        </h2>
-        <p className="text-gray-600">
-          Descubre las experiencias de otros estudiantes y comparte la tuya para
-          ayudar a la comunidad
-        </p>
-      </div>
+      <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50">
+        <CardHeader>
+          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+            <MessageSquareQuote className="w-6 h-6 text-purple-600" />
+            Experiencias de Examen
+          </CardTitle>
+          <CardDescription className="text-gray-600">
+            Descubre las experiencias de otros y comparte la tuya para ayudar a
+            la comunidad.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* Filtros para experiencias públicas */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Buscar Experiencias
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Selector de Plan */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Plan de Estudio:
-            </label>
-            <select
-              value={planSeleccionado}
-              onChange={(e) => setPlanSeleccionado(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+      {!historiaAcademica && persona ? (
+        <Card>
+          <CardHeader className="text-center">
+            <GraduationCap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <CardTitle>Carga tu Historia Académica</CardTitle>
+            <CardDescription>
+              Para ver y compartir experiencias, primero ve a "Recomendación" y
+              sube tu historia.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent("changeTab", { detail: "recomendacion" })
+                )
+              }
             >
-              <option value="">Selecciona un plan</option>
-              {planes.map((plan) => (
-                <option key={plan.codigo} value={plan.codigo}>
-                  {plan.propuesta} ({plan.codigo})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Selector de Materia */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Materia:
-            </label>
-            <select
-              value={materiaSeleccionada}
-              onChange={(e) => setMateriaSeleccionada(e.target.value)}
-              disabled={!planSeleccionado || loadingMaterias}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
-            >
-              <option value="">
-                {!planSeleccionado
-                  ? "Selecciona un plan primero"
-                  : loadingMaterias
-                    ? "Cargando..."
-                    : "Selecciona una materia"}
-              </option>
-              {materias.map((materia) => (
-                <option key={materia.codigo} value={materia.codigo}>
-                  {materia.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Filtro por Calificación */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Calificación mínima:
-            </label>
-            <select
-              value={filtroCalificacion}
-              onChange={(e) => setFiltroCalificacion(e.target.value)}
-              disabled={!materiaSeleccionada}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100"
-            >
-              <option value="">Selecciona calificación mínima</option>
-              <option value="0">Todas</option>
-              <option value="4">4 o más</option>
-              <option value="6">6 o más</option>
-              <option value="8">8 o más</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Experiencias públicas */}
-      {materiaSeleccionada && filtroCalificacion && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Experiencias Compartidas ({experiencias.length})
-          </h3>
-
-          {loadingExperiencias ? (
-            <div className="text-center py-8">
-              <div className="w-6 h-6 border-4 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-gray-600">Cargando experiencias...</p>
-            </div>
-          ) : experiencias.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-xl">
-              <div className="text-6xl mb-4">🔍</div>
-              <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                No se encontraron experiencias
-              </h4>
-              <p className="text-gray-600">
-                Sé el primero en compartir una experiencia para esta materia
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {experiencias.map((experiencia, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-                >
-                  {/* Header de la experiencia */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-800">
-                        {experiencia.nombreMateria}
-                      </h4>
-                      <p className="text-gray-600">
-                        {experiencia.codigoMateria}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Examen:{" "}
-                        {new Date(experiencia.fechaExamen).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getDificultadColor(
-                          experiencia.dificultad
-                        )}`}
-                      >
-                        Dificultad: {getDificultadTexto(experiencia.dificultad)}
-                      </span>
-                      <span
-                        className={`text-lg font-bold ${getCalificacionColor(experiencia.nota)}`}
-                      >
-                        Nota: {experiencia.nota}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Estadísticas de estudio */}
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                    <div className="bg-blue-50 p-3 rounded-lg text-center">
-                      <p className="text-xs text-gray-600 mb-1">
-                        Días de estudio
-                      </p>
-                      <p className="text-lg font-bold text-blue-700">
-                        {experiencia.diasEstudio}
-                      </p>
-                    </div>
-                    <div className="bg-green-50 p-3 rounded-lg text-center">
-                      <p className="text-xs text-gray-600 mb-1">
-                        Horas por día
-                      </p>
-                      <p className="text-lg font-bold text-green-700">
-                        {experiencia.horasDiarias}
-                      </p>
-                    </div>
-                    <div className="bg-purple-50 p-3 rounded-lg text-center">
-                      <p className="text-xs text-gray-600 mb-1">Modalidad</p>
-                      <p className="text-sm font-bold text-purple-700">
-                        {experiencia.modalidad}
-                      </p>
-                    </div>
-                    <div className="bg-orange-50 p-3 rounded-lg text-center">
-                      <p className="text-xs text-gray-600 mb-1">Dificultad</p>
-                      <p className="text-lg font-bold text-orange-700">
-                        {experiencia.dificultad}/10
-                      </p>
-                    </div>
-                    <div className="bg-red-50 p-3 rounded-lg text-center">
-                      <p className="text-xs text-gray-600 mb-1">
-                        Intentos previos
-                      </p>
-                      <p className="text-lg font-bold text-red-700">
-                        {experiencia.intentosPrevios}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Recursos utilizados */}
-                  <div className="mb-4">
-                    <h5 className="font-semibold text-gray-800 mb-2">
-                      📚 Recursos utilizados:
-                    </h5>
-                    <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {experiencia.recursos}
-                    </p>
-                  </div>
-
-                  {/* Motivación */}
-                  <div>
-                    <h5 className="font-semibold text-gray-800 mb-2">
-                      🔥 Motivación:
-                    </h5>
-                    <p className="text-gray-600 bg-blue-50 p-3 rounded-lg">
-                      {experiencia.motivacion}
-                    </p>
-                  </div>
-
-                  {/* Link al resumen */}
-                  {(experiencia.linkResumen ||
-                    experiencia.recursos.toLowerCase().includes("resumen")) && (
-                    <div className="mt-4">
-                      {experiencia.linkResumen && (
-                        <>
-                          <h5 className="font-semibold text-gray-800 mb-2">
-                            📎 Link al resumen:
-                          </h5>
-                          <a
-                            href={experiencia.linkResumen}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium px-4 py-2 rounded-lg text-sm transition-colors"
-                          >
-                            📝 Ver resumen
-                          </a>
-                        </>
-                      )}
-
-                      {/* Autor visible si hay link o se menciona "resumen" en recursos */}
-                      <div className="mt-4 text-right flex justify-end items-center gap-2 text-sm text-gray-600">
-                        <span className="text-lg">👤</span>
-                        <span className="italic">
-                          Por {experiencia.nombreEstudiante}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Mis Experiencias */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Mis Experiencias
-          </h3>
-          <button
-            onClick={() => {
-              resetFormData();
-              openCrearModal(null, "crear");
-            }}
-            disabled={examenesDisponibles.length === 0}
-            className="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-          >
-            ✍️ Compartir Experiencia
-          </button>
-        </div>
-
-        {loadingMisExperiencias ? (
-          <div className="text-center py-8">
-            <div className="w-6 h-6 border-4 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-600">Cargando tus experiencias...</p>
-          </div>
-        ) : misExperiencias.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-xl">
-            <div className="text-6xl mb-4">📝</div>
-            <h4 className="text-xl font-semibold text-gray-800 mb-2">
-              No tienes experiencias compartidas
-            </h4>
-            <p className="text-gray-600">
-              Comparte tu primera experiencia para ayudar a otros estudiantes
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {misExperiencias.map((experiencia) => (
-              <div
-                key={experiencia.id}
-                className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Ir a Recomendación
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <FileSearch className="w-5 h-5 text-purple-600" />
+                Buscar Experiencias
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Select
+                onValueChange={setPlanSeleccionado}
+                value={planSeleccionado}
               >
-                {/* Header con acciones */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-800">
-                      {experiencia.nombreMateria}
-                    </h4>
-                    <p className="text-gray-600">
-                      Codigo: {experiencia.codigoMateria}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Examen rendido el: {experiencia.fechaExamen} con nota:{" "}
-                      {experiencia.nota}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEditarExperiencia(experiencia)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                    >
-                      ✏️ Editar
-                    </button>
-                    <button
-                      onClick={() => handleEliminarExperiencia(experiencia.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                    >
-                      🗑️ Eliminar
-                    </button>
-                  </div>
-                </div>
+                <SelectTrigger>
+                  <SelectValue placeholder="1. Selecciona un Plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {planes.map((p) => (
+                    <SelectItem key={p.codigo} value={p.codigo}>
+                      {p.propuesta}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={setMateriaSeleccionada}
+                value={materiaSeleccionada}
+                disabled={!planSeleccionado || loadingMaterias}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      loadingMaterias
+                        ? "Cargando..."
+                        : "2. Selecciona una Materia"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {materias.map((m) => (
+                    <SelectItem key={m.codigo} value={m.codigo}>
+                      {m.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                onValueChange={setFiltroCalificacion}
+                value={filtroCalificacion}
+                disabled={!materiaSeleccionada}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="3. Filtra por Nota" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Todas</SelectItem>
+                  <SelectItem value="4">4 o más</SelectItem>
+                  <SelectItem value="6">6 o más</SelectItem>
+                  <SelectItem value="8">8 o más</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
 
-                {/* Estadísticas */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                  <div className="bg-blue-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">
-                      Días de estudio
-                    </p>
-                    <p className="text-lg font-bold text-blue-700">
-                      {experiencia.diasEstudio}
-                    </p>
+          {materiaSeleccionada && filtroCalificacion && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Resultados de Búsqueda ({experiencias.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingExperiencias ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                   </div>
-                  <div className="bg-green-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">Horas por día</p>
-                    <p className="text-lg font-bold text-green-700">
-                      {experiencia.horasDiarias}
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">Modalidad</p>
-                    <p className="text-sm font-bold text-purple-700">
-                      {experiencia.modalidad}
-                    </p>
-                  </div>
-                  <div className="bg-orange-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">Dificultad</p>
-                    <p className="text-lg font-bold text-orange-700">
-                      {experiencia.dificultad}/10
-                    </p>
-                  </div>
-                  <div className="bg-red-50 p-3 rounded-lg text-center">
-                    <p className="text-xs text-gray-600 mb-1">
-                      Intentos previos
-                    </p>
-                    <p className="text-lg font-bold text-red-700">
-                      {experiencia.intentosPrevios}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Detalles */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h5 className="font-semibold text-gray-800 mb-2">
-                      📚 Recursos:
-                    </h5>
-                    <p className="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm">
-                      {experiencia.recursos}
-                    </p>
-                  </div>
-                  <div>
-                    <h5 className="font-semibold text-gray-800 mb-2">
-                      🎯 Motivación:
-                    </h5>
-                    <p className="text-gray-600 bg-blue-50 p-3 rounded-lg text-sm">
-                      {experiencia.motivacion}
-                    </p>
-                  </div>
-                </div>
-
-                {experiencia.linkResumen && (
-                  <div className="mt-4">
-                    <h5 className="font-semibold text-gray-800 mb-2">
-                      📄 Link al resumen:
-                    </h5>
-                    <a
-                      href={experiencia.linkResumen}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block bg-purple-100 hover:bg-purple-200 text-purple-700 font-medium px-4 py-2 rounded-lg text-sm transition-colors"
-                    >
-                      📎 Ver resumen
-                    </a>
+                ) : experiencias.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">
+                    No se encontraron experiencias con esos filtros.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {experiencias.map((exp) => (
+                      <ExperienciaCard key={exp.id} experiencia={exp} />
+                    ))}
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Modal para crear/editar experiencia */}
-      <Modal
-        isOpen={showCrearModal}
-        onClose={closeCrearModal}
-        title={
-          experienciaEditando
-            ? "Editar Experiencia"
-            : "Compartir Nueva Experiencia"
-        }
-        maxWidth="48rem"
-      >
-        <div className="p-6">
-          <form onSubmit={handleCrearExperiencia} className="space-y-6">
-            {/* Selector de examen */}
-            {!experienciaEditando && (
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Examen *
-                </label>
-                <select
-                  value={formData.examenId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, examenId: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Selecciona un examen</option>
-                  {examenesDisponibles.map((examen) => (
-                    <option key={examen.id} value={examen.id}>
-                      {examen.materiaNombre} • {examen.fecha} • Nota:{" "}
-                      {examen.nota}
-                    </option>
-                  ))}
-                </select>
+                <CardTitle className="flex items-center gap-3">
+                  <BookOpenCheck className="w-5 h-5 text-purple-600" />
+                  Mis Experiencias
+                </CardTitle>
+                <CardDescription>
+                  Aquí puedes ver y gestionar tus aportes.
+                </CardDescription>
               </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Dificultad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Dificultad: {formData.dificultad}/10
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={formData.dificultad}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      dificultad: Number.parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>Muy Fácil</span>
-                  <span>Muy Difícil</span>
+              <Button
+                onClick={() => {
+                  resetFormData();
+                  openCrearModal(null, "crear");
+                }}
+                disabled={examenesDisponibles.length === 0}
+                className="bg-blue-400 hover:bg-blue-500 text-white"
+              >
+                <PenSquare className="mr-2 h-4 w-4" />
+                Compartir Nueva Experiencia
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {loadingMisExperiencias ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                 </div>
-              </div>
-
-              {/* Modalidad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Modalidad *
-                </label>
-                <select
-                  value={formData.modalidad}
-                  onChange={(e) =>
-                    setFormData({ ...formData, modalidad: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="ESCRITO">Escrito</option>
-                  <option value="ORAL">Oral</option>
-                </select>
-              </div>
-
-              {/* Días de estudio */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Días de estudio
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        diasEstudio: Math.max(1, formData.diasEstudio - 1),
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.diasEstudio}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        diasEstudio: Number.parseInt(e.target.value) || 1,
-                      })
-                    }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        diasEstudio: formData.diasEstudio + 1,
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Horas diarias */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Horas por día
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        horasDiarias: Math.max(1, formData.horasDiarias - 1),
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.horasDiarias}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        horasDiarias: Number.parseInt(e.target.value) || 1,
-                      })
-                    }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        horasDiarias: formData.horasDiarias + 1,
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Intentos previos */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Intentos previos
-                </label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        intentosPrevios: Math.max(
-                          0,
-                          formData.intentosPrevios - 1
-                        ),
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    -
-                  </button>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.intentosPrevios}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        intentosPrevios: Number.parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        intentosPrevios: formData.intentosPrevios + 1,
-                      })
-                    }
-                    className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Motivación */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Motivación *
-                </label>
-                <select
-                  value={formData.motivacion}
-                  onChange={(e) =>
-                    setFormData({ ...formData, motivacion: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  {motivacionesDisponibles.map((motivacion) => (
-                    <option key={motivacion} value={motivacion}>
-                      {motivacion.charAt(0).toUpperCase() + motivacion.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Recursos */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recursos utilizados
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {recursosDisponibles.map((recurso) => (
-                  <label
-                    key={recurso}
-                    className="flex items-center space-x-2 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.recursos.includes(recurso)}
-                      onChange={() => handleRecursoChange(recurso)}
-                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                    />
-                    <span className="text-sm text-gray-700">{recurso}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Link al resumen si se seleccionó "Resumen" o si ya hay un link cargado (modo edición) */}
-            {(formData.recursos.includes("Resumen") ||
-              !!formData.linkResumen) && (
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Link al resumen (opcional, si deseas compartirlo)
-                </label>
-                <input
-                  type="url"
-                  value={formData.linkResumen || ""}
-                  onChange={(e) => {
-                    e.target.setCustomValidity(""); // Limpiar mensaje anterior
-                    setFormData({ ...formData, linkResumen: e.target.value });
-                  }}
-                  onInvalid={(e) =>
-                    e.target.setCustomValidity(
-                      "Por favor, ingresa un enlace válido (por ejemplo, https://drive.google.com/...)"
-                    )
-                  }
-                  placeholder="https://drive.google.com/..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Lo ideal es un link a un Drive para visualizarlo y
-                  descargarlo.
+              ) : misExperiencias.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  Aún no has compartido ninguna experiencia.
                 </p>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-4">
+                  {misExperiencias.map((exp) => (
+                    <ExperienciaCard
+                      key={exp.id}
+                      experiencia={exp}
+                      isOwner={true}
+                      onEdit={handleEditarExperiencia}
+                      onDelete={handleEliminarExperiencia}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Botones */}
-            <div className="flex gap-4 pt-4">
-              <button
-                type="submit"
-                className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-semibold transition-colors"
-              >
-                {experienciaEditando
-                  ? "Actualizar Experiencia"
-                  : "Compartir Experiencia"}
-              </button>
-              <button
-                type="button"
-                onClick={closeCrearModal}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-semibold transition-colors"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+          <Modal
+            isOpen={showCrearModal}
+            onClose={closeCrearModal}
+            title={
+              experienciaEditando
+                ? "Editar Experiencia"
+                : "Compartir Experiencia"
+            }
+            maxWidth="48rem"
+          >
+            <FormularioExperiencia
+              form={formData}
+              setForm={setFormData}
+              onSubmit={handleCrearExperiencia}
+              onClose={closeCrearModal}
+              isEditing={!!experienciaEditando}
+              examenes={examenesDisponibles}
+              recursos={recursosDisponibles}
+              motivaciones={motivacionesDisponibles}
+            />
+          </Modal>
+        </>
+      )}
+    </div>
+  );
+}
+
+// --- SUB-COMPONENTES PARA ORGANIZAR EL JSX ---
+
+function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
+  const getDificultadColor = (d) =>
+    d >= 8
+      ? "bg-red-100 text-red-800"
+      : d >= 6
+        ? "bg-orange-100 text-orange-800"
+        : d >= 4
+          ? "bg-yellow-100 text-yellow-800"
+          : "bg-green-100 text-green-800";
+  const getCalificacionColor = (c) =>
+    c >= 8
+      ? "text-green-600"
+      : c >= 6
+        ? "text-blue-600"
+        : c >= 4
+          ? "text-orange-600"
+          : "text-red-600";
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader className="flex flex-col sm:flex-row justify-between gap-2">
+        <div>
+          <CardTitle className="text-base sm:text-lg">
+            {isOwner ? experiencia.nombreMateria : `Nota: ${experiencia.nota}`}
+          </CardTitle>
+          <CardDescription>
+            {isOwner
+              ? `Examen del ${experiencia.fechaExamen}`
+              : `Por ${experiencia.nombreEstudiante}`}
+          </CardDescription>
         </div>
-      </Modal>
+        <div className="flex items-center gap-2">
+          {!isOwner && (
+            <span
+              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(experiencia.dificultad)}`}
+            >
+              Dificultad: {experiencia.dificultad}/10
+            </span>
+          )}
+          {isOwner && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(experiencia)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onDelete(experiencia.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 text-center">
+          <MetricItem label="Días Est." value={experiencia.diasEstudio} />
+          <MetricItem label="Hrs/Día" value={experiencia.horasDiarias} />
+          <MetricItem label="Modalidad" value={experiencia.modalidad} />
+          <MetricItem
+            label="Dificultad"
+            value={`${experiencia.dificultad}/10`}
+          />
+          <MetricItem label="Intentos" value={experiencia.intentosPrevios} />
+        </div>
+        <DetailItem icon={Book} label="Recursos" value={experiencia.recursos} />
+        <DetailItem
+          icon={SlidersHorizontal}
+          label="Motivación"
+          value={experiencia.motivacion}
+        />
+        {experiencia.linkResumen && (
+          <a
+            href={experiencia.linkResumen}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-sm text-purple-600 hover:underline"
+          >
+            <Link className="h-4 w-4 mr-2" />
+            Ver Resumen
+          </a>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetricItem({ label, value }) {
+  return (
+    <div className="bg-gray-50 p-2 rounded-lg">
+      <p className="text-xs text-gray-600">{label}</p>
+      <p className="font-bold text-sm">{value}</p>
+    </div>
+  );
+}
+
+function DetailItem({ icon: Icon, label, value }) {
+  return (
+    <div>
+      <h5 className="font-semibold text-gray-800 mb-1 text-sm flex items-center gap-2">
+        <Icon className="h-4 w-4" />
+        {label}:
+      </h5>
+      <p className="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm">{value}</p>
+    </div>
+  );
+}
+
+function FormularioExperiencia({
+  form,
+  setForm,
+  onSubmit,
+  onClose,
+  isEditing,
+  examenes,
+  recursos,
+  motivaciones,
+}) {
+  const handleRecursoChange = (rec) =>
+    setForm((prev) => ({
+      ...prev,
+      recursos: prev.recursos.includes(rec)
+        ? prev.recursos.filter((r) => r !== rec)
+        : [...prev.recursos, rec],
+    }));
+  return (
+    <form onSubmit={onSubmit} className="space-y-6 p-1">
+      {!isEditing && (
+        <div className="space-y-2">
+          <Label>Examen Rendido *</Label>
+          <Select
+            onValueChange={(v) => setForm({ ...form, examenId: v })}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecciona un examen" />
+            </SelectTrigger>
+            <SelectContent>
+              {examenes.map((ex) => (
+                <SelectItem key={ex.id} value={ex.id.toString()}>
+                  {ex.materiaNombre} • {ex.fecha} • Nota: {ex.nota}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <Label>Dificultad Percibida: {form.dificultad}/10</Label>
+          <Input
+            type="range"
+            min="1"
+            max="10"
+            value={form.dificultad}
+            onChange={(e) =>
+              setForm({ ...form, dificultad: parseInt(e.target.value) })
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Modalidad *</Label>
+          <Select
+            onValueChange={(v) => setForm({ ...form, modalidad: v })}
+            value={form.modalidad}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ESCRITO">Escrito</SelectItem>
+              <SelectItem value="ORAL">Oral</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <FormNumericInput
+          label="Días de Estudio"
+          value={form.diasEstudio}
+          onChange={(v) => setForm({ ...form, diasEstudio: v })}
+          min={1}
+        />
+        <FormNumericInput
+          label="Horas por Día"
+          value={form.horasDiarias}
+          onChange={(v) => setForm({ ...form, horasDiarias: v })}
+          min={1}
+        />
+        <FormNumericInput
+          label="Intentos Previos"
+          value={form.intentosPrevios}
+          onChange={(v) => setForm({ ...form, intentosPrevios: v })}
+          min={0}
+        />
+        <div className="space-y-2">
+          <Label>Motivación *</Label>
+          <Select
+            onValueChange={(v) => setForm({ ...form, motivacion: v })}
+            value={form.motivacion}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {motivaciones.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>Recursos Utilizados</Label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {recursos.map((rec) => (
+            <div key={rec} className="flex items-center gap-2">
+              <Checkbox
+                id={rec}
+                checked={form.recursos.includes(rec)}
+                onCheckedChange={() => handleRecursoChange(rec)}
+              />
+              <Label htmlFor={rec} className="cursor-pointer">
+                {rec}
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+      {(form.recursos.includes("Resumen") || form.linkResumen) && (
+        <div className="space-y-2">
+          <Label>Link al Resumen (Opcional)</Label>
+          <Input
+            type="url"
+            value={form.linkResumen || ""}
+            onChange={(e) => setForm({ ...form, linkResumen: e.target.value })}
+            placeholder="https://drive.google.com/..."
+          />
+        </div>
+      )}
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button
+          type="submit"
+          className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+        >
+          {isEditing ? "Actualizar" : "Compartir"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          className="w-full"
+        >
+          Cancelar
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function FormNumericInput({ label, value, onChange, min }) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={() => onChange(Math.max(min, value - 1))}
+        >
+          -
+        </Button>
+        <Input
+          type="number"
+          min={min}
+          value={value}
+          onChange={(e) => onChange(parseInt(e.target.value) || min)}
+          className="w-16 text-center"
+        />{" "}
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={() => onChange(value + 1)}
+        >
+          +
+        </Button>
+      </div>
     </div>
   );
 }

@@ -2,16 +2,14 @@
 
 import { useState, useMemo } from "react";
 import { supabase } from "@/supabaseClient";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  // Estado del formulario
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -28,7 +26,6 @@ export default function Auth() {
 
   const validateField = (field: string, value: string) => {
     let error = "";
-
     switch (field) {
       case "email":
         if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
@@ -51,7 +48,6 @@ export default function Auth() {
         }
         break;
     }
-
     setErrors((prev) => ({ ...prev, [field]: error }));
     return error === "";
   };
@@ -63,10 +59,8 @@ export default function Auth() {
 
   const hasValidForm = useMemo(() => {
     if (showForgotPassword) {
-      // Solo validar email en recuperación de contraseña
       return formData.email.trim() && !errors.email;
     } else if (isSignUp) {
-      // Validar todos los campos en registro
       return (
         formData.email.trim() &&
         !errors.email &&
@@ -78,7 +72,6 @@ export default function Auth() {
         !errors.apellido
       );
     } else {
-      // Validar email y contraseña en login
       return (
         formData.email.trim() &&
         !errors.email &&
@@ -90,24 +83,21 @@ export default function Auth() {
 
   const handleEmailAuth = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    // Validar todos los campos antes de enviar
     const fieldsToValidate = Object.keys(formData) as Array<
       keyof typeof formData
     >;
     let hasErrors = false;
-
     for (const field of fieldsToValidate) {
-      const isValid = validateField(field, formData[field]);
-      if (!isValid) {
-        hasErrors = true;
+      if (
+        (isSignUp || (field !== "nombre" && field !== "apellido")) &&
+        !showForgotPassword
+      ) {
+        const isValid = validateField(field, formData[field]);
+        if (!isValid) hasErrors = true;
       }
     }
-
     if (hasErrors) return;
-
     setLoading(true);
-
     try {
       let result;
       if (isSignUp) {
@@ -116,24 +106,19 @@ export default function Auth() {
           .select("email")
           .eq("email", formData.email)
           .single();
-
         if (userExists) {
           alert("Este email ya está registrado. Por favor inicia sesión.");
           setLoading(false);
           return;
         }
-
         result = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
-            data: {
-              full_name: `${formData.nombre} ${formData.apellido}`,
-            },
+            data: { full_name: `${formData.nombre} ${formData.apellido}` },
             emailRedirectTo: `${window.location.origin}`,
           },
         });
-
         if (result.data.user && result.data.user.identities?.length === 0) {
           alert("Este email ya está registrado. Por favor inicia sesión.");
           setLoading(false);
@@ -145,14 +130,12 @@ export default function Auth() {
           password: formData.password,
         });
       }
-
       if (result.error) {
         alert(result.error.message);
       } else {
         if (isSignUp) {
           alert("¡Revisa tu email para confirmar tu cuenta!");
           setIsSignUp(false);
-          setShowLogin(true);
         }
       }
     } catch (error: any) {
@@ -169,10 +152,7 @@ export default function Auth() {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
+          queryParams: { access_type: "offline", prompt: "consent" },
         },
       });
       if (error) alert("Error con Google: " + error.message);
@@ -185,25 +165,19 @@ export default function Auth() {
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.email.trim() || errors.email) return;
-
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(
         formData.email,
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-        }
+        { redirectTo: `${window.location.origin}/reset-password` }
       );
-
       if (error) {
         alert(error.message);
       } else {
         setResetEmailSent(true);
         alert("¡Revisa tu email para resetear tu contraseña!");
         setShowForgotPassword(false);
-        setShowLogin(true);
       }
     } catch (error: any) {
       alert("Error: " + error.message);
@@ -212,203 +186,251 @@ export default function Auth() {
     }
   };
 
+  const renderLoadingSpinner = () => (
+    <Loader2 className="h-5 w-5 animate-spin" />
+  );
+
+  const inputClasses = (hasError: boolean, hasContent: boolean) =>
+    `w-full h-11 px-4 border-2 rounded-lg bg-slate-50/50 text-gray-800 text-sm 
+     transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400
+     ${hasError ? "border-red-500" : ""}
+     ${!hasError && hasContent ? "border-green-500" : "border-blue-200"}`;
+
   return (
-    <div className="min-h-screen flex items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div
-        className={`w-full max-w-7xl mx-auto flex transition-all duration-300 ${
-          showLogin || showForgotPassword || isSignUp
-            ? "justify-start"
-            : "justify-center"
-        }`}
-      >
-        <div className="flex items-stretch">
-          {/* Panel izquierdo */}
-          <div className="bg-white p-10 rounded-l-2xl shadow-xl border border-gray-100 w-96 flex-shrink-0 flex flex-col justify-between min-h-[600px]">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-5 bg-white text-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+          {/* --- Panel izquierdo - Información con gradiente --- */}
+          <div className="col-span-1 lg:col-span-2 p-8 flex flex-col justify-between bg-gradient-to-b from-blue-600 to-indigo-700 text-white">
             <div>
-              <div className="text-center mb-10">
-                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-3">
+              <div className="text-center lg:text-left mb-8">
+                <h1 className="text-3xl font-extrabold mb-2">
                   Asistente Virtual
                 </h1>
-                <h2 className="text-2xl font-semibold text-indigo-800 mb-2">
+                <p className="text-lg text-indigo-100 mb-4">
                   Un soporte académico para estudiantes
-                </h2>
-                <div className="flex justify-center items-center gap-4 mt-4">
-                  <span className="text-lg font-medium text-indigo-600">
-                    UNSL
-                  </span>
-                  <span className="text-indigo-300">|</span>
-                  <span className="text-lg font-medium text-indigo-600">
-                    Dpto Informática
-                  </span>
+                </p>
+                <div className="flex justify-center lg:justify-start items-center gap-3 text-sm font-medium text-indigo-200">
+                  <span>UNSL</span>
+                  <span className="text-blue-300">|</span>
+                  <span>Dpto. de Informática</span>
                 </div>
               </div>
-              <div className="flex justify-center gap-12 mb-10">
+              <div className="flex justify-center gap-8 mb-8">
                 <img
-                  src="logoUNSL.png"
+                  src="/logoUNSL.png"
                   alt="Logo UNSL"
-                  className="h-20 object-contain"
+                  className="h-16 object-contain"
                 />
                 <img
-                  src="logoDptoInfo.png"
+                  src="/logoDptoInfo.png"
                   alt="Logo Dpto Informática"
-                  className="h-20 object-contain"
+                  className="h-16 object-contain"
                 />
               </div>
             </div>
 
-            <div>
-              {!showLogin && !showForgotPassword && (
-                <button
-                  onClick={() => setShowLogin(true)}
-                  className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-8"
-                >
-                  Iniciar Sesión
-                </button>
-              )}
+            <div className="mt-auto">
               <button
                 onClick={handleGoogleAuth}
                 disabled={loading}
-                className="w-full py-3.5 bg-white hover:bg-gray-50 border-2 border-gray-200 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 rounded-xl text-base font-semibold transition-colors flex items-center justify-center gap-3 shadow-sm hover:shadow-md"
+                className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all
+                           border-2 border-gray-200 bg-white text-gray-700
+                           hover:bg-gray-50 hover:shadow-md
+                           disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
               >
-                <img src="logoGoogle.png" alt="Google Logo" className="h-6" />
-                Continuar con Google
+                {loading ? (
+                  renderLoadingSpinner()
+                ) : (
+                  <>
+                    <img
+                      src="/logoGoogle.png"
+                      alt="Google Logo"
+                      className="h-5 mr-3"
+                    />
+                    Continuar con Google
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Panel recuperación contraseña */}
-          {showForgotPassword && (
-            <div className="bg-white p-10 rounded-r-2xl shadow-xl border-t border-r border-b border-gray-100 w-96 flex-shrink-0 min-h-[600px] flex flex-col justify-center -ml-px">
-              <form
-                onSubmit={handlePasswordReset}
-                className="flex flex-col justify-between h-full"
-              >
+          {/* --- Panel derecho - Formularios --- */}
+          <div className="col-span-1 lg:col-span-3 p-8 flex flex-col justify-center">
+            {showForgotPassword ? (
+              <form onSubmit={handlePasswordReset} className="w-full space-y-6">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Recuperar Contraseña
+                  </h2>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Ingresa tu email para recibir un enlace.
+                  </p>
+                </div>
                 <div>
-                  <h1 className="text-center mb-10 text-[1.625rem] font-bold text-gray-800">
-                    <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                      Recuperar Contraseña
-                    </span>
-                  </h1>
-
-                  <div className="mb-6">
-                    <label
-                      htmlFor="reset-email"
-                      className="block mb-3 text-lg font-medium text-gray-700"
-                    >
-                      Email:
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
-                        required
-                        placeholder="tu@email.com"
-                        className={`w-full px-4 py-4 border-2 ${
-                          errors.email
-                            ? "border-red-500"
-                            : formData.email.trim() && !errors.email
-                              ? "border-green-500"
-                              : "border-blue-200"
-                        } bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all`}
-                      />
-                      {formData.email.trim() && !errors.email && (
-                        <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                      )}
-                      {errors.email && (
-                        <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                      )}
-                    </div>
-                    {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <button
-                    type="submit"
-                    disabled={loading || !hasValidForm}
-                    className={`w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-4 ${
-                      !hasValidForm ? "opacity-70" : ""
-                    }`}
-                  >
-                    {loading ? "Enviando..." : "Enviar enlace de recuperación"}
-                  </button>
-
-                  <div className="text-center mt-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowForgotPassword(false);
-                        setShowLogin(true);
-                      }}
-                      className="text-blue-500 hover:text-blue-700 font-medium"
-                    >
-                      Volver al inicio de sesión
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Panel login */}
-          {showLogin && !isSignUp && !showForgotPassword && (
-            <div className="bg-white p-8 rounded-r-2xl shadow-xl border-t border-r border-b border-gray-100 w-96 flex-shrink-0 min-h-[600px] flex flex-col justify-center -ml-px">
-              <form onSubmit={handleEmailAuth} className="mb-6">
-                <h1 className="text-center mb-8 text-3xl font-bold text-gray-800">
-                  <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                    Iniciar Sesión
-                  </span>
-                </h1>
-                <div className="mb-6">
                   <label
-                    htmlFor="email"
-                    className="block mb-3 text-lg font-medium text-gray-700"
+                    htmlFor="reset-email"
+                    className="text-sm font-medium text-gray-700"
                   >
-                    Email:
+                    Email
                   </label>
-                  <div className="relative">
+                  <div className="relative mt-2">
                     <input
-                      type="text"
+                      id="reset-email"
+                      type="email"
                       value={formData.email}
                       onChange={(e) =>
                         handleInputChange("email", e.target.value)
                       }
                       required
                       placeholder="tu@email.com"
-                      className={`w-full px-4 py-4 border-2 ${
-                        errors.email
-                          ? "border-red-500"
-                          : formData.email.trim() && !errors.email
-                            ? "border-green-500"
-                            : "border-blue-200"
-                      } bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all`}
+                      className={inputClasses(!!errors.email, !!formData.email)}
                     />
-                    {formData.email.trim() && !errors.email && (
-                      <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                    )}
-                    {errors.email && (
-                      <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                    )}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                      {errors.email ? (
+                        <XCircle className="text-red-500" />
+                      ) : (
+                        formData.email && (
+                          <CheckCircle className="text-green-500" />
+                        )
+                      )}
+                    </div>
                   </div>
                   {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                   )}
                 </div>
-                <div className="mb-8">
-                  <label
-                    htmlFor="password"
-                    className="block mb-3 text-lg font-medium text-gray-700"
+                <button
+                  type="submit"
+                  disabled={loading || !hasValidForm}
+                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {loading ? renderLoadingSpinner() : "Enviar enlace"}
+                </button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(false)}
+                    className="text-sm text-blue-600 hover:underline"
                   >
-                    Contraseña:
+                    Volver a Iniciar Sesión
+                  </button>
+                </div>
+              </form>
+            ) : isSignUp ? (
+              <form onSubmit={handleEmailAuth} className="w-full space-y-4">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-blue-500">
+                    Crear Cuenta
+                  </h2>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Completa los datos para empezar.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Nombre
+                    </label>
+                    <div className="relative mt-2">
+                      <input
+                        type="text"
+                        value={formData.nombre}
+                        onChange={(e) =>
+                          handleInputChange("nombre", e.target.value)
+                        }
+                        required
+                        placeholder="Juan"
+                        className={inputClasses(
+                          !!errors.nombre,
+                          !!formData.nombre
+                        )}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                        {errors.nombre ? (
+                          <XCircle className="text-red-500" />
+                        ) : (
+                          formData.nombre && (
+                            <CheckCircle className="text-green-500" />
+                          )
+                        )}
+                      </div>
+                    </div>
+                    {errors.nombre && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.nombre}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Apellido
+                    </label>
+                    <div className="relative mt-2">
+                      <input
+                        type="text"
+                        value={formData.apellido}
+                        onChange={(e) =>
+                          handleInputChange("apellido", e.target.value)
+                        }
+                        required
+                        placeholder="Pérez"
+                        className={inputClasses(
+                          !!errors.apellido,
+                          !!formData.apellido
+                        )}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                        {errors.apellido ? (
+                          <XCircle className="text-red-500" />
+                        ) : (
+                          formData.apellido && (
+                            <CheckCircle className="text-green-500" />
+                          )
+                        )}
+                      </div>
+                    </div>
+                    {errors.apellido && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.apellido}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Email
                   </label>
-                  <div className="relative">
+                  <div className="relative mt-2">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      required
+                      placeholder="tu@email.com"
+                      className={inputClasses(!!errors.email, !!formData.email)}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                      {errors.email ? (
+                        <XCircle className="text-red-500" />
+                      ) : (
+                        formData.email && (
+                          <CheckCircle className="text-green-500" />
+                        )
+                      )}
+                    </div>
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Contraseña
+                  </label>
+                  <div className="relative mt-2">
                     <input
                       type="password"
                       value={formData.password}
@@ -416,241 +438,152 @@ export default function Auth() {
                         handleInputChange("password", e.target.value)
                       }
                       required
-                      placeholder="Tu contraseña"
-                      className={`w-full px-4 py-4 border-2 ${
-                        errors.password
-                          ? "border-red-500"
-                          : formData.password.trim() && !errors.password
-                            ? "border-green-500"
-                            : "border-blue-200"
-                      } bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all`}
+                      placeholder="••••••••"
+                      className={inputClasses(
+                        !!errors.password,
+                        !!formData.password
+                      )}
                     />
-                    {formData.password.trim() && !errors.password && (
-                      <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                    )}
-                    {errors.password && (
-                      <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                    )}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                      {errors.password ? (
+                        <XCircle className="text-red-500" />
+                      ) : (
+                        formData.password && (
+                          <CheckCircle className="text-green-500" />
+                        )
+                      )}
+                    </div>
                   </div>
                   {errors.password && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p className="text-red-500 text-xs mt-1">
                       {errors.password}
                     </p>
                   )}
                 </div>
-                <div className="text-right mb-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowForgotPassword(true);
-                      setShowLogin(false);
-                    }}
-                    className="text-blue-500 hover:text-blue-700 text-sm font-medium"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
+                <button
+                  type="submit"
+                  disabled={loading || !hasValidForm}
+                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-blue-600 hover:shadow-lg hover:from-green-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {loading ? renderLoadingSpinner() : "Registrarse"}
+                </button>
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    ¿Ya tienes cuenta?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setIsSignUp(false)}
+                      className="font-semibold text-blue-600 hover:underline"
+                    >
+                      Inicia Sesión
+                    </button>
+                  </p>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleEmailAuth} className="w-full space-y-6">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                    Iniciar Sesión
+                  </h2>
+                  <p className="text-gray-500 text-sm mt-1">
+                    Bienvenido de nuevo.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <div className="relative mt-2">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      required
+                      placeholder="tu@email.com"
+                      className={inputClasses(!!errors.email, !!formData.email)}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                      {errors.email ? (
+                        <XCircle className="text-red-500" />
+                      ) : (
+                        formData.email && (
+                          <CheckCircle className="text-green-500" />
+                        )
+                      )}
+                    </div>
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700">
+                      Contraseña
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                  <div className="relative mt-2">
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      required
+                      placeholder="••••••••"
+                      className={inputClasses(
+                        !!errors.password,
+                        !!formData.password
+                      )}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
+                      {errors.password ? (
+                        <XCircle className="text-red-500" />
+                      ) : (
+                        formData.password && (
+                          <CheckCircle className="text-green-500" />
+                        )
+                      )}
+                    </div>
+                  </div>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.password}
+                    </p>
+                  )}
                 </div>
                 <button
                   type="submit"
                   disabled={loading || !hasValidForm}
-                  className={`w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-4 ${
-                    !hasValidForm ? "opacity-70" : ""
-                  }`}
+                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  {loading ? "Cargando..." : "Iniciar Sesión"}
+                  {loading ? renderLoadingSpinner() : "Iniciar Sesión"}
                 </button>
-                <div className="text-center mt-6">
-                  <p className="text-gray-600 text-lg">
-                    ¿No tienes cuenta?
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    ¿No tienes cuenta?{" "}
                     <button
                       type="button"
                       onClick={() => setIsSignUp(true)}
-                      className="ml-2 text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 transition-colors"
+                      className="font-semibold text-blue-600 hover:underline"
                     >
                       Regístrate
                     </button>
                   </p>
                 </div>
               </form>
-            </div>
-          )}
-
-          {/* Panel registro con campos alineados */}
-          {isSignUp && showLogin && !showForgotPassword && (
-            <div className="bg-white p-10 rounded-r-2xl shadow-xl border-t border-r border-b border-gray-100 w-[48rem] flex-shrink-0 min-h-[600px] flex flex-col justify-center -ml-px">
-              <form
-                onSubmit={handleEmailAuth}
-                className="flex flex-col h-full justify-between"
-              >
-                <div>
-                  <h2 className="text-center mb-10 text-3xl font-bold text-gray-800">
-                    <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                      Crear Cuenta
-                    </span>
-                  </h2>
-                  <div className="grid grid-cols-2 gap-8">
-                    <div>
-                      <label className="block mb-3 text-lg font-medium text-gray-700">
-                        Email:
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.email}
-                          onChange={(e) =>
-                            handleInputChange("email", e.target.value)
-                          }
-                          required
-                          placeholder="tu@email.com"
-                          className={`w-full px-4 py-4 border-2 ${
-                            errors.email
-                              ? "border-red-500"
-                              : formData.email.trim() && !errors.email
-                                ? "border-green-500"
-                                : "border-blue-200"
-                          } bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all`}
-                        />
-                        {formData.email.trim() && !errors.email && (
-                          <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                        )}
-                        {errors.email && (
-                          <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                      {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.email}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block mb-3 text-lg font-medium text-gray-700">
-                        Nombre:
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.nombre}
-                          onChange={(e) =>
-                            handleInputChange("nombre", e.target.value)
-                          }
-                          required
-                          className={`w-full px-4 py-4 border-2 ${
-                            errors.nombre
-                              ? "border-red-500"
-                              : formData.nombre.trim() && !errors.nombre
-                                ? "border-green-500"
-                                : "border-green-200"
-                          } bg-green-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:bg-white transition-all`}
-                        />
-                        {formData.nombre.trim() && !errors.nombre && (
-                          <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                        )}
-                        {errors.nombre && (
-                          <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                      {errors.nombre && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.nombre}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block mb-3 text-lg font-medium text-gray-700">
-                        Contraseña:
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          value={formData.password}
-                          onChange={(e) =>
-                            handleInputChange("password", e.target.value)
-                          }
-                          required
-                          placeholder="Tu contraseña"
-                          className={`w-full px-4 py-4 border-2 ${
-                            errors.password
-                              ? "border-red-500"
-                              : formData.password.trim() && !errors.password
-                                ? "border-green-500"
-                                : "border-blue-200"
-                          } bg-blue-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-white transition-all`}
-                        />
-                        {formData.password.trim() && !errors.password && (
-                          <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                        )}
-                        {errors.password && (
-                          <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                      {errors.password && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.password}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block mb-3 text-lg font-medium text-gray-700">
-                        Apellido:
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.apellido}
-                          onChange={(e) =>
-                            handleInputChange("apellido", e.target.value)
-                          }
-                          required
-                          className={`w-full px-4 py-4 border-2 ${
-                            errors.apellido
-                              ? "border-red-500"
-                              : formData.apellido.trim() && !errors.apellido
-                                ? "border-green-500"
-                                : "border-green-200"
-                          } bg-green-50/30 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 focus:bg-white transition-all`}
-                        />
-                        {formData.apellido.trim() && !errors.apellido && (
-                          <CheckCircle className="absolute right-3 top-4 h-5 w-5 text-green-500" />
-                        )}
-                        {errors.apellido && (
-                          <XCircle className="absolute right-3 top-4 h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                      {errors.apellido && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.apellido}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-10">
-                  <button
-                    type="submit"
-                    disabled={loading || !hasValidForm}
-                    className={`w-full py-4 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl text-lg font-semibold transition-all shadow-md hover:shadow-lg mb-6 ${
-                      !hasValidForm ? "opacity-70" : ""
-                    }`}
-                  >
-                    {loading ? "Cargando..." : "Registrarse"}
-                  </button>
-                  <div className="text-center">
-                    <p className="text-gray-600 text-lg">
-                      ¿Ya tienes cuenta?
-                      <button
-                        type="button"
-                        onClick={() => setIsSignUp(false)}
-                        className="ml-2 text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 transition-colors"
-                      >
-                        Inicia Sesión
-                      </button>
-                    </p>
-                  </div>
-                </div>
-              </form>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
