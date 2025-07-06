@@ -1,90 +1,89 @@
 "use client";
 
 import React from "react";
+import { cn } from "@/lib/utils"; // Utilidad de ShadCN para fusionar clases
 
 type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;
 
-export const Skeleton: React.FC<SkeletonProps> = ({
-  className = "",
-  ...props
-}) => {
+// --- SKELETON BASE (MEJORADO) ---
+// Ahora usa `bg-muted` para alinearse con el sistema de diseño de shadcn/ui.
+export const Skeleton: React.FC<SkeletonProps> = ({ className, ...props }) => {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      className={cn("animate-pulse rounded-md bg-muted", className)}
       {...props}
     />
   );
 };
 
-// Skeleton para métricas
+// --- SKELETON PARA MÉTRICAS (RESPONSIVE) ---
 export const MetricSkeleton: React.FC = () => (
-  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md flex items-center gap-4 border-l-4 border-gray-200">
-    <div className="flex-shrink-0">
-      <Skeleton className="w-8 h-8 rounded-full" />
-    </div>
-    <div className="flex-1">
-      <Skeleton className="h-3 w-3/5 mb-2" />
+  // Usa bg-card para consistencia y padding responsive.
+  <div className="bg-card rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border">
+    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+    <div className="flex-1 space-y-2">
+      <Skeleton className="h-3 w-3/5" />
       <Skeleton className="h-6 w-2/5" />
     </div>
   </div>
 );
 
-// Skeleton para tabla
+// --- SKELETON PARA TABLA (TOTALMENTE RESPONSIVE) ---
 interface TableSkeletonProps {
   rows?: number;
   columns?: number;
 }
-
 export const TableSkeleton: React.FC<TableSkeletonProps> = ({
   rows = 5,
   columns = 3,
 }) => (
-  <div className="w-full">
-    {/* Header */}
-    <div
-      className="grid gap-4 p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200"
-      style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
-    >
-      {Array.from({ length: columns }).map((_, index) => (
-        <Skeleton key={index} className="h-4 w-4/5" />
-      ))}
-    </div>
-    {/* Body */}
-    <div className="flex flex-col gap-2 p-4">
-      {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div
-          key={rowIndex}
-          className="grid gap-4 py-3"
-          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
-        >
-          {Array.from({ length: columns }).map((_, colIndex) => (
-            <Skeleton key={colIndex} className="h-3 w-4/5" />
+  // El contenedor con overflow-x-auto es la clave para la responsividad de la tabla.
+  <div className="w-full overflow-x-auto rounded-lg border">
+    <table className="w-full text-sm">
+      <thead className="bg-muted/50">
+        <tr>
+          {Array.from({ length: columns }).map((_, i) => (
+            <th key={i} className="px-4 py-3">
+              <Skeleton className="h-4 w-4/5" />
+            </th>
           ))}
-        </div>
-      ))}
-    </div>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {Array.from({ length: rows }).map((_, i) => (
+          <tr key={i}>
+            {Array.from({ length: columns }).map((_, j) => (
+              <td key={j} className="px-4 py-3">
+                <Skeleton className="h-3 w-4/5" />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 );
 
-// Skeleton para gráficos
+// --- SKELETON PARA GRÁFICOS (RESPONSIVE) ---
 interface ChartSkeletonProps {
   type?: "bar" | "pie";
 }
-
 export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({
   type = "bar",
 }) => {
   if (type === "pie") {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+      <div className="bg-card rounded-xl p-4 sm:p-6 shadow-md border">
         <Skeleton className="h-4 w-3/5 mx-auto mb-6" />
-        <div className="flex flex-col items-center gap-6">
-          <Skeleton className="w-48 h-48 rounded-full" />
-          <div className="flex flex-col gap-3 w-full">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <Skeleton className="w-3.5 h-3.5 rounded" />
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
+          {/* Círculo del gráfico responsivo */}
+          <Skeleton className="w-32 h-32 sm:w-40 sm:h-40 rounded-full flex-shrink-0" />
+          {/* Leyenda */}
+          <div className="flex flex-col gap-3 w-full sm:w-auto sm:flex-1">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="w-3 h-3 rounded-full" />
                 <Skeleton className="h-3 flex-1" />
               </div>
             ))}
@@ -94,15 +93,17 @@ export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({
     );
   }
 
+  // Bar Chart Skeleton
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md">
+    <div className="bg-card rounded-xl p-4 sm:p-6 shadow-md border">
       <Skeleton className="h-4 w-3/5 mx-auto mb-6" />
-      <div className="flex items-end gap-4 h-48 p-4">
-        {Array.from({ length: 5 }).map((_, index) => {
-          const height = `${Math.floor(Math.random() * 40 + 30)}%`; // 30% a 70%
+      <div className="flex items-end gap-2 sm:gap-4 h-40 sm:h-48">
+        {Array.from({ length: 8 }).map((_, i) => {
+          // Aumentado a 8 para un look más denso
+          const height = `${Math.floor(Math.random() * 60 + 20)}%`; // 20% a 80%
           return (
-            <div key={index} className="flex-1 flex items-end">
-              <Skeleton className="w-full rounded-t" style={{ height }} />
+            <div key={i} className="flex-1 flex items-end h-full">
+              <Skeleton className="w-full rounded-t-md" style={{ height }} />
             </div>
           );
         })}
@@ -111,26 +112,27 @@ export const ChartSkeleton: React.FC<ChartSkeletonProps> = ({
   );
 };
 
-// Skeleton para selectores
+// --- SKELETON PARA SELECTORES (SIN CAMBIOS, YA ES FLEXIBLE) ---
 export const SelectorSkeleton: React.FC = () => (
-  <div className="flex flex-col gap-2">
+  <div className="space-y-2">
     <Skeleton className="h-3 w-2/5" />
     <Skeleton className="h-10 w-full rounded-lg" />
   </div>
 );
 
-// Skeleton para lista de materias
+// --- SKELETON PARA LISTA (MEJORADO) ---
 interface MateriaListSkeletonProps {
   count?: number;
 }
-
 export const MateriaListSkeleton: React.FC<MateriaListSkeletonProps> = ({
-  count = 8,
+  count = 5,
 }) => (
-  <div className="flex flex-col gap-3">
+  <div className="space-y-3">
     {Array.from({ length: count }).map((_, index) => (
-      <div key={index} className="p-4 border border-gray-200 rounded-lg">
+      <div key={index} className="p-4 border rounded-lg space-y-2">
         <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-3 w-1/3" />{" "}
+        {/* Línea adicional para simular el código */}
       </div>
     ))}
   </div>

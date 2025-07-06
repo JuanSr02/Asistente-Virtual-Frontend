@@ -793,7 +793,10 @@ function FormularioExperiencia({
         </div>
       )}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <Button type="submit" className="w-full">
+        <Button
+          type="submit"
+          className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+        >
           {isEditing ? "Actualizar" : "Compartir"}
         </Button>
         <Button

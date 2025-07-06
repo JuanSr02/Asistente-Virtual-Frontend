@@ -209,7 +209,7 @@ export default function PlanesEstudio() {
             <Button
               variant="outline"
               onClick={cargarPlanes}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto  bg-blue-600 hover:bg-blue-700 text-white"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualizar
