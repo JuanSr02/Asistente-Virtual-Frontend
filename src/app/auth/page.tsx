@@ -131,7 +131,7 @@ export default function Auth() {
         });
       }
       if (result.error) {
-        alert(result.error.message);
+        alert("Credenciales de inicio de sesión no válidas");
       } else {
         if (isSignUp) {
           alert("¡Revisa tu email para confirmar tu cuenta!");
