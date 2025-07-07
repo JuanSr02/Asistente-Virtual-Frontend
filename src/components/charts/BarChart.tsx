@@ -127,9 +127,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
         ctx.fillRect(x, y, width, barHeight);
       }
 
-      // ESTA LÍNEA ES LA CLAVE. AHORA FUNCIONARÁ CORRECTAMENTE
-      // PORQUE EL USEEFFECT SE RE-EJECUTARÁ CUANDO CAMBIE EL TEMA.
-      ctx.fillStyle = foregroundColor;
+      ctx.fillStyle = "#718096"; // Un gris neutro (como text-gray-500 de Tailwind)
       ctx.font = `${topLabelFontSize}px ${fontFamily}`;
       ctx.textAlign = "center";
       const text =
@@ -140,7 +138,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
           : value;
       ctx.fillText(text, x + width / 2, y - 5);
 
-      barDataRef.current.push({ x, y, width, height: barHeight, label, color });
+      barDataRef.current.push({ x, y, width, barHeight, label, color });
     });
 
     if (showBaseLabels) {
