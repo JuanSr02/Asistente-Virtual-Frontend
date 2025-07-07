@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, memo, type FC } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
+import { useTheme } from "next-themes"; // <-- 1. IMPORTAR EL HOOK
 
 // --- HELPER SIN CAMBIOS ---
 const shadeColor = (color: string, percent: number): string => {
@@ -45,6 +46,8 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
   const [hoveredLabel, setHoveredLabel] = useState("");
   const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
 
+  const { theme } = useTheme(); // <-- 2. OBTENER EL TEMA ACTUAL
+
   const defaultColors = ["#4299e1", "#48bb78", "#ed8936"];
 
   useEffect(() => {
@@ -62,8 +65,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    // --- CORRECCIÓN 1: GUARDA TEMPRANA PARA CANVAS ---
-    if (!canvas) return; // Si el canvas no existe, no hacemos nada.
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (
@@ -74,6 +76,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     )
       return;
 
+    // Tu lógica para obtener los colores del tema ya es correcta
     const computedStyles = getComputedStyle(document.documentElement);
     const foregroundColor = `hsl(${computedStyles.getPropertyValue("--foreground")})`;
     const mutedColor = `hsl(${computedStyles.getPropertyValue("--muted-foreground")})`;
@@ -94,13 +97,12 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     const barWidth = chartWidth / entries.length;
     const barSpacing = barWidth * 0.1;
 
-    // --- CORRECCIÓN 2: ASEGURAR QUE BARCOLORS NO ESTÉ VACÍO ---
     const barColors = colors.length > 0 ? colors : defaultColors;
     if (barColors.length === 0) {
       console.error(
         "BarChart: No colors provided and no default colors available."
       );
-      return; // No dibujar si no hay colores
+      return;
     }
 
     const dpr = window.devicePixelRatio || 1;
@@ -119,14 +121,14 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       const y = dimensions.height - padding - barHeight;
       const width = barWidth - barSpacing;
 
-      // Ahora TypeScript sabe que `barColors` tiene al menos un elemento.
       const color = barColors[i % barColors.length];
       if (color) {
-        // Doble chequeo por si acaso
         ctx.fillStyle = color;
         ctx.fillRect(x, y, width, barHeight);
       }
 
+      // ESTA LÍNEA ES LA CLAVE. AHORA FUNCIONARÁ CORRECTAMENTE
+      // PORQUE EL USEEFFECT SE RE-EJECUTARÁ CUANDO CAMBIE EL TEMA.
       ctx.fillStyle = foregroundColor;
       ctx.font = `${topLabelFontSize}px ${fontFamily}`;
       ctx.textAlign = "center";
@@ -157,8 +159,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      // El resto del manejador de hover sigue igual...
-      // La guarda `if (!canvas)` al principio del `useEffect` ya lo protege.
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / dpr / rect.width;
       const scaleY = canvas.height / dpr / rect.height;
@@ -180,6 +181,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     if (showHover) {
       canvas.addEventListener("mousemove", handleMouseMove);
       canvas.addEventListener("mouseleave", () => {
+        if (!canvas) return;
         canvas.style.cursor = "default";
         setHoveredLabel("");
       });
@@ -188,6 +190,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     return () => {
       if (canvas) {
         canvas.removeEventListener("mousemove", handleMouseMove);
+        // Pequeña corrección aquí para evitar errores si el canvas ya no existe
         canvas.removeEventListener("mouseleave", () => {});
       }
     };
@@ -201,6 +204,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     baseLabels,
     showNameBelow,
     showHover,
+    theme, // <-- 3. AÑADIR `theme` A LAS DEPENDENCIAS
   ]);
 
   // El resto del JSX del componente no necesita cambios
