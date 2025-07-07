@@ -246,7 +246,7 @@ export default function Auth() {
                     <img
                       src="/logoGoogle.png"
                       alt="Google Logo"
-                      className="h-5 mr-3"
+                      className="h-10"
                     />
                     Continuar con Google
                   </>

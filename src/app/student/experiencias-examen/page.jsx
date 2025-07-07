@@ -250,6 +250,8 @@ export default function ExperienciasExamen({ user }) {
       resetFormData();
       cargarMisExperiencias();
       cargarExamenesDisponibles();
+      // --- MODIFICACIÓN #2: Actualizar la búsqueda si hay filtros activos ---
+      cargarExperienciasPorMateria();
     } catch (error) {
       setError("Error al guardar la experiencia.");
     }
@@ -380,11 +382,23 @@ export default function ExperienciasExamen({ user }) {
       ) : (
         <>
           <Card>
-            <CardHeader>
+            {/* --- MODIFICACIÓN #1: Añadir botón de actualizar --- */}
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-3">
                 <FileSearch className="w-5 h-5 text-purple-600" />
                 Buscar Experiencias
               </CardTitle>
+              <Button
+                onClick={cargarExperienciasPorMateria}
+                disabled={
+                  !materiaSeleccionada ||
+                  !filtroCalificacion ||
+                  loadingExperiencias
+                }
+                className="bg-blue-400 hover:bg-blue-500 text-white"
+              >
+                Actualizar
+              </Button>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Select
