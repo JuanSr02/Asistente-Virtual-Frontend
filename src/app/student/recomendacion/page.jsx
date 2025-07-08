@@ -265,7 +265,7 @@ export default function Recomendacion({ user }) {
         else if (status === 404)
           errorMessage = "Plan de estudio no encontrado.";
         else if (status === 500)
-          errorMessage = "Error del servidor. Intenta nuevamente.";
+          errorMessage = data?.message;
         else errorMessage = data?.message || `Error ${status}: ${err.message}`;
       } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
