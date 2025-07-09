@@ -1,6 +1,7 @@
 // 🌐 API
 //export const API_BASE_URL = "http://localhost:8080";
-export const API_BASE_URL = "https://asistente-virtual-backend-wj8t.onrender.com";
+export const API_BASE_URL =
+  "https://asistente-virtual-backend-wj8t.onrender.com";
 
 export const API_ROUTES = {
   ADMIN: {
@@ -45,6 +46,6 @@ export const APP_CONFIG = {
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ],
-    ALLOWED_EXTENSIONS: [".xls", ".xlsx"],
+    ALLOWED_EXTENSIONS: [".xls", ".xlsx", ".pdf"],
   },
 };
