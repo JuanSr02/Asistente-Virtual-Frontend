@@ -465,7 +465,7 @@ export default function Recomendacion({ user }) {
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx"
+                accept=".xls,.xlsx,.pdf"
                 className="hidden"
                 disabled={
                   state.uploading ||
@@ -510,7 +510,7 @@ export default function Recomendacion({ user }) {
                   type="file"
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
-                  accept=".xls,.xlsx"
+                  accept=".xls,.xlsx,.pdf"
                   className="hidden"
                   disabled={state.uploading}
                 />

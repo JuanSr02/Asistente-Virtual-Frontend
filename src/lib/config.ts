@@ -45,6 +45,7 @@ export const APP_CONFIG = {
     ALLOWED_TYPES: [
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/pdf",
     ],
     ALLOWED_EXTENSIONS: [".xls", ".xlsx", ".pdf"],
   },
