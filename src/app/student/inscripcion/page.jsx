@@ -107,12 +107,11 @@ export default function Inscripcion({ user }) {
         }
         updateState({ persona: personaData });
       }
-      let historia = state.historiaAcademica;
+      let historia = await historiaAcademicaService.verificarHistoriaAcademica(
+        personaData.id
+      );
       if (!historia) {
-        historia = await historiaAcademicaService.verificarHistoriaAcademica(
-          personaData.id
-        );
-        updateState({ historiaAcademica: historia });
+        updateState({ historiaAcademica: null });
       }
       if (historia) {
         await Promise.all([
