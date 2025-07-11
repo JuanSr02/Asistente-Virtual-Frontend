@@ -111,8 +111,10 @@ export default function Inscripcion({ user }) {
         personaData.id
       );
       if (!historia) {
-        updateState({ historiaAcademica: null });
+        updateState({ historiaAcademica: undefined });
+        return;
       }
+      updateState({ historiaAcademica: historia });
       if (historia) {
         await Promise.all([
           cargarMateriasDisponibles(personaData.id),
