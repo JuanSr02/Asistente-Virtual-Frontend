@@ -264,8 +264,7 @@ export default function Recomendacion({ user }) {
             data?.message || "El archivo no tiene el formato correcto.";
         else if (status === 404)
           errorMessage = "Plan de estudio no encontrado.";
-        else if (status === 500)
-          errorMessage = data?.message;
+        else if (status === 500) errorMessage = data?.message;
         else errorMessage = data?.message || `Error ${status}: ${err.message}`;
       } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
@@ -420,10 +419,7 @@ export default function Recomendacion({ user }) {
                 size="sm"
                 className="mt-2"
                 onClick={() =>
-                  window.open(
-                    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                    "_blank"
-                  )
+                  window.open("https://youtu.be/K4uE6e0xp3M", "_blank")
                 }
               >
                 <Youtube className="mr-2 h-4 w-4" />
