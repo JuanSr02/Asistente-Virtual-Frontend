@@ -56,6 +56,7 @@ const historiaAcademicaService = {
       formData.append("file", file);
 
       const config = {
+        headers: { "Content-Type": "multipart/form-data" },
         params: { codigoPlan },
       };
 
@@ -84,6 +85,7 @@ const historiaAcademicaService = {
       formData.append("file", file);
 
       const config = {
+        headers: { "Content-Type": "multipart/form-data" },
         params: { codigoPlan },
       };
 
