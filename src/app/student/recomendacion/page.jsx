@@ -207,6 +207,8 @@ export default function Recomendacion({ user }) {
     updateState({ uploading: true, error: null, success: null });
     try {
       let resultado;
+      console.log("Archivo a subir:", file);
+      console.log("Tipo:", file.type, "Tamaño:", file.size);
       if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
@@ -464,6 +466,7 @@ export default function Recomendacion({ user }) {
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
                 accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                capture="environment"
                 className="hidden"
                 disabled={
                   state.uploading ||
@@ -509,6 +512,7 @@ export default function Recomendacion({ user }) {
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
                   accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  capture="environment"
                   className="hidden"
                   disabled={state.uploading}
                 />

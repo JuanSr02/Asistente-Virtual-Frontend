@@ -58,7 +58,9 @@ const historiaAcademicaService = {
       const config = {
         headers: { "Content-Type": "multipart/form-data" },
         params: { codigoPlan },
+        timeout: 20000, // 20 segundos
       };
+
 
       const response = await api.post(
         `/api/shared/historia-academica/${estudianteId}/carga`,
@@ -87,7 +89,9 @@ const historiaAcademicaService = {
       const config = {
         headers: { "Content-Type": "multipart/form-data" },
         params: { codigoPlan },
+        timeout: 20000, // 20 segundos
       };
+
 
       const response = await api.patch(
         `/api/shared/historia-academica/${estudianteId}/actualizacion`,
