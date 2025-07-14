@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import personaService from "@/services/personaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
@@ -45,9 +46,30 @@ export default function Recomendacion({ user }) {
     isStateStale,
     isInitialized,
   } = useEnhancedSessionPersistence();
+
   const fileInputRef = useRef(null);
   const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
+
+  // Estados adicionales para debugging móvil
+  const [fileDebugInfo, setFileDebugInfo] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isMobileDevice =
+        /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+          userAgent.toLowerCase()
+        );
+      setIsMobile(isMobileDevice);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
@@ -74,6 +96,7 @@ export default function Recomendacion({ user }) {
       );
       if (!personaData)
         personaData = await personaService.obtenerPersonaPorEmail(user.email);
+
       if (!personaData) {
         updateState({
           error: "No se encontró tu perfil en el sistema.",
@@ -81,11 +104,14 @@ export default function Recomendacion({ user }) {
         });
         return;
       }
+
       updateState({ persona: personaData, personaId: personaData.id });
+
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
         );
+
       if (historia) {
         updateState({ historiaAcademica: historia });
         const tieneRecomendacionesGuardadas =
@@ -93,6 +119,7 @@ export default function Recomendacion({ user }) {
           state.personaId === personaData.id &&
           state.lastFetch &&
           !isStateStale(30);
+
         if (tieneRecomendacionesGuardadas) {
           // Ya están en el estado
         } else {
@@ -171,73 +198,67 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función mejorada para validar archivos
-  const validateFile = (file) => {
-    if (!file)
-      return { valid: false, error: "No se seleccionó ningún archivo" };
-
-    console.log("Validando archivo:", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      lastModified: file.lastModified,
-    });
-
-    const fileName = file.name.toLowerCase();
-    const fileType = file.type.toLowerCase();
-
-    // Validar por extensión
-    const validExtensions = [".pdf", ".xls", ".xlsx"];
-    const hasValidExtension = validExtensions.some((ext) =>
-      fileName.endsWith(ext)
-    );
-
-    // Validar por tipo MIME
-    const validMimeTypes = [
-      "application/pdf",
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ];
-    const hasValidMimeType = validMimeTypes.includes(fileType);
-
-    if (!hasValidExtension && !hasValidMimeType) {
-      return {
-        valid: false,
-        error: `Tipo de archivo no válido. Formatos permitidos: PDF, XLS, XLSX`,
-      };
-    }
-
-    // Validar tamaño (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      return {
-        valid: false,
-        error: "El archivo es demasiado grande. Máximo 10MB permitido.",
-      };
-    }
-
-    return { valid: true };
-  };
-
+  // Función mejorada para manejar archivos en móviles
   const handleFileUpload = async (event, isUpdate = false) => {
+    console.log("🔍 File upload iniciado", { isMobile, isUpdate });
+
     const file = event.target.files?.[0];
 
-    console.log("Evento de archivo:", {
-      files: event.target.files,
-      filesLength: event.target.files?.length,
-      file: file,
+    // Debug info para móviles
+    setFileDebugInfo({
+      hasFiles: !!event.target.files,
+      filesLength: event.target.files?.length || 0,
+      fileName: file?.name || "No file",
+      fileSize: file?.size || 0,
+      fileType: file?.type || "No type",
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log("📱 File debug info:", {
+      hasFiles: !!event.target.files,
+      filesLength: event.target.files?.length || 0,
+      fileName: file?.name || "No file",
+      fileSize: file?.size || 0,
+      fileType: file?.type || "No type",
     });
 
     if (!file) {
-      console.log("No se seleccionó archivo");
+      console.log("❌ No file selected");
+      updateState({
+        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
+      });
       return;
     }
 
-    // Validar archivo
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      updateState({ error: validation.error });
-      // Limpiar el input
+    // Validación de archivo mejorada para móviles
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+
+    const isValidExtension =
+      fileName.endsWith(".pdf") ||
+      fileName.endsWith(".xls") ||
+      fileName.endsWith(".xlsx");
+
+    const isValidMimeType =
+      fileType.includes("pdf") ||
+      fileType.includes("excel") ||
+      fileType.includes("spreadsheet") ||
+      fileType === "application/vnd.ms-excel" ||
+      fileType ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    console.log("🔍 File validation:", {
+      fileName,
+      fileType,
+      isValidExtension,
+      isValidMimeType,
+    });
+
+    if (!isValidExtension && !isValidMimeType) {
+      updateState({
+        error: `Tipo de archivo no permitido. Usa archivos PDF, XLS o XLSX. Archivo detectado: ${fileName} (${fileType})`,
+      });
+      // Limpiar input
       if (isUpdate && updateFileInputRef.current) {
         updateFileInputRef.current.value = "";
       } else if (fileInputRef.current) {
@@ -258,14 +279,15 @@ export default function Recomendacion({ user }) {
     updateState({ uploading: true, error: null, success: null });
 
     try {
-      let resultado;
-      console.log("Procesando archivo:", {
+      console.log("📤 Uploading file:", {
         name: file.name,
-        type: file.type,
         size: file.size,
+        type: file.type,
         plan: planAUsar,
+        isUpdate,
       });
 
+      let resultado;
       if (isUpdate) {
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
@@ -321,7 +343,7 @@ export default function Recomendacion({ user }) {
         }
       }, 2000);
     } catch (err) {
-      console.error("Error al procesar archivo:", err);
+      console.error("❌ Upload error:", err);
       let errorMessage = "Error al procesar el archivo.";
       if (err.response) {
         const { status, data } = err.response;
@@ -335,14 +357,37 @@ export default function Recomendacion({ user }) {
       } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
       else errorMessage = err.message || "Error desconocido.";
+
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
-      // Limpiar el input
+      // Limpiar inputs
       if (isUpdate && updateFileInputRef.current) {
         updateFileInputRef.current.value = "";
       } else if (fileInputRef.current) {
         fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Función mejorada para trigger del file input
+  const triggerFileInput = (isUpdate = false) => {
+    const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
+
+    if (inputRef.current) {
+      console.log("🎯 Triggering file input", { isUpdate, isMobile });
+
+      // Para móviles, usar un enfoque más directo
+      if (isMobile) {
+        // Crear un evento de click más explícito
+        const clickEvent = new MouseEvent("click", {
+          view: window,
+          bubbles: true,
+          cancelable: true,
+        });
+        inputRef.current.dispatchEvent(clickEvent);
+      } else {
+        inputRef.current.click();
       }
     }
   };
@@ -354,6 +399,7 @@ export default function Recomendacion({ user }) {
       )
     )
       return;
+
     updateState({ uploading: true, error: null, success: null });
     try {
       await historiaAcademicaService.eliminarHistoriaAcademica(
@@ -456,6 +502,20 @@ export default function Recomendacion({ user }) {
         </CardHeader>
       </Card>
 
+      {/* Debug info para móviles - solo mostrar en desarrollo */}
+      {process.env.NODE_ENV === "development" && isMobile && fileDebugInfo && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-sm">🐛 Debug Info (Mobile)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs overflow-auto">
+              {JSON.stringify(fileDebugInfo, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
+
       {state.error && (
         <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
@@ -497,6 +557,7 @@ export default function Recomendacion({ user }) {
                 Ver Video
               </Button>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="plan-select">
                 1. Selecciona tu plan de estudio
@@ -526,23 +587,32 @@ export default function Recomendacion({ user }) {
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
+
+              {/* Input file mejorado para móviles */}
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
-                className="hidden"
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  opacity: 0,
+                  pointerEvents: "none",
+                }}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
               />
+
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => triggerFileInput(false)}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -556,6 +626,12 @@ export default function Recomendacion({ user }) {
                 )}
                 {state.uploading ? "Cargando..." : "Subir Historia Académica"}
               </Button>
+
+              {isMobile && (
+                <p className="text-xs text-gray-500 text-center">
+                  📱 Versión móvil detectada
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -573,18 +649,25 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* Input file para actualizar - mejorado para móviles */}
                 <input
                   type="file"
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
                   accept=".pdf,.xls,.xlsx"
-                  className="hidden"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    opacity: 0,
+                    pointerEvents: "none",
+                  }}
                   disabled={state.uploading}
                 />
+
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => updateFileInputRef.current?.click()}
+                  onClick={() => triggerFileInput(true)}
                   disabled={state.uploading}
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
@@ -715,6 +798,7 @@ export default function Recomendacion({ user }) {
                             </p>
                           </div>
                         )}
+
                         {state.criterioOrden === "VENCIMIENTO" && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="bg-green-50 p-3 rounded-lg">
@@ -735,6 +819,7 @@ export default function Recomendacion({ user }) {
                             </div>
                           </div>
                         )}
+
                         {state.criterioOrden === "ESTADISTICAS" && (
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
                             <div className="bg-gray-50 p-2 rounded-lg">
