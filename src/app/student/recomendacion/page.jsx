@@ -43,7 +43,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -463,16 +462,12 @@ export default function Recomendacion({ user }) {
               <Label>2. Sube el archivo</Label>
               <input
                 type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                capture="environment"
-                className="hidden"
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
+                onChange={(e) => {
+                  console.log("onChange disparado", e.target.files[0]);
+                  handleFileUpload(e, false);
+                }}
+                accept=".xls,.xlsx,.pdf"
+                className="block border p-2"
               />
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
