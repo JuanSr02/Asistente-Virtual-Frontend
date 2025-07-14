@@ -598,15 +598,9 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                accept=".pdf,.xls,.xlsx"
+                accept=".pdf,.xls,.xlsx,application/pdf"
                 onChange={(e) => handleFileUpload(e, false)}
-                style={{
-                  position: "absolute",
-                  left: "-9999px",
-                  width: "1px",
-                  height: "1px",
-                  opacity: 0,
-                }}
+                className="hidden"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -614,9 +608,9 @@ export default function Recomendacion({ user }) {
                 }
               />
 
-              <Button
+              <button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => triggerFileInput(false)}
+                onClick={() => fileInputRef.current?.click()}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -629,7 +623,7 @@ export default function Recomendacion({ user }) {
                   <Upload className="mr-2 h-4 w-4" />
                 )}
                 {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-              </Button>
+              </button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
