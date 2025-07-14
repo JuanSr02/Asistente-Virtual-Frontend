@@ -1,12 +1,10 @@
 "use client";
-
 import { useEffect, useRef } from "react";
 import personaService from "@/services/personaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
-import { APP_CONFIG } from "@/lib/config";
 import {
   Loader2,
   AlertTriangle,
@@ -18,17 +16,12 @@ import {
   Sparkles,
   Youtube,
   FileText,
-  BadgePercent,
-  Star,
-  CalendarDays,
-  Clock,
   ThumbsUp,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -52,7 +45,6 @@ export default function Recomendacion({ user }) {
     isStateStale,
     isInitialized,
   } = useEnhancedSessionPersistence();
-
   const fileInputRef = useRef(null);
   const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
@@ -179,49 +171,115 @@ export default function Recomendacion({ user }) {
     }
   };
 
+  // Función mejorada para validar archivos
+  const validateFile = (file) => {
+    if (!file)
+      return { valid: false, error: "No se seleccionó ningún archivo" };
+
+    console.log("Validando archivo:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified,
+    });
+
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+
+    // Validar por extensión
+    const validExtensions = [".pdf", ".xls", ".xlsx"];
+    const hasValidExtension = validExtensions.some((ext) =>
+      fileName.endsWith(ext)
+    );
+
+    // Validar por tipo MIME
+    const validMimeTypes = [
+      "application/pdf",
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ];
+    const hasValidMimeType = validMimeTypes.includes(fileType);
+
+    if (!hasValidExtension && !hasValidMimeType) {
+      return {
+        valid: false,
+        error: `Tipo de archivo no válido. Formatos permitidos: PDF, XLS, XLSX`,
+      };
+    }
+
+    // Validar tamaño (máximo 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return {
+        valid: false,
+        error: "El archivo es demasiado grande. Máximo 10MB permitido.",
+      };
+    }
+
+    return { valid: true };
+  };
+
   const handleFileUpload = async (event, isUpdate = false) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const fileExtension = file.name
-      .substring(file.name.lastIndexOf("."))
-      .toLowerCase();
-    const fileMimeType = file.type;
-    if (
-      !APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
-      !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
-    ) {
-      updateState({
-        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
-      });
-      if (isUpdate && updateFileInputRef.current)
-        updateFileInputRef.current.value = "";
-      else if (fileInputRef.current) fileInputRef.current.value = "";
+    const file = event.target.files?.[0];
+
+    console.log("Evento de archivo:", {
+      files: event.target.files,
+      filesLength: event.target.files?.length,
+      file: file,
+    });
+
+    if (!file) {
+      console.log("No se seleccionó archivo");
       return;
     }
+
+    // Validar archivo
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      updateState({ error: validation.error });
+      // Limpiar el input
+      if (isUpdate && updateFileInputRef.current) {
+        updateFileInputRef.current.value = "";
+      } else if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
     const planAUsar = isUpdate
       ? state.historiaAcademica?.plan_de_estudio_codigo
       : state.planSeleccionado;
+
     if (!planAUsar) {
       updateState({ error: "Por favor, selecciona un plan de estudio." });
       return;
     }
+
     updateState({ uploading: true, error: null, success: null });
+
     try {
       let resultado;
-      console.log("Archivo a subir:", file);
-      console.log("Tipo:", file.type, "Tamaño:", file.size);
-      if (isUpdate)
+      console.log("Procesando archivo:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        plan: planAUsar,
+      });
+
+      if (isUpdate) {
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
-      else
+      } else {
         resultado = await historiaAcademicaService.cargarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
+      }
+
       if (resultado && resultado.mensaje) {
         const accion = isUpdate ? "actualizada" : "cargada";
         let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
@@ -234,7 +292,9 @@ export default function Recomendacion({ user }) {
         const accion = isUpdate ? "actualizada" : "cargada";
         updateState({ success: `Historia académica ${accion} exitosamente` });
       }
+
       clearRecomendaciones();
+
       setTimeout(async () => {
         try {
           const historia =
@@ -261,6 +321,7 @@ export default function Recomendacion({ user }) {
         }
       }, 2000);
     } catch (err) {
+      console.error("Error al procesar archivo:", err);
       let errorMessage = "Error al procesar el archivo.";
       if (err.response) {
         const { status, data } = err.response;
@@ -277,9 +338,12 @@ export default function Recomendacion({ user }) {
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
-      if (isUpdate && updateFileInputRef.current)
+      // Limpiar el input
+      if (isUpdate && updateFileInputRef.current) {
         updateFileInputRef.current.value = "";
-      else if (fileInputRef.current) fileInputRef.current.value = "";
+      } else if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -332,6 +396,7 @@ export default function Recomendacion({ user }) {
         : d >= 3
           ? "text-yellow-600 bg-yellow-100"
           : "text-green-600 bg-green-100";
+
   const getDificultadTexto = (d) =>
     d >= 7
       ? "Alta"
@@ -397,6 +462,7 @@ export default function Recomendacion({ user }) {
           <p className="text-sm">{state.error}</p>
         </div>
       )}
+
       {state.success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
@@ -462,31 +528,12 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <input type="file" />
-              <label htmlFor="file-input" className="cursor-pointer">
-                <Button
-                  type="button"
-                  className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                  disabled={
-                    state.uploading ||
-                    !state.planSeleccionado ||
-                    state.loadingPlanes
-                  }
-                >
-                  {state.uploading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="mr-2 h-4 w-4" />
-                  )}
-                  {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-                </Button>
-              </label>
               <input
-                id="file-input"
                 type="file"
+                ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf"
-                style={{ display: "none" }}
+                accept=".pdf,.xls,.xlsx"
+                className="hidden"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -530,8 +577,7 @@ export default function Recomendacion({ user }) {
                   type="file"
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
-                  accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  capture="environment"
+                  accept=".pdf,.xls,.xlsx"
                   className="hidden"
                   disabled={state.uploading}
                 />
