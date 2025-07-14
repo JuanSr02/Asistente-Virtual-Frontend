@@ -200,10 +200,47 @@ export default function Recomendacion({ user }) {
 
   // Función mejorada para manejar archivos en móviles
   const handleFileUpload = async (event, isUpdate = false) => {
-    alert("Entre")
+    alert("Entre");
     console.log("🔍 File upload iniciado", { isMobile, isUpdate });
+    // Prevenir comportamiento por defecto
+    event.preventDefault();
+    event.stopPropagation();
 
-    const file = event.target.files?.[0];
+    console.log("🔍 File upload iniciado", {
+      isMobile,
+      isUpdate,
+      hasFiles: !!event.target.files,
+      filesLength: event.target.files?.length,
+    });
+
+    const files = event.target.files;
+    const file = files?.[0];
+
+    // Debug más detallado
+    console.log("📱 Event details:", {
+      type: event.type,
+      target: event.target,
+      files: files,
+      hasFiles: !!files,
+      filesLength: files?.length,
+    });
+
+    if (!files || files.length === 0) {
+      console.log("❌ No files in event");
+      updateState({
+        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
+      });
+      return;
+    }
+
+    if (!file) {
+      console.log("❌ No file selected");
+      updateState({
+        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
+      });
+      return;
+    }
+
 
     // Debug info para móviles
     setFileDebugInfo({
@@ -371,27 +408,45 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función mejorada para trigger del file input
-  const triggerFileInput = (isUpdate = false) => {
-    const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
+  useEffect(() => {
+    const setupFileInputListeners = () => {
+      const inputs = [fileInputRef.current, updateFileInputRef.current];
 
-    if (inputRef.current) {
-      console.log("🎯 Triggering file input", { isUpdate, isMobile });
+      inputs.forEach((input, index) => {
+        if (input) {
+          const isUpdate = index === 1;
 
-      // Para móviles, usar un enfoque más directo
-      if (isMobile) {
-        // Crear un evento de click más explícito
-        const clickEvent = new MouseEvent("click", {
-          view: window,
-          bubbles: true,
-          cancelable: true,
-        });
-        inputRef.current.dispatchEvent(clickEvent);
-      } else {
-        inputRef.current.click();
-      }
-    }
-  };
+          // Listener para cuando el input recibe focus (especialmente útil en móvil)
+          const handleFocus = () => {
+            console.log("📱 File input focused", { isUpdate });
+          };
+
+          // Listener para cuando el input pierde focus
+          const handleBlur = () => {
+            console.log("📱 File input blurred", { isUpdate });
+            // Dar un pequeño delay para que el archivo se procese
+            setTimeout(() => {
+              if (input.files && input.files.length > 0) {
+                console.log("📱 File detected on blur", input.files[0]);
+                handleFileUpload({ target: input }, isUpdate);
+              }
+            }, 100);
+          };
+
+          input.addEventListener("focus", handleFocus);
+          input.addEventListener("blur", handleBlur);
+
+          // Cleanup
+          return () => {
+            input.removeEventListener("focus", handleFocus);
+            input.removeEventListener("blur", handleBlur);
+          };
+        }
+      });
+    };
+
+    setupFileInputListeners();
+  }, []);
 
   const handleEliminarHistoria = async () => {
     if (
@@ -432,6 +487,31 @@ export default function Recomendacion({ user }) {
     if (state.historiaAcademica && state.persona) {
       clearRecomendaciones();
       obtenerRecomendaciones(state.persona.id, state.criterioOrden);
+    }
+  };
+
+  const triggerFileInput = (isUpdate = false) => {
+    const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
+
+    if (inputRef.current) {
+      // Resetear el valor para asegurar que onChange se dispare
+      inputRef.current.value = "";
+
+      console.log("🎯 Triggering file input", { isUpdate, isMobile });
+
+      // Dar un pequeño delay para que el reset se complete
+      setTimeout(() => {
+        if (isMobile) {
+          const clickEvent = new MouseEvent("click", {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+          });
+          inputRef.current.dispatchEvent(clickEvent);
+        } else {
+          inputRef.current.click();
+        }
+      }, 100);
     }
   };
 
@@ -596,7 +676,7 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
+                onInput={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
                 className="sr-only"
                 disabled={
@@ -649,7 +729,7 @@ export default function Recomendacion({ user }) {
                 <input
                   type="file"
                   ref={updateFileInputRef}
-                  onChange={(e) => handleFileUpload(e, true)}
+                  onInput={(e) => handleFileUpload(e, true)}
                   accept=".pdf,.xls,.xlsx"
                   className="sr-only"
                   disabled={state.uploading}
