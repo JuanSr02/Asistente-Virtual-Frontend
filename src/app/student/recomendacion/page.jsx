@@ -463,13 +463,30 @@ export default function Recomendacion({ user }) {
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
               <input type="file" />
+              <label htmlFor="file-input" className="cursor-pointer">
+                <Button
+                  type="button"
+                  className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                  disabled={
+                    state.uploading ||
+                    !state.planSeleccionado ||
+                    state.loadingPlanes
+                  }
+                >
+                  {state.uploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  {state.uploading ? "Cargando..." : "Subir Historia Académica"}
+                </Button>
+              </label>
               <input
+                id="file-input"
                 type="file"
-                ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                capture="environment"
-                className="absolute w-px h-px opacity-0 -z-10"
+                accept=".xls,.xlsx,.pdf"
+                style={{ display: "none" }}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
