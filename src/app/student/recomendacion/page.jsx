@@ -597,12 +597,7 @@ export default function Recomendacion({ user }) {
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
-                style={{
-                  position: "absolute",
-                  left: "-9999px",
-                  opacity: 0,
-                  pointerEvents: "none",
-                }}
+                className="sr-only"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -655,12 +650,7 @@ export default function Recomendacion({ user }) {
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
                   accept=".pdf,.xls,.xlsx"
-                  style={{
-                    position: "absolute",
-                    left: "-9999px",
-                    opacity: 0,
-                    pointerEvents: "none",
-                  }}
+                  className="sr-only"
                   disabled={state.uploading}
                 />
 
