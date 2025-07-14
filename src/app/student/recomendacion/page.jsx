@@ -200,6 +200,7 @@ export default function Recomendacion({ user }) {
 
   // Función mejorada para manejar archivos en móviles
   const handleFileUpload = async (event, isUpdate = false) => {
+    alert("Entre");
     console.log("🔍 File upload iniciado", { isMobile, isUpdate });
 
     const file = event.target.files?.[0];
@@ -223,7 +224,7 @@ export default function Recomendacion({ user }) {
     });
 
     if (!file) {
-      console.log("❌ No file selected");
+      alert("❌ No file selected");
       updateState({
         error: "No se seleccionó ningún archivo. Intenta nuevamente.",
       });
