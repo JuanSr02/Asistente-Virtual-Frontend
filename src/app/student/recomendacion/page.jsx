@@ -616,14 +616,7 @@ export default function Recomendacion({ user }) {
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-              >
-                {state.uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="mr-2 h-4 w-4" />
-                )}
-                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-              </button>
+              ></button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
