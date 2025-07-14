@@ -708,22 +708,19 @@ export default function Recomendacion({ user }) {
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
 
-              {/* Input file mejorado para móviles */}
-              {/*<input
+              <input
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
-                onInput={(e) => handleFileUpload(e, false)}
-                accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="sr-only"
+                accept=".pdf,.xls,.xlsx"
+                className="absolute left-[-9999px]"
+                style={{ display: "block" }}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-                style={{ display: "none" }}
-              />*/}
-              <input type="file" accept="application/pdf" />
+              />
 
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
@@ -764,19 +761,15 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {/* Input file para actualizar - mejorado para móviles */}
-                {/*<input
+                <input
                   type="file"
-                  ref={updateFileInputRef}
+                  ref={updatefileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
-                  onInput={(e) => handleFileUpload(e, true)}
-                  accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  className="sr-only"
+                  accept=".pdf,.xls,.xlsx"
+                  className="absolute left-[-9999px]"
+                  style={{ display: "block" }}
                   disabled={state.uploading}
-                  style={{ display: "none" }}
-                />*/}
-                <input type="file" accept="application/pdf" />
-
+                />
                 <Button
                   variant="outline"
                   size="sm"

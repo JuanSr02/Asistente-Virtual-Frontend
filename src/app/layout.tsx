@@ -7,9 +7,8 @@ import Auth from "@/app/auth/page";
 import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import SubirArchivo from "./subir-archivo/page";
 
-const publicRoutes = ["/reset-password", "/auth","subir-archivo"];
+const publicRoutes = ["/reset-password", "/auth","/subir-archivo"];
 
 // Componente separado para el loading (sin cambios, ya es responsive)
 const LoadingScreen = () => (
@@ -125,9 +124,9 @@ export default function RootLayout({
             !isPublicRoute && !session ? (
               <Auth />
             ) : session && !isPublicRoute ? (
-              <SubirArchivo />
+              <Dashboard user={session.user} />
             ) : (
-              <SubirArchivo />
+              children
             )
           }
         </main>
