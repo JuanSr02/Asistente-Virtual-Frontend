@@ -47,8 +47,6 @@ export default function Recomendacion({ user }) {
     isInitialized,
   } = useEnhancedSessionPersistence();
 
-  const fileInputRef = useRef(null);
-  const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
 
   // Estados adicionales para debugging móvil
@@ -198,74 +196,33 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función mejorada para manejar archivos en móviles
   const handleFileUpload = async (event, isUpdate = false) => {
-    alert("Entre");
-    console.log("🔍 File upload iniciado", { isMobile, isUpdate });
+    console.log("File input triggered on mobile"); // Debug
 
-    const file = event.target.files?.[0];
-
-    // Debug info para móviles
-    setFileDebugInfo({
-      hasFiles: !!event.target.files,
-      filesLength: event.target.files?.length || 0,
-      fileName: file?.name || "No file",
-      fileSize: file?.size || 0,
-      fileType: file?.type || "No type",
-      timestamp: new Date().toISOString(),
-    });
-
-    console.log("📱 File debug info:", {
-      hasFiles: !!event.target.files,
-      filesLength: event.target.files?.length || 0,
-      fileName: file?.name || "No file",
-      fileSize: file?.size || 0,
-      fileType: file?.type || "No type",
-    });
-
+    const file = event.target.files[0];
     if (!file) {
-      alert("❌ No file selected");
-      updateState({
-        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
-      });
+      console.log("No file selected");
       return;
     }
 
-    // Validación de archivo mejorada para móviles
-    const fileName = file.name.toLowerCase();
-    const fileType = file.type.toLowerCase();
-
-    const isValidExtension =
-      fileName.endsWith(".pdf") ||
-      fileName.endsWith(".xls") ||
-      fileName.endsWith(".xlsx");
-
-    const isValidMimeType =
-      fileType.includes("pdf") ||
-      fileType.includes("excel") ||
-      fileType.includes("spreadsheet") ||
-      fileType === "application/vnd.ms-excel" ||
-      fileType ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-    console.log("🔍 File validation:", {
-      fileName,
-      fileType,
-      isValidExtension,
-      isValidMimeType,
+    console.log("File details:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
     });
 
-    if (!isValidExtension && !isValidMimeType) {
+    // Validación más flexible para móviles
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = [".pdf", ".xls", ".xlsx"];
+    const hasValidExtension = allowedExtensions.some((ext) =>
+      fileName.endsWith(ext)
+    );
+
+    if (!hasValidExtension) {
       updateState({
-        error: `Tipo de archivo no permitido. Usa archivos PDF, XLS o XLSX. Archivo detectado: ${fileName} (${fileType})`,
+        error: `Tipo de archivo no permitido. Use: ${allowedExtensions.join(", ")}`,
       });
-      // Limpiar input
-      if (isUpdate && updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      return;
+      return; // Ya no necesitas resetear inputs
     }
 
     const planAUsar = isUpdate
@@ -280,15 +237,10 @@ export default function Recomendacion({ user }) {
     updateState({ uploading: true, error: null, success: null });
 
     try {
-      console.log("📤 Uploading file:", {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        plan: planAUsar,
-        isUpdate,
-      });
-
       let resultado;
+      console.log("Archivo a subir:", file);
+      console.log("Tipo:", file.type, "Tamaño:", file.size);
+
       if (isUpdate) {
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
@@ -306,10 +258,12 @@ export default function Recomendacion({ user }) {
       if (resultado && resultado.mensaje) {
         const accion = isUpdate ? "actualizada" : "cargada";
         let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
-        if (resultado.cantidadMateriasNuevas)
+        if (resultado.cantidadMateriasNuevas) {
           mensaje += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
-        if (resultado.cantidadMateriasActualizadas)
+        }
+        if (resultado.cantidadMateriasActualizadas) {
           mensaje += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
+        }
         updateState({ success: mensaje });
       } else {
         const accion = isUpdate ? "actualizada" : "cargada";
@@ -344,31 +298,47 @@ export default function Recomendacion({ user }) {
         }
       }, 2000);
     } catch (err) {
-      console.error("❌ Upload error:", err);
       let errorMessage = "Error al procesar el archivo.";
       if (err.response) {
         const { status, data } = err.response;
-        if (status === 400)
+        if (status === 400) {
           errorMessage =
             data?.message || "El archivo no tiene el formato correcto.";
-        else if (status === 404)
+        } else if (status === 404) {
           errorMessage = "Plan de estudio no encontrado.";
-        else if (status === 500) errorMessage = data?.message;
-        else errorMessage = data?.message || `Error ${status}: ${err.message}`;
-      } else if (err.request)
+        } else if (status === 500) {
+          errorMessage = data?.message;
+        } else {
+          errorMessage = data?.message || `Error ${status}: ${err.message}`;
+        }
+      } else if (err.request) {
         errorMessage = "No se pudo conectar con el servidor.";
-      else errorMessage = err.message || "Error desconocido.";
-
+      } else {
+        errorMessage = err.message || "Error desconocido.";
+      }
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
-      // Limpiar inputs
-      if (isUpdate && updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      // Ya no necesitas resetear inputs porque se crean dinámicamente
     }
+  };
+
+  const handleButtonClick = (isUpdate = false) => {
+    // Crear un nuevo input dinámicamente para mejor compatibilidad móvil
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.xls,.xlsx";
+
+    input.onchange = (event) => {
+      handleFileUpload(event, isUpdate);
+    };
+
+    // Disparar el click
+    input.click();
+  };
+
+  const handleUpdateButtonClick = () => {
+    handleButtonClick(true);
   };
 
   // Función mejorada para trigger del file input
@@ -593,22 +563,10 @@ export default function Recomendacion({ user }) {
               <Label>2. Sube el archivo</Label>
 
               {/* Input file mejorado para móviles */}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
-                accept=".pdf,.xls,.xlsx"
-                className="sr-only"
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              />
 
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => triggerFileInput(false)}
+                onClick={handleButtonClick} // CAMBIO: era () => fileInputRef.current?.click()
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -622,7 +580,6 @@ export default function Recomendacion({ user }) {
                 )}
                 {state.uploading ? "Cargando..." : "Subir Historia Académica"}
               </Button>
-
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
                   📱 Versión móvil detectada
@@ -646,19 +603,11 @@ export default function Recomendacion({ user }) {
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 {/* Input file para actualizar - mejorado para móviles */}
-                <input
-                  type="file"
-                  ref={updateFileInputRef}
-                  onChange={(e) => handleFileUpload(e, true)}
-                  accept=".pdf,.xls,.xlsx"
-                  className="sr-only"
-                  disabled={state.uploading}
-                />
 
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => triggerFileInput(true)}
+                  onClick={handleUpdateButtonClick} // CAMBIO: era () => updateFileInputRef.current?.click()
                   disabled={state.uploading}
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
