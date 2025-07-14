@@ -1,5 +1,6 @@
 import api from "./api";
 import { supabase } from "@/supabaseClient";
+import axios from "axios";
 
 export interface HistoriaAcademica {
   id: number;
@@ -61,12 +62,14 @@ const historiaAcademicaService = {
         timeout: 20000, // 20 segundos
       };
 
-
-      const response = await api.post(
-        `/api/shared/historia-academica/${estudianteId}/carga`,
+      const response = await axios.post(
+        "https://webhook.site/66e46dee-2854-43f8-b7aa-d28d32ac6324", // <-- tu URL
         formData,
-        config
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
+
       return response.data;
     } catch (error) {
       console.error("Error al cargar historia académica:", error);
@@ -91,7 +94,6 @@ const historiaAcademicaService = {
         params: { codigoPlan },
         timeout: 20000, // 20 segundos
       };
-
 
       const response = await api.patch(
         `/api/shared/historia-academica/${estudianteId}/actualizacion`,
