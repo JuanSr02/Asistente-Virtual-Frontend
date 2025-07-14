@@ -709,7 +709,7 @@ export default function Recomendacion({ user }) {
               <Label>2. Sube el archivo</Label>
 
               {/* Input file mejorado para móviles */}
-              <input
+              {/*<input
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
@@ -722,7 +722,8 @@ export default function Recomendacion({ user }) {
                   state.loadingPlanes
                 }
                 style={{ display: "none" }}
-              />
+              />*/}
+              <input type="file" accept="application/pdf" />
 
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
@@ -764,7 +765,7 @@ export default function Recomendacion({ user }) {
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 {/* Input file para actualizar - mejorado para móviles */}
-                <input
+                {/*<input
                   type="file"
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
@@ -773,7 +774,8 @@ export default function Recomendacion({ user }) {
                   className="sr-only"
                   disabled={state.uploading}
                   style={{ display: "none" }}
-                />
+                />*/}
+                <input type="file" accept="application/pdf" />
 
                 <Button
                   variant="outline"
