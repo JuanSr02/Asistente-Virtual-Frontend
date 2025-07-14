@@ -469,7 +469,7 @@ export default function Recomendacion({ user }) {
                 onChange={(e) => handleFileUpload(e, false)}
                 accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 capture="environment"
-                className="hidden"
+                className="absolute w-px h-px opacity-0 -z-10"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
