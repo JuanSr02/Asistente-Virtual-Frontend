@@ -763,7 +763,7 @@ export default function Recomendacion({ user }) {
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <input
                   type="file"
-                  ref={updatefileInputRef}
+                  ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
                   accept=".pdf,.xls,.xlsx"
                   className="absolute left-[-9999px]"
