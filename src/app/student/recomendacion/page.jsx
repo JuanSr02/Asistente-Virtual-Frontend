@@ -462,6 +462,7 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
+              <input type="file" />
               <input
                 type="file"
                 ref={fileInputRef}
