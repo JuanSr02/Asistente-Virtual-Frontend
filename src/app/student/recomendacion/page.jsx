@@ -186,7 +186,9 @@ export default function Recomendacion({ user }) {
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
-    if (!APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    const fileMimeType = file.type;
+    if (!APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
+        !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)) {
       updateState({
         error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       });
@@ -406,7 +408,7 @@ export default function Recomendacion({ user }) {
             <CardTitle>Carga tu Historia Académica</CardTitle>
             <CardDescription>
               Para obtener recomendaciones, necesitamos tu historia académica
-              completa en formato Excel.
+              completa en formato Excel o PDF.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-lg mx-auto">
@@ -461,7 +463,7 @@ export default function Recomendacion({ user }) {
                 type="file"
                 ref={fileInputRef}
                 onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf"
+                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 className="hidden"
                 disabled={
                   state.uploading ||
@@ -506,7 +508,7 @@ export default function Recomendacion({ user }) {
                   type="file"
                   ref={updateFileInputRef}
                   onChange={(e) => handleFileUpload(e, true)}
-                  accept=".xls,.xlsx,.pdf"
+                  accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   className="hidden"
                   disabled={state.uploading}
                 />
