@@ -616,7 +616,7 @@ export default function Recomendacion({ user }) {
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-              ></button>
+              >Subir Historia Academica</button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
