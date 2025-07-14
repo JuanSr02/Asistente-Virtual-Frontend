@@ -198,14 +198,9 @@ export default function Recomendacion({ user }) {
     }
   };
 
+  // Función mejorada para manejar archivos con mejor compatibilidad móvil
   const handleFileUpload = async (event, isUpdate = false) => {
     console.log("🔍 File upload iniciado", { isMobile, isUpdate });
-
-    // NO uses preventDefault() en móviles - puede interferir con la selección
-    if (!isMobile) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
 
     const files = event.target.files;
     const file = files?.[0];
@@ -391,89 +386,6 @@ export default function Recomendacion({ user }) {
       }
     }
   };
-  useEffect(() => {
-    const setupFileInputListeners = () => {
-      const inputs = [
-        { ref: fileInputRef, isUpdate: false },
-        { ref: updateFileInputRef, isUpdate: true },
-      ];
-
-      const cleanupFunctions = [];
-
-      inputs.forEach(({ ref, isUpdate }) => {
-        if (ref.current) {
-          const input = ref.current;
-
-          // Función para manejar el cambio de archivo
-          const handleChange = (e) => {
-            console.log("📱 onChange triggered", {
-              isUpdate,
-              files: e.target.files,
-            });
-            if (e.target.files && e.target.files.length > 0) {
-              handleFileUpload(e, isUpdate);
-            }
-          };
-
-          // Función para manejar el input event (más confiable en móviles)
-          const handleInput = (e) => {
-            console.log("📱 onInput triggered", {
-              isUpdate,
-              files: e.target.files,
-            });
-            if (e.target.files && e.target.files.length > 0) {
-              handleFileUpload(e, isUpdate);
-            }
-          };
-
-          // Agregar múltiples listeners para mayor compatibilidad
-          input.addEventListener("change", handleChange);
-          input.addEventListener("input", handleInput);
-
-          // Para móviles, también escuchar cuando termina la selección
-          if (isMobile) {
-            const handleFocus = () => {
-              console.log("📱 File input focused", { isUpdate });
-            };
-
-            const handleBlur = () => {
-              console.log("📱 File input blurred", { isUpdate });
-              // Pequeño delay para verificar si hay archivos
-              setTimeout(() => {
-                if (input.files && input.files.length > 0) {
-                  console.log("📱 File detected on blur", input.files[0]);
-                  handleFileUpload({ target: input }, isUpdate);
-                }
-              }, 100);
-            };
-
-            input.addEventListener("focus", handleFocus);
-            input.addEventListener("blur", handleBlur);
-
-            // Agregar a cleanup
-            cleanupFunctions.push(() => {
-              input.removeEventListener("focus", handleFocus);
-              input.removeEventListener("blur", handleBlur);
-            });
-          }
-
-          // Agregar a cleanup
-          cleanupFunctions.push(() => {
-            input.removeEventListener("change", handleChange);
-            input.removeEventListener("input", handleInput);
-          });
-        }
-      });
-
-      // Función de limpieza
-      return () => {
-        cleanupFunctions.forEach((cleanup) => cleanup());
-      };
-    };
-
-    const cleanup = setupFileInputListeners();
-    return cleanup;
-  }, [isMobile, state.persona?.id]); // Agregar dependencias necesarias
 
   const handleEliminarHistoria = async () => {
     if (
@@ -517,37 +429,12 @@ export default function Recomendacion({ user }) {
     }
   };
 
+  // Función simplificada para triggear el input de archivo
   const triggerFileInput = (isUpdate = false) => {
     const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
-
     if (inputRef.current) {
-      // Resetear el valor para asegurar que onChange se dispare
       inputRef.current.value = "";
-
-      console.log("🎯 Triggering file input", { isUpdate, isMobile });
-
-      if (isMobile) {
-        // Para móviles, usar múltiples métodos para asegurar funcionamiento
-        try {
-          // Método 1: Focus y click
-          inputRef.current.focus();
-          inputRef.current.click();
-
-          // Método 2: Crear evento sintético como backup
-          setTimeout(() => {
-            const event = new MouseEvent("click", {
-              view: window,
-              bubbles: true,
-              cancelable: true,
-            });
-            inputRef.current.dispatchEvent(event);
-          }, 50);
-        } catch (error) {
-          console.error("Error al triggear input en móvil:", error);
-        }
-      } else {
-        inputRef.current.click();
-      }
+      inputRef.current.click();
     }
   };
 
@@ -711,10 +598,15 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
-                className="absolute left-[-9999px]"
-                style={{ display: "block" }}
+                onChange={(e) => handleFileUpload(e, false)}
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  width: "1px",
+                  height: "1px",
+                  opacity: 0,
+                }}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
@@ -764,10 +656,15 @@ export default function Recomendacion({ user }) {
                 <input
                   type="file"
                   ref={updateFileInputRef}
-                  onChange={(e) => handleFileUpload(e, true)}
                   accept=".pdf,.xls,.xlsx"
-                  className="absolute left-[-9999px]"
-                  style={{ display: "block" }}
+                  onChange={(e) => handleFileUpload(e, true)}
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    width: "1px",
+                    height: "1px",
+                    opacity: 0,
+                  }}
                   disabled={state.uploading}
                 />
                 <Button
@@ -904,7 +801,6 @@ export default function Recomendacion({ user }) {
                             </p>
                           </div>
                         )}
-
                         {state.criterioOrden === "VENCIMIENTO" && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="bg-green-50 p-3 rounded-lg">
