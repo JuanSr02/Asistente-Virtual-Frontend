@@ -186,8 +186,10 @@ export default function Recomendacion({ user }) {
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
     const fileMimeType = file.type;
-    if (!APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
-        !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)) {
+    if (
+      !APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
+      !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
+    ) {
       updateState({
         error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       });
@@ -462,12 +464,16 @@ export default function Recomendacion({ user }) {
               <Label>2. Sube el archivo</Label>
               <input
                 type="file"
-                onChange={(e) => {
-                  console.log("onChange disparado", e.target.files[0]);
-                  handleFileUpload(e, false);
-                }}
-                accept=".xls,.xlsx,.pdf"
-                className="block border p-2"
+                ref={fileInputRef}
+                onChange={(e) => handleFileUpload(e, false)}
+                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                capture="environment"
+                className="hidden"
+                disabled={
+                  state.uploading ||
+                  !state.planSeleccionado ||
+                  state.loadingPlanes
+                }
               />
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
