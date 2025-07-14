@@ -198,25 +198,18 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función mejorada para manejar archivos en móviles
   const handleFileUpload = async (event, isUpdate = false) => {
-    alert("Entre");
     console.log("🔍 File upload iniciado", { isMobile, isUpdate });
-    // Prevenir comportamiento por defecto
-    event.preventDefault();
-    event.stopPropagation();
 
-    console.log("🔍 File upload iniciado", {
-      isMobile,
-      isUpdate,
-      hasFiles: !!event.target.files,
-      filesLength: event.target.files?.length,
-    });
+    // NO uses preventDefault() en móviles - puede interferir con la selección
+    if (!isMobile) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     const files = event.target.files;
     const file = files?.[0];
 
-    // Debug más detallado
     console.log("📱 Event details:", {
       type: event.type,
       target: event.target,
@@ -241,7 +234,6 @@ export default function Recomendacion({ user }) {
       return;
     }
 
-
     // Debug info para móviles
     setFileDebugInfo({
       hasFiles: !!event.target.files,
@@ -259,14 +251,6 @@ export default function Recomendacion({ user }) {
       fileSize: file?.size || 0,
       fileType: file?.type || "No type",
     });
-
-    if (!file) {
-      alert("❌ No file selected");
-      updateState({
-        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
-      });
-      return;
-    }
 
     // Validación de archivo mejorada para móviles
     const fileName = file.name.toLowerCase();
@@ -407,46 +391,89 @@ export default function Recomendacion({ user }) {
       }
     }
   };
-
   useEffect(() => {
     const setupFileInputListeners = () => {
-      const inputs = [fileInputRef.current, updateFileInputRef.current];
+      const inputs = [
+        { ref: fileInputRef, isUpdate: false },
+        { ref: updateFileInputRef, isUpdate: true },
+      ];
 
-      inputs.forEach((input, index) => {
-        if (input) {
-          const isUpdate = index === 1;
+      const cleanupFunctions = [];
 
-          // Listener para cuando el input recibe focus (especialmente útil en móvil)
-          const handleFocus = () => {
-            console.log("📱 File input focused", { isUpdate });
+      inputs.forEach(({ ref, isUpdate }) => {
+        if (ref.current) {
+          const input = ref.current;
+
+          // Función para manejar el cambio de archivo
+          const handleChange = (e) => {
+            console.log("📱 onChange triggered", {
+              isUpdate,
+              files: e.target.files,
+            });
+            if (e.target.files && e.target.files.length > 0) {
+              handleFileUpload(e, isUpdate);
+            }
           };
 
-          // Listener para cuando el input pierde focus
-          const handleBlur = () => {
-            console.log("📱 File input blurred", { isUpdate });
-            // Dar un pequeño delay para que el archivo se procese
-            setTimeout(() => {
-              if (input.files && input.files.length > 0) {
-                console.log("📱 File detected on blur", input.files[0]);
-                handleFileUpload({ target: input }, isUpdate);
-              }
-            }, 100);
+          // Función para manejar el input event (más confiable en móviles)
+          const handleInput = (e) => {
+            console.log("📱 onInput triggered", {
+              isUpdate,
+              files: e.target.files,
+            });
+            if (e.target.files && e.target.files.length > 0) {
+              handleFileUpload(e, isUpdate);
+            }
           };
 
-          input.addEventListener("focus", handleFocus);
-          input.addEventListener("blur", handleBlur);
+          // Agregar múltiples listeners para mayor compatibilidad
+          input.addEventListener("change", handleChange);
+          input.addEventListener("input", handleInput);
 
-          // Cleanup
-          return () => {
-            input.removeEventListener("focus", handleFocus);
-            input.removeEventListener("blur", handleBlur);
-          };
+          // Para móviles, también escuchar cuando termina la selección
+          if (isMobile) {
+            const handleFocus = () => {
+              console.log("📱 File input focused", { isUpdate });
+            };
+
+            const handleBlur = () => {
+              console.log("📱 File input blurred", { isUpdate });
+              // Pequeño delay para verificar si hay archivos
+              setTimeout(() => {
+                if (input.files && input.files.length > 0) {
+                  console.log("📱 File detected on blur", input.files[0]);
+                  handleFileUpload({ target: input }, isUpdate);
+                }
+              }, 100);
+            };
+
+            input.addEventListener("focus", handleFocus);
+            input.addEventListener("blur", handleBlur);
+
+            // Agregar a cleanup
+            cleanupFunctions.push(() => {
+              input.removeEventListener("focus", handleFocus);
+              input.removeEventListener("blur", handleBlur);
+            });
+          }
+
+          // Agregar a cleanup
+          cleanupFunctions.push(() => {
+            input.removeEventListener("change", handleChange);
+            input.removeEventListener("input", handleInput);
+          });
         }
       });
+
+      // Función de limpieza
+      return () => {
+        cleanupFunctions.forEach((cleanup) => cleanup());
+      };
     };
 
-    setupFileInputListeners();
-  }, []);
+    const cleanup = setupFileInputListeners();
+    return cleanup;
+  }, [isMobile, state.persona?.id]); // Agregar dependencias necesarias
 
   const handleEliminarHistoria = async () => {
     if (
@@ -499,19 +526,28 @@ export default function Recomendacion({ user }) {
 
       console.log("🎯 Triggering file input", { isUpdate, isMobile });
 
-      // Dar un pequeño delay para que el reset se complete
-      setTimeout(() => {
-        if (isMobile) {
-          const clickEvent = new MouseEvent("click", {
-            view: window,
-            bubbles: true,
-            cancelable: true,
-          });
-          inputRef.current.dispatchEvent(clickEvent);
-        } else {
+      if (isMobile) {
+        // Para móviles, usar múltiples métodos para asegurar funcionamiento
+        try {
+          // Método 1: Focus y click
+          inputRef.current.focus();
           inputRef.current.click();
+
+          // Método 2: Crear evento sintético como backup
+          setTimeout(() => {
+            const event = new MouseEvent("click", {
+              view: window,
+              bubbles: true,
+              cancelable: true,
+            });
+            inputRef.current.dispatchEvent(event);
+          }, 50);
+        } catch (error) {
+          console.error("Error al triggear input en móvil:", error);
         }
-      }, 100);
+      } else {
+        inputRef.current.click();
+      }
     }
   };
 
@@ -676,14 +712,16 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
+                onChange={(e) => handleFileUpload(e, false)}
                 onInput={(e) => handleFileUpload(e, false)}
-                accept=".pdf,.xls,.xlsx"
+                accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 className="sr-only"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
+                style={{ display: "none" }}
               />
 
               <Button
@@ -729,10 +767,12 @@ export default function Recomendacion({ user }) {
                 <input
                   type="file"
                   ref={updateFileInputRef}
+                  onChange={(e) => handleFileUpload(e, true)}
                   onInput={(e) => handleFileUpload(e, true)}
-                  accept=".pdf,.xls,.xlsx"
+                  accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   className="sr-only"
                   disabled={state.uploading}
+                  style={{ display: "none" }}
                 />
 
                 <Button
