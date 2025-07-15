@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
+import SubirArchivo from "@/app/subir-archivo/page.jsx";
 
 // Componente seguro para subida de archivos (reemplaza Dropzone)
 function UploadSeguro({ isUpdate = false, onFileReady, disabled }) {
@@ -72,7 +73,6 @@ function UploadSeguro({ isUpdate = false, onFileReady, disabled }) {
     </div>
   );
 }
-
 
 export default function Recomendacion({ user }) {
   const {
