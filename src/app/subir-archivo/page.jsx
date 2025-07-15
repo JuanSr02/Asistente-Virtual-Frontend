@@ -21,7 +21,7 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
       type: archivoOriginal.type,
     });
 
-    subirArchivo(file); // delegamos a una función async separada
+    //subirArchivo(file); // delegamos a una función async separada
   };
 
   const subirArchivo = async (file) => {
