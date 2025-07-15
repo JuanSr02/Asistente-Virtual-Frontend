@@ -581,37 +581,23 @@ export default function Recomendacion({ user }) {
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                onInput={(e) => handleFileUpload(e, false)}
-                accept=".pdf,.xls,.xlsx"
-                className="absolute left-[-9999px]"
-                style={{ display: "block" }}
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              />
-
-              <button
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => triggerFileInput(false)}
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              >
-                Subir Historia Academica
-              </button>
-
-              {isMobile && (
-                <p className="text-xs text-gray-500 text-center">
-                  📱 Versión móvil detectada
-                </p>
-              )}
+              {/* NUEVO input envuelto en LABEL */}
+              <label className="w-full">
+                <span className="w-full inline-block bg-blue-400 hover:bg-blue-500 text-white text-center py-2 rounded cursor-pointer">
+                  Subir Historia Académica
+                </span>
+                <input
+                  type="file"
+                  accept=".pdf,.xls,.xlsx"
+                  onChange={(e) => handleFileUpload(e, false)}
+                  className="hidden"
+                  disabled={
+                    state.uploading ||
+                    !state.planSeleccionado ||
+                    state.loadingPlanes
+                  }
+                />
+              </label>
             </div>
           </CardContent>
         </Card>
@@ -629,30 +615,21 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <input
-                  type="file"
-                  ref={updateFileInputRef}
-                  accept=".pdf,.xls,.xlsx"
-                  onChange={(e) => handleFileUpload(e, true)}
-                  style={{
-                    position: "absolute",
-                    left: "-9999px",
-                    width: "1px",
-                    height: "1px",
-                    opacity: 0,
-                  }}
-                  disabled={state.uploading}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => triggerFileInput(true)}
-                  disabled={state.uploading}
-                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {state.uploading ? "Cargando..." : "Actualizar"}
-                </Button>
+                {/* LABEL con input oculto para actualizar */}
+                <label className="w-full sm:w-auto">
+                  <span className="inline-flex justify-center items-center bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm cursor-pointer w-full sm:w-auto">
+                    <Upload className="mr-2 h-4 w-4" />
+                    {state.uploading ? "Cargando..." : "Actualizar"}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,.xls,.xlsx"
+                    onChange={(e) => handleFileUpload(e, true)}
+                    className="hidden"
+                    disabled={state.uploading}
+                  />
+                </label>
+
                 <Button
                   variant="destructive"
                   size="sm"
