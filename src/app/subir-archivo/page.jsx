@@ -2,7 +2,10 @@
 import { useRef, useState } from "react";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 
-export default function SubirArchivo({ personaId, planSeleccionado }) {
+export default function SubirArchivo({
+  personaId = 2,
+  planSeleccionado = "26/12",
+}) {
   const fileInputRef = useRef(null);
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState(null);
@@ -21,10 +24,37 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
       type: archivoOriginal.type,
     });
 
-    //subirArchivo(file); // delegamos a una función async separada
+    subirArchivo(file); // delegamos a una función async separada
   };
 
-  
+  const subirArchivo = async (file) => {
+    setMensaje(null);
+    setSubiendo(true);
+
+    try {
+      const resultado = await historiaAcademicaService.cargarHistoriaAcademica(
+        file,
+        personaId,
+        planSeleccionado
+      );
+
+      if (resultado && resultado.mensaje) {
+        let mensajeFinal = `Historia académica cargada: ${resultado.mensaje}`;
+        if (resultado.cantidadMateriasNuevas)
+          mensajeFinal += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
+        if (resultado.cantidadMateriasActualizadas)
+          mensajeFinal += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
+        setMensaje(mensajeFinal);
+      } else {
+        setMensaje("Historia académica cargada exitosamente.");
+      }
+    } catch (error) {
+      console.error("❌ Error al subir:", error);
+      setMensaje("Hubo un error al subir el archivo.");
+    } finally {
+      setSubiendo(false);
+    }
+  };
 
   return (
     <div className="p-4 space-y-4 max-w-md mx-auto">
@@ -33,7 +63,6 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
         accept=".pdf,.xls,.xlsx"
         ref={fileInputRef}
         onChange={handleFileChange}
-        onInput={handleFileChange}
         className="absolute left-[-9999px]"
         style={{ display: "block" }}
         disabled={subiendo}
