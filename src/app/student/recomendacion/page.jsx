@@ -440,7 +440,7 @@ export default function Recomendacion({ user }) {
     setTimeout(() => {
       const event = new Event("input", { bubbles: true });
       fileInputRef.current?.dispatchEvent(event);
-    }, 20000);
+    }, 5000);
   };
 
   const getDificultadColor = (d) =>
