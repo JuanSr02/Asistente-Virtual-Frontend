@@ -39,21 +39,20 @@ export default function SubidaMobile() {
 
       const resultado = await method(file, personaId, plan);
 
-      if (resultado?.mensaje) {
-        let texto = `Historia ${isUpdate ? "actualizada" : "cargada"}: ${resultado.mensaje}`;
-        if (resultado.cantidadMateriasNuevas)
-          texto += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
-        if (resultado.cantidadMateriasActualizadas)
-          texto += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
-        setMensaje(texto);
-      } else {
-        setMensaje(
-          `Historia académica ${isUpdate ? "actualizada" : "cargada"} exitosamente.`
-        );
-      }
+      let texto =
+        resultado?.mensaje ||
+        `Historia académica ${isUpdate ? "actualizada" : "cargada"} exitosamente.`;
 
-      // Podés redirigir si querés:
-      // setTimeout(() => router.push("/recomendacion"), 3000);
+      if (resultado?.cantidadMateriasNuevas)
+        texto += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
+      if (resultado?.cantidadMateriasActualizadas)
+        texto += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
+
+      setMensaje(texto);
+
+      setTimeout(() => {
+        router.push("/"); // ✅ Redirige al home
+      }, 3000);
     } catch (err) {
       console.error("❌ Error en subida:", err);
       setError("Hubo un error al subir el archivo.");
@@ -63,15 +62,15 @@ export default function SubidaMobile() {
   };
 
   return (
-    <main className="p-4 max-w-md mx-auto space-y-4 bg-white min-h-screen">
-      <h1 className="text-xl font-semibold text-center">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6 flex flex-col justify-center items-center text-center space-y-4">
+      <h1 className="text-2xl font-bold text-blue-800">
         {isUpdate
           ? "Actualizar Historia Académica"
           : "Cargar Historia Académica"}
       </h1>
 
       {!personaId || !plan ? (
-        <p className="text-red-600">Error: falta personaId o plan</p>
+        <p className="text-red-600 text-sm">Faltan datos en la URL.</p>
       ) : (
         <>
           <input
@@ -79,10 +78,12 @@ export default function SubidaMobile() {
             accept=".pdf,.xls,.xlsx"
             onChange={handleChange}
             disabled={subiendo}
-            className="block w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700"
+            className="block w-full max-w-xs border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white shadow-sm"
           />
           {subiendo && (
-            <p className="text-blue-500 text-sm">Subiendo archivo...</p>
+            <p className="text-blue-500 text-sm animate-pulse">
+              Subiendo archivo...
+            </p>
           )}
           {mensaje && (
             <p className="text-green-600 text-sm whitespace-pre-wrap">
@@ -92,6 +93,9 @@ export default function SubidaMobile() {
           {error && (
             <p className="text-red-600 text-sm whitespace-pre-wrap">{error}</p>
           )}
+          <p className="text-xs text-gray-500 mt-6">
+            Serás redirigido automáticamente luego de subir el archivo.
+          </p>
         </>
       )}
     </main>

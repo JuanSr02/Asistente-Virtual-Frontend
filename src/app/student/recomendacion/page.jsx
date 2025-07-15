@@ -43,6 +43,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
+function esDispositivoMovil() {
+  if (typeof window === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+
 // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Recomendacion({ user }) {
   const {
@@ -463,34 +469,56 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="hidden"
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              />
-              <Button
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              >
-                {state.uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
+              {esDispositivoMovil() ? (
+                <Button
+                  className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                  onClick={() => {
+                    if (state.persona?.id && state.planSeleccionado) {
+                      const url = `/subida-mobile?personaId=${state.persona.id}&plan=${state.planSeleccionado}`;
+                      window.location.href = url;
+                    } else {
+                      alert("Seleccioná un plan primero.");
+                    }
+                  }}
+                  disabled={state.uploading || state.loadingPlanes}
+                >
                   <Upload className="mr-2 h-4 w-4" />
-                )}
-                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-              </Button>
+                  Subir Historia Académica (modo móvil)
+                </Button>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => handleFileUpload(e, false)}
+                    accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    className="hidden"
+                    disabled={
+                      state.uploading ||
+                      !state.planSeleccionado ||
+                      state.loadingPlanes
+                    }
+                  />
+                  <Button
+                    className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={
+                      state.uploading ||
+                      !state.planSeleccionado ||
+                      state.loadingPlanes
+                    }
+                  >
+                    {state.uploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    {state.uploading
+                      ? "Cargando..."
+                      : "Subir Historia Académica"}
+                  </Button>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -508,24 +536,44 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <input
-                  type="file"
-                  ref={updateFileInputRef}
-                  onChange={(e) => handleFileUpload(e, true)}
-                  accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  className="hidden"
-                  disabled={state.uploading}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateFileInputRef.current?.click()}
-                  disabled={state.uploading}
-                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {state.uploading ? "Cargando..." : "Actualizar"}
-                </Button>
+                {esDispositivoMovil() ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const plan =
+                        state.historiaAcademica?.plan_de_estudio_codigo;
+                      const url = `/subida-mobile?personaId=${state.persona?.id}&plan=${plan}&actualizar=true`;
+                      window.location.href = url;
+                    }}
+                    disabled={state.uploading}
+                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Actualizar (modo móvil)
+                  </Button>
+                ) : (
+                  <>
+                    <input
+                      type="file"
+                      ref={updateFileInputRef}
+                      onChange={(e) => handleFileUpload(e, true)}
+                      accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      className="hidden"
+                      disabled={state.uploading}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateFileInputRef.current?.click()}
+                      disabled={state.uploading}
+                      className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {state.uploading ? "Cargando..." : "Actualizar"}
+                    </Button>
+                  </>
+                )}
                 <Button
                   variant="destructive"
                   size="sm"
