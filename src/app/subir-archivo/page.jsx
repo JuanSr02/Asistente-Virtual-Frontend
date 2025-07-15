@@ -60,6 +60,7 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
         accept=".pdf,.xls,.xlsx"
         ref={fileInputRef}
         onChange={handleFileChange}
+        onInput={handleFileChange}
         className="absolute left-[-9999px]"
         style={{ display: "block" }}
         disabled={subiendo}
