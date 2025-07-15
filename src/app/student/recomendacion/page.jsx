@@ -603,7 +603,7 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
+                onInput={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
                 className="absolute left-[-9999px]"
                 style={{ display: "block" }}
