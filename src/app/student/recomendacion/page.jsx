@@ -603,12 +603,7 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return; // El usuario canceló
-
-                  handleFileUpload(e, false); // Solo si eligió algo
-                }}
+                onChange={(e) => handleFileUpload(e, false)}
                 accept=".pdf,.xls,.xlsx"
                 className="absolute left-[-9999px]"
                 style={{ display: "block" }}
