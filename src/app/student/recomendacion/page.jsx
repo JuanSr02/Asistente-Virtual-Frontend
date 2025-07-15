@@ -353,12 +353,10 @@ export default function Recomendacion({ user }) {
     }
   }, [state.success, state.error, updateState]);
 
-
   function esDispositivoMovil() {
     if (typeof window === "undefined") return false;
     return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
-
 
   if (!isInitialized || (state.loadingPersona && !state.persona)) {
     return (
@@ -384,8 +382,6 @@ export default function Recomendacion({ user }) {
       </Card>
     );
   }
-
-  
 
   return (
     <div className="space-y-6">
@@ -422,7 +418,7 @@ export default function Recomendacion({ user }) {
             type="file"
             accept=".xls,.xlsx,.pdf"
             onChange={(e) => handleFileUpload(e, false)}
-            disabled={uploading || !planSeleccionado || loadingPlanes}
+            disabled={state.uploading || !planSeleccionado || loadingPlanes}
             className="block w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white"
           />
         </div>
@@ -436,7 +432,7 @@ export default function Recomendacion({ user }) {
               type="file"
               accept=".xls,.xlsx,.pdf"
               onChange={(e) => handleFileUpload(e, false)}
-              disabled={uploading || !planSeleccionado || loadingPlanes}
+              disabled={state.uploading || !planSeleccionado || loadingPlanes}
               className="hidden"
             />
           </label>
