@@ -353,6 +353,13 @@ export default function Recomendacion({ user }) {
     }
   }, [state.success, state.error, updateState]);
 
+
+  function esDispositivoMovil() {
+    if (typeof window === "undefined") return false;
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+
   if (!isInitialized || (state.loadingPersona && !state.persona)) {
     return (
       <div className="space-y-6">
@@ -378,6 +385,8 @@ export default function Recomendacion({ user }) {
     );
   }
 
+  
+
   return (
     <div className="space-y-6">
       <Card className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -402,6 +411,35 @@ export default function Recomendacion({ user }) {
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{state.success}</p>
+        </div>
+      )}
+
+      {esDispositivoMovil() ? (
+        <div className="space-y-2">
+          <Label htmlFor="upload-movil">Subir desde móvil</Label>
+          <input
+            id="upload-movil"
+            type="file"
+            accept=".xls,.xlsx,.pdf"
+            onChange={(e) => handleFileUpload(e, false)}
+            disabled={uploading || !planSeleccionado || loadingPlanes}
+            className="block w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white"
+          />
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label>Subir archivo</Label>
+          <label className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded cursor-pointer disabled:opacity-50">
+            <Upload className="mr-2 h-4 w-4" />
+            {uploading ? "Cargando..." : "Subir Historia Académica"}
+            <input
+              type="file"
+              accept=".xls,.xlsx,.pdf"
+              onChange={(e) => handleFileUpload(e, false)}
+              disabled={uploading || !planSeleccionado || loadingPlanes}
+              className="hidden"
+            />
+          </label>
         </div>
       )}
 
