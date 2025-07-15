@@ -599,7 +599,7 @@ export default function Recomendacion({ user }) {
                 type="file"
                 ref={fileInputRef}
                 accept=".pdf,.xls,.xlsx,application/pdf"
-                onChange={alert("Archivo seleccionado")}
+                onChange={console.log("File changed")}
                 className="hidden"
                 disabled={
                   state.uploading ||
