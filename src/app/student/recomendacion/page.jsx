@@ -610,13 +610,15 @@ export default function Recomendacion({ user }) {
 
               <button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={alert(Tebo)}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-              >Subir Historia Academica</button>
+              >
+                Subir Historia Academica
+              </button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
