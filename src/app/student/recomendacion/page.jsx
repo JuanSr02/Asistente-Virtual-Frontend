@@ -18,17 +18,12 @@ import {
   Sparkles,
   Youtube,
   FileText,
-  BadgePercent,
-  Star,
-  CalendarDays,
-  Clock,
   ThumbsUp,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -43,68 +38,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
-// Componente separado para el input de archivo que persiste el archivo
-function PersistentFileInput({
-  onFileSelect,
-  disabled,
-  accept,
-  buttonText,
-  className,
-}) {
-  const inputRef = useRef(null);
-  const fileRef = useRef(null);
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Clonar el archivo para evitar que se pierda
-      fileRef.current = file;
-      onFileSelect(file);
-    }
-  };
-
-  const handleButtonClick = () => {
-    if (inputRef.current) {
-      inputRef.current.click();
-    }
-  };
-
-  // Limpiar el input después de procesar
-  const clearInput = () => {
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
-    fileRef.current = null;
-  };
-
-  // Exponer la función de limpieza
-  useEffect(() => {
-    if (onFileSelect.clearInput) {
-      onFileSelect.clearInput = clearInput;
-    }
-  }, [onFileSelect]);
-
-  return (
-    <>
-      <input
-        type="file"
-        ref={inputRef}
-        onChange={handleFileChange}
-        accept={accept}
-        className="hidden"
-        disabled={disabled}
-      />
-      <Button
-        className={className}
-        onClick={handleButtonClick}
-        disabled={disabled}
-      >
-        {buttonText}
-      </Button>
-    </>
-  );
-}
-
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -115,9 +48,13 @@ export default function Recomendacion({ user }) {
     isInitialized,
   } = useEnhancedSessionPersistence();
 
+  const fileInputRef = useRef(null);
+  const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
-  const fileInputClearRef = useRef(null);
-  const updateFileInputClearRef = useRef(null);
+
+  // Refs para almacenar archivos de forma segura
+  const pendingFileRef = useRef(null);
+  const pendingUpdateFileRef = useRef(null);
 
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
@@ -144,6 +81,7 @@ export default function Recomendacion({ user }) {
       );
       if (!personaData)
         personaData = await personaService.obtenerPersonaPorEmail(user.email);
+
       if (!personaData) {
         updateState({
           error: "No se encontró tu perfil en el sistema.",
@@ -151,11 +89,14 @@ export default function Recomendacion({ user }) {
         });
         return;
       }
+
       updateState({ persona: personaData, personaId: personaData.id });
+
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
         );
+
       if (historia) {
         updateState({ historiaAcademica: historia });
         const tieneRecomendacionesGuardadas =
@@ -163,6 +104,7 @@ export default function Recomendacion({ user }) {
           state.personaId === personaData.id &&
           state.lastFetch &&
           !isStateStale(30);
+
         if (tieneRecomendacionesGuardadas) {
           // Ya están en el estado
         } else {
@@ -241,11 +183,9 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  const handleFileUpload = async (file, isUpdate = false) => {
+  // Función auxiliar para procesar archivo de forma segura
+  const processFile = async (file, isUpdate = false) => {
     if (!file) return;
-
-    // Clonar el archivo inmediatamente para evitar que se pierda
-    const fileClone = new File([file], file.name, { type: file.type });
 
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
@@ -259,12 +199,6 @@ export default function Recomendacion({ user }) {
       updateState({
         error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       });
-      // Limpiar el input
-      if (isUpdate && updateFileInputClearRef.current) {
-        updateFileInputClearRef.current();
-      } else if (fileInputClearRef.current) {
-        fileInputClearRef.current();
-      }
       return;
     }
 
@@ -277,96 +211,111 @@ export default function Recomendacion({ user }) {
       return;
     }
 
-    // Usar requestAnimationFrame para asegurar que el archivo se procese antes del rerender
-    requestAnimationFrame(async () => {
-      updateState({ uploading: true, error: null, success: null });
+    updateState({ uploading: true, error: null, success: null });
 
-      try {
-        let resultado;
-        console.log("Archivo a subir:", fileClone);
-        console.log("Tipo:", fileClone.type, "Tamaño:", fileClone.size);
+    try {
+      let resultado;
+      console.log("Archivo a subir:", file);
+      console.log("Tipo:", file.type, "Tamaño:", file.size);
 
-        if (isUpdate) {
-          resultado =
-            await historiaAcademicaService.actualizarHistoriaAcademica(
-              fileClone,
-              state.persona.id,
-              planAUsar
+      if (isUpdate)
+        resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
+          file,
+          state.persona.id,
+          planAUsar
+        );
+      else
+        resultado = await historiaAcademicaService.cargarHistoriaAcademica(
+          file,
+          state.persona.id,
+          planAUsar
+        );
+
+      if (resultado && resultado.mensaje) {
+        const accion = isUpdate ? "actualizada" : "cargada";
+        let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
+        if (resultado.cantidadMateriasNuevas)
+          mensaje += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
+        if (resultado.cantidadMateriasActualizadas)
+          mensaje += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
+        updateState({ success: mensaje });
+      } else {
+        const accion = isUpdate ? "actualizada" : "cargada";
+        updateState({ success: `Historia académica ${accion} exitosamente` });
+      }
+
+      clearRecomendaciones();
+
+      setTimeout(async () => {
+        try {
+          const historia =
+            await historiaAcademicaService.verificarHistoriaAcademica(
+              state.persona.id
             );
-        } else {
-          resultado = await historiaAcademicaService.cargarHistoriaAcademica(
-            fileClone,
-            state.persona.id,
-            planAUsar
-          );
-        }
-
-        if (resultado && resultado.mensaje) {
-          const accion = isUpdate ? "actualizada" : "cargada";
-          let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
-          if (resultado.cantidadMateriasNuevas)
-            mensaje += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
-          if (resultado.cantidadMateriasActualizadas)
-            mensaje += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
-          updateState({ success: mensaje });
-        } else {
-          const accion = isUpdate ? "actualizada" : "cargada";
-          updateState({ success: `Historia académica ${accion} exitosamente` });
-        }
-
-        clearRecomendaciones();
-
-        setTimeout(async () => {
-          try {
-            const historia =
-              await historiaAcademicaService.verificarHistoriaAcademica(
-                state.persona.id
-              );
-            if (historia) {
-              updateState({
-                historiaAcademica: historia,
-                criterioOrden: "CORRELATIVAS",
-              });
-              await obtenerRecomendaciones(state.persona.id, "CORRELATIVAS");
-            } else {
-              updateState({
-                error:
-                  "La historia se procesó pero no se pudo verificar. Intenta recargar la página.",
-              });
-            }
-          } catch (reloadErr) {
+          if (historia) {
+            updateState({
+              historiaAcademica: historia,
+              criterioOrden: "CORRELATIVAS",
+            });
+            await obtenerRecomendaciones(state.persona.id, "CORRELATIVAS");
+          } else {
             updateState({
               error:
-                "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
+                "La historia se procesó pero no se pudo verificar. Intenta recargar la página.",
             });
           }
-        }, 2000);
-      } catch (err) {
-        let errorMessage = "Error al procesar el archivo.";
-        if (err.response) {
-          const { status, data } = err.response;
-          if (status === 400)
-            errorMessage =
-              data?.message || "El archivo no tiene el formato correcto.";
-          else if (status === 404)
-            errorMessage = "Plan de estudio no encontrado.";
-          else if (status === 500) errorMessage = data?.message;
-          else
-            errorMessage = data?.message || `Error ${status}: ${err.message}`;
-        } else if (err.request)
-          errorMessage = "No se pudo conectar con el servidor.";
-        else errorMessage = err.message || "Error desconocido.";
-        updateState({ error: errorMessage });
-      } finally {
-        updateState({ uploading: false });
-        // Limpiar el input
-        if (isUpdate && updateFileInputClearRef.current) {
-          updateFileInputClearRef.current();
-        } else if (fileInputClearRef.current) {
-          fileInputClearRef.current();
+        } catch (reloadErr) {
+          updateState({
+            error:
+              "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
+          });
         }
+      }, 2000);
+    } catch (err) {
+      let errorMessage = "Error al procesar el archivo.";
+      if (err.response) {
+        const { status, data } = err.response;
+        if (status === 400)
+          errorMessage =
+            data?.message || "El archivo no tiene el formato correcto.";
+        else if (status === 404)
+          errorMessage = "Plan de estudio no encontrado.";
+        else if (status === 500) errorMessage = data?.message;
+        else errorMessage = data?.message || `Error ${status}: ${err.message}`;
+      } else if (err.request)
+        errorMessage = "No se pudo conectar con el servidor.";
+      else errorMessage = err.message || "Error desconocido.";
+
+      updateState({ error: errorMessage });
+    } finally {
+      updateState({ uploading: false });
+      // Limpiar los refs de archivos pendientes
+      if (isUpdate) {
+        pendingUpdateFileRef.current = null;
+        if (updateFileInputRef.current) updateFileInputRef.current.value = "";
+      } else {
+        pendingFileRef.current = null;
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
-    });
+    }
+  };
+
+  // Manejador mejorado para la subida de archivos
+  const handleFileUpload = async (event, isUpdate = false) => {
+    // CRÍTICO: Capturar el archivo INMEDIATAMENTE antes de cualquier updateState
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    // Almacenar el archivo en un ref para evitar que se pierda durante re-renders
+    if (isUpdate) {
+      pendingUpdateFileRef.current = file;
+    } else {
+      pendingFileRef.current = file;
+    }
+
+    // Procesar el archivo usando la referencia almacenada
+    await processFile(file, isUpdate);
   };
 
   const handleEliminarHistoria = async () => {
@@ -376,6 +325,7 @@ export default function Recomendacion({ user }) {
       )
     )
       return;
+
     updateState({ uploading: true, error: null, success: null });
     try {
       await historiaAcademicaService.eliminarHistoriaAcademica(
@@ -418,6 +368,7 @@ export default function Recomendacion({ user }) {
         : d >= 3
           ? "text-yellow-600 bg-yellow-100"
           : "text-green-600 bg-green-100";
+
   const getDificultadTexto = (d) =>
     d >= 7
       ? "Alta"
@@ -437,24 +388,6 @@ export default function Recomendacion({ user }) {
       return () => clearTimeout(timer);
     }
   }, [state.success, state.error, updateState]);
-
-  // Crear funciones de callback para el manejo de archivos
-  const handleInitialFileSelect = (file) => {
-    handleFileUpload(file, false);
-  };
-
-  const handleUpdateFileSelect = (file) => {
-    handleFileUpload(file, true);
-  };
-
-  // Asignar referencias de limpieza
-  handleInitialFileSelect.clearInput = (clearFn) => {
-    fileInputClearRef.current = clearFn;
-  };
-
-  handleUpdateFileSelect.clearInput = (clearFn) => {
-    updateFileInputClearRef.current = clearFn;
-  };
 
   if (!isInitialized || (state.loadingPersona && !state.persona)) {
     return (
@@ -501,6 +434,7 @@ export default function Recomendacion({ user }) {
           <p className="text-sm">{state.error}</p>
         </div>
       )}
+
       {state.success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
@@ -566,29 +500,34 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <PersistentFileInput
-                onFileSelect={handleInitialFileSelect}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => handleFileUpload(e, false)}
+                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                className="hidden"
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                buttonText={
-                  state.uploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Cargando...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Subir Historia Académica
-                    </>
-                  )
-                }
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
               />
+              <Button
+                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={
+                  state.uploading ||
+                  !state.planSeleccionado ||
+                  state.loadingPlanes
+                }
+              >
+                {state.uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -606,18 +545,24 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <PersistentFileInput
-                  onFileSelect={handleUpdateFileSelect}
-                  disabled={state.uploading}
+                <input
+                  type="file"
+                  ref={updateFileInputRef}
+                  onChange={(e) => handleFileUpload(e, true)}
                   accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  buttonText={
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      {state.uploading ? "Cargando..." : "Actualizar"}
-                    </>
-                  }
-                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                  className="hidden"
+                  disabled={state.uploading}
                 />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFileInputRef.current?.click()}
+                  disabled={state.uploading}
+                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {state.uploading ? "Cargando..." : "Actualizar"}
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"

@@ -1,4 +1,5 @@
-// hooks/useEnhancedSessionPersistence.js
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 
 const STORAGE_KEY = "recomendacion_complete_state";
@@ -10,23 +11,19 @@ export function useEnhancedSessionPersistence() {
     historiaAcademica: null,
     recomendaciones: [],
     planes: [],
-
     // Estados de UI
     criterioOrden: "CORRELATIVAS",
     planSeleccionado: "",
-
     // Metadata de persistencia
     personaId: null,
     lastFetch: null,
     lastUpdate: null,
     isInitialized: false,
-
     // Estados de carga (no se persisten)
     loadingPersona: true,
     loadingRecomendaciones: false,
     loadingPlanes: false,
     uploading: false,
-
     // Estados de mensajes (no se persisten)
     error: null,
     success: null,
@@ -42,7 +39,6 @@ export function useEnhancedSessionPersistence() {
         if (savedState) {
           const parsed = JSON.parse(savedState);
           console.log("Cargando estado guardado:", parsed);
-
           // Solo cargar si los datos no están muy antiguos (menos de 1 hora)
           const lastUpdate = parsed.lastUpdate
             ? new Date(parsed.lastUpdate)
@@ -112,7 +108,6 @@ export function useEnhancedSessionPersistence() {
     (updates) => {
       setState((prevState) => {
         const newState = { ...prevState, ...updates };
-
         // Solo guardar si hay cambios significativos (no estados de carga)
         const significantKeys = [
           "persona",
@@ -124,6 +119,7 @@ export function useEnhancedSessionPersistence() {
           "personaId",
           "lastFetch",
         ];
+
         const hasSignificantChanges = Object.keys(updates).some((key) =>
           significantKeys.includes(key)
         );
@@ -178,11 +174,9 @@ export function useEnhancedSessionPersistence() {
   const isStateStale = useCallback(
     (maxAgeMinutes = 30) => {
       if (!state.lastUpdate) return true;
-
       const lastUpdate = new Date(state.lastUpdate);
       const now = new Date();
       const maxAge = maxAgeMinutes * 60 * 1000;
-
       return now - lastUpdate > maxAge;
     },
     [state.lastUpdate]
