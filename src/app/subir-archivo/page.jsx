@@ -8,6 +8,7 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
   const [mensaje, setMensaje] = useState(null);
 
   const handleFileChange = (e) => {
+    alert("¡Archivo seleccionado! Ahora se procederá a subirlo.");
     const archivoOriginal = e.target.files?.[0];
 
     if (!archivoOriginal) {
