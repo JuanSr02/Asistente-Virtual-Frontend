@@ -441,9 +441,7 @@ export default function Recomendacion({ user }) {
       const event = new Event("input", { bubbles: true });
       fileInputRef.current?.dispatchEvent(event);
     }, 300);
-
   };
-
 
   const getDificultadColor = (d) =>
     d >= 7
@@ -605,7 +603,7 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                onInput={(e) => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return; // El usuario canceló
 
