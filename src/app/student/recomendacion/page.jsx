@@ -55,21 +55,6 @@ export default function Recomendacion({ user }) {
   const [fileDebugInfo, setFileDebugInfo] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar si es móvil
-  useEffect(() => {
-    const checkMobile = () => {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      const isMobileDevice =
-        /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-          userAgent.toLowerCase()
-        );
-      setIsMobile(isMobileDevice);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
@@ -437,10 +422,6 @@ export default function Recomendacion({ user }) {
       inputRef.current.value = ""; // Resetear
       inputRef.current.click(); // Solo click, sin más circo
     }
-    setTimeout(() => {
-      const event = new Event("input", { bubbles: true });
-      fileInputRef.current?.dispatchEvent(event);
-    }, 5000);
   };
 
   const getDificultadColor = (d) =>
