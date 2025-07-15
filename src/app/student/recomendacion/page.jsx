@@ -490,7 +490,9 @@ export default function Recomendacion({ user }) {
                     accept=".xls,.xlsx,.pdf"
                     onChange={(e) => handleFileUpload(e, false)}
                     disabled={
-                      state.uploading || !planSeleccionado || loadingPlanes
+                      state.uploading ||
+                      !state.planSeleccionado ||
+                      state.loadingPlanes
                     }
                     className="hidden"
                   />
