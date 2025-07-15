@@ -432,16 +432,13 @@ export default function Recomendacion({ user }) {
   // Función simplificada para triggear el input de archivo
   const triggerFileInput = (isUpdate = false) => {
     const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
-    if (inputRef.current) {
-      inputRef.current.value = "";
-      inputRef.current.click();
-    }
-    setTimeout(() => {
-      const event = new Event("input", { bubbles: true });
-      fileInputRef.current?.dispatchEvent(event);
-    }, 10000);
 
+    if (inputRef.current) {
+      inputRef.current.value = ""; // Resetear
+      inputRef.current.click(); // Solo click, sin más circo
+    }
   };
+
 
   const getDificultadColor = (d) =>
     d >= 7
@@ -603,10 +600,15 @@ export default function Recomendacion({ user }) {
               <input
                 type="file"
                 ref={fileInputRef}
-                accept=".pdf,.xls,.xlsx,application/pdf"
-                onChange={(e) => handleFileUpload(e, false)}
-                onInput={(e) => handleFileUpload(e, false)}
-                className="hidden"
+                onInput={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return; // El usuario canceló
+
+                  handleFileUpload(e, false); // Solo si eligió algo
+                }}
+                accept=".pdf,.xls,.xlsx"
+                className="absolute left-[-9999px]"
+                style={{ display: "block" }}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
