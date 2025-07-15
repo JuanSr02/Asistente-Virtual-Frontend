@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import personaService from "@/services/personaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
@@ -47,14 +48,11 @@ export default function Recomendacion({ user }) {
     isInitialized,
   } = useEnhancedSessionPersistence();
 
-  const fileInputRef = useRef(null);
-  const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
 
   // Estados adicionales para debugging móvil
   const [fileDebugInfo, setFileDebugInfo] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-
 
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
@@ -183,41 +181,24 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función mejorada para manejar archivos con mejor compatibilidad móvil
-  const handleFileUpload = async (event, isUpdate = false) => {
+  // Función adaptada para manejar archivos con react-dropzone
+  const handleFileUpload = async (files, isUpdate = false) => {
     console.log("🔍 File upload iniciado", { isMobile, isUpdate });
 
-    const files = event.target.files;
-    const file = files?.[0];
-
-    console.log("📱 Event details:", {
-      type: event.type,
-      target: event.target,
-      files: files,
-      hasFiles: !!files,
-      filesLength: files?.length,
-    });
-
     if (!files || files.length === 0) {
-      console.log("❌ No files in event");
+      console.log("❌ No files provided");
       updateState({
         error: "No se seleccionó ningún archivo. Intenta nuevamente.",
       });
       return;
     }
 
-    if (!file) {
-      console.log("❌ No file selected");
-      updateState({
-        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
-      });
-      return;
-    }
+    const file = files[0];
 
     // Debug info para móviles
     setFileDebugInfo({
-      hasFiles: !!event.target.files,
-      filesLength: event.target.files?.length || 0,
+      hasFiles: !!files,
+      filesLength: files?.length || 0,
       fileName: file?.name || "No file",
       fileSize: file?.size || 0,
       fileType: file?.type || "No type",
@@ -225,8 +206,8 @@ export default function Recomendacion({ user }) {
     });
 
     console.log("📱 File debug info:", {
-      hasFiles: !!event.target.files,
-      filesLength: event.target.files?.length || 0,
+      hasFiles: !!files,
+      filesLength: files?.length || 0,
       fileName: file?.name || "No file",
       fileSize: file?.size || 0,
       fileType: file?.type || "No type",
@@ -235,12 +216,10 @@ export default function Recomendacion({ user }) {
     // Validación de archivo mejorada para móviles
     const fileName = file.name.toLowerCase();
     const fileType = file.type.toLowerCase();
-
     const isValidExtension =
       fileName.endsWith(".pdf") ||
       fileName.endsWith(".xls") ||
       fileName.endsWith(".xlsx");
-
     const isValidMimeType =
       fileType.includes("pdf") ||
       fileType.includes("excel") ||
@@ -260,12 +239,6 @@ export default function Recomendacion({ user }) {
       updateState({
         error: `Tipo de archivo no permitido. Usa archivos PDF, XLS o XLSX. Archivo detectado: ${fileName} (${fileType})`,
       });
-      // Limpiar input
-      if (isUpdate && updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       return;
     }
 
@@ -363,12 +336,6 @@ export default function Recomendacion({ user }) {
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
-      // Limpiar inputs
-      if (isUpdate && updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
@@ -414,15 +381,43 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función simplificada para triggear el input de archivo
-  const triggerFileInput = (isUpdate = false) => {
-    const inputRef = isUpdate ? updateFileInputRef : fileInputRef;
+  // Configuración para dropzone inicial (cargar historia)
+  const {
+    getRootProps: getRootPropsInitial,
+    getInputProps: getInputPropsInitial,
+    isDragActive: isDragActiveInitial,
+    isDragReject: isDragRejectInitial,
+  } = useDropzone({
+    onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, false),
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+    },
+    multiple: false,
+    disabled: state.uploading || !state.planSeleccionado || state.loadingPlanes,
+  });
 
-    if (inputRef.current) {
-      inputRef.current.value = ""; // Resetear
-      inputRef.current.click(); // Solo click, sin más circo
-    }
-  };
+  // Configuración para dropzone de actualización
+  const {
+    getRootProps: getRootPropsUpdate,
+    getInputProps: getInputPropsUpdate,
+    isDragActive: isDragActiveUpdate,
+    isDragReject: isDragRejectUpdate,
+  } = useDropzone({
+    onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, true),
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+    },
+    multiple: false,
+    disabled: state.uploading,
+  });
 
   const getDificultadColor = (d) =>
     d >= 7
@@ -547,7 +542,6 @@ export default function Recomendacion({ user }) {
                 Ver Video
               </Button>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="plan-select">
                 1. Selecciona tu plan de estudio
@@ -577,27 +571,48 @@ export default function Recomendacion({ user }) {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-
-              {/* NUEVO input envuelto en LABEL */}
-              <label className="w-full">
-                <span className="w-full inline-block bg-blue-400 hover:bg-blue-500 text-white text-center py-2 rounded cursor-pointer">
-                  Subir Historia Académica
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.xls,.xlsx"
-                  onChange={(e) => handleFileUpload(e, false)}
-                  className="hidden"
-                  disabled={
-                    state.uploading ||
-                    !state.planSeleccionado ||
-                    state.loadingPlanes
-                  }
-                />
-              </label>
+              {/* DROPZONE para cargar historia inicial */}
+              <div
+                {...getRootPropsInitial()}
+                className={`w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  isDragActiveInitial
+                    ? "border-blue-500 bg-blue-50"
+                    : isDragRejectInitial
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                } ${
+                  state.uploading ||
+                  !state.planSeleccionado ||
+                  state.loadingPlanes
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                <input {...getInputPropsInitial()} />
+                <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                {isDragActiveInitial ? (
+                  <p className="text-blue-600 font-medium">
+                    Suelta el archivo aquí...
+                  </p>
+                ) : isDragRejectInitial ? (
+                  <p className="text-red-600 font-medium">
+                    Tipo de archivo no válido
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-gray-600 font-medium mb-1">
+                      {state.uploading
+                        ? "Cargando..."
+                        : "Arrastra tu archivo aquí o haz clic para seleccionar"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Archivos soportados: PDF, XLS, XLSX
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -615,21 +630,25 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {/* LABEL con input oculto para actualizar */}
-                <label className="w-full sm:w-auto">
-                  <span className="inline-flex justify-center items-center bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm cursor-pointer w-full sm:w-auto">
-                    <Upload className="mr-2 h-4 w-4" />
-                    {state.uploading ? "Cargando..." : "Actualizar"}
-                  </span>
-                  <input
-                    type="file"
-                    accept=".pdf,.xls,.xlsx"
-                    onChange={(e) => handleFileUpload(e, true)}
-                    className="hidden"
-                    disabled={state.uploading}
-                  />
-                </label>
-
+                {/* DROPZONE para actualizar historia */}
+                <div
+                  {...getRootPropsUpdate()}
+                  className={`inline-flex justify-center items-center bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm cursor-pointer transition-colors ${
+                    isDragActiveUpdate
+                      ? "bg-blue-600"
+                      : isDragRejectUpdate
+                        ? "bg-red-500"
+                        : ""
+                  } ${state.uploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <input {...getInputPropsUpdate()} />
+                  <Upload className="mr-2 h-4 w-4" />
+                  {state.uploading
+                    ? "Cargando..."
+                    : isDragActiveUpdate
+                      ? "Suelta aquí"
+                      : "Actualizar"}
+                </div>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -774,7 +793,6 @@ export default function Recomendacion({ user }) {
                             </div>
                           </div>
                         )}
-
                         {state.criterioOrden === "ESTADISTICAS" && (
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
                             <div className="bg-gray-50 p-2 rounded-lg">
