@@ -609,16 +609,9 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <UploadSeguro
-                isUpdate={false}
-                onFileReady={(files, isUpdate) =>
-                  handleFileUpload(files, isUpdate)
-                }
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
+              <SubirArchivo
+                personaId={state.persona.id}
+                planSeleccionado={state.planSeleccionado}
               />
             </div>
           </CardContent>
