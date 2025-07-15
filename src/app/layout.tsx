@@ -8,7 +8,7 @@ import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-const publicRoutes = ["/reset-password", "/auth","/subir-archivo"];
+const publicRoutes = ["/reset-password", "/auth", "/subida-mobile"];
 
 // Componente separado para el loading (sin cambios, ya es responsive)
 const LoadingScreen = () => (
