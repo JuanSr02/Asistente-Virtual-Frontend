@@ -44,6 +44,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
 // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
+function esDispositivoMovil() {
+  if (typeof window === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -353,10 +359,7 @@ export default function Recomendacion({ user }) {
     }
   }, [state.success, state.error, updateState]);
 
-  function esDispositivoMovil() {
-    if (typeof window === "undefined") return false;
-    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  }
+  
 
   if (!isInitialized || (state.loadingPersona && !state.persona)) {
     return (
@@ -407,33 +410,6 @@ export default function Recomendacion({ user }) {
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{state.success}</p>
-        </div>
-      )}
-
-      {esDispositivoMovil() ? (
-        <div className="space-y-2">
-          <Label htmlFor="upload-movil">Subir desde móvil</Label>
-          <input
-            id="upload-movil"
-            type="file"
-            accept=".xls,.xlsx,.pdf"
-            onChange={(e) => handleFileUpload(e, false)}
-            className="block w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white"
-          />
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label>Subir archivo</Label>
-          <label className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded cursor-pointer disabled:opacity-50">
-            <Upload className="mr-2 h-4 w-4" />
-            {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-            <input
-              type="file"
-              accept=".xls,.xlsx,.pdf"
-              onChange={(e) => handleFileUpload(e, false)}
-              className="hidden"
-            />
-          </label>
         </div>
       )}
 
@@ -493,37 +469,36 @@ export default function Recomendacion({ user }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>2. Sube el archivo</Label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="hidden"
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              />
-              <Button
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
-              >
-                {state.uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
+            {esDispositivoMovil() ? (
+              <div className="space-y-2">
+                <Label htmlFor="upload-movil">
+                  2. Subí el archivo (modo móvil)
+                </Label>
+                <input
+                  id="upload-movil"
+                  type="file"
+                  accept=".xls,.xlsx,.pdf"
+                  onChange={(e) => handleFileUpload(e, false)}
+                  disabled={uploading || !planSeleccionado || loadingPlanes}
+                  className="block w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>2. Sube el archivo</Label>
+                <label className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded cursor-pointer disabled:opacity-50">
                   <Upload className="mr-2 h-4 w-4" />
-                )}
-                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
-              </Button>
-            </div>
+                  {uploading ? "Cargando..." : "Subir Historia Académica"}
+                  <input
+                    type="file"
+                    accept=".xls,.xlsx,.pdf"
+                    onChange={(e) => handleFileUpload(e, false)}
+                    disabled={uploading || !planSeleccionado || loadingPlanes}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (
