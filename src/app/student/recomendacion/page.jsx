@@ -475,6 +475,15 @@ export default function Recomendacion({ user }) {
                   state.loadingPlanes
                 }
               />
+              <div className="space-y-2">
+                <Label>2. Subí el archivo (modo iframe)</Label>
+                <iframe
+                  src={`/subida-mobile?personaId=${state.persona?.id}&plan=${state.planSeleccionado}`}
+                  className="w-full h-[400px] border rounded-md bg-white"
+                  title="Subida desde móvil"
+                />
+              </div>
+
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
                 onClick={() => fileInputRef.current?.click()}
