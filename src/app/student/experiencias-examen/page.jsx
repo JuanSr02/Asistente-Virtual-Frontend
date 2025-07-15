@@ -411,7 +411,7 @@ export default function ExperienciasExamen({ user }) {
                 <SelectContent>
                   {planes.map((p) => (
                     <SelectItem key={p.codigo} value={p.codigo}>
-                      {p.propuesta}
+                      {p.propuesta} {p.codigo}
                     </SelectItem>
                   ))}
                 </SelectContent>
