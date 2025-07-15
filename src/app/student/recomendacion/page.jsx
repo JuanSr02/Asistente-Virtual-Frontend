@@ -497,18 +497,23 @@ export default function Recomendacion({ user }) {
                 className="hidden"
                 disabled={uploading || !planSeleccionado || loadingPlanes}
               />
-              <Button
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+              <button
+                className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded disabled:opacity-50"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || !planSeleccionado || loadingPlanes}
               >
                 {uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Cargando...
+                  </>
                 ) : (
-                  <Upload className="mr-2 h-4 w-4" />
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Subir Historia Académica
+                  </>
                 )}
-                {uploading ? "Cargando..." : "Subir Historia Académica"}
-              </Button>
+              </button>
             </div>
           </CardContent>
         </Card>
