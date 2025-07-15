@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import personaService from "@/services/personaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
-import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
 import { APP_CONFIG } from "@/lib/config";
 import {
   Loader2,
@@ -39,42 +38,50 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
 export default function Recomendacion({ user }) {
-  const {
-    state,
-    updateState,
-    clearRecomendaciones,
-    clearAllState,
-    isStateStale,
-    isInitialized,
-  } = useEnhancedSessionPersistence();
+  // Estados principales
+  const [persona, setPersona] = useState(null);
+  const [historiaAcademica, setHistoriaAcademica] = useState(null);
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [planes, setPlanes] = useState([]);
 
+  // Estados de UI
+  const [criterioOrden, setCriterioOrden] = useState("CORRELATIVAS");
+  const [planSeleccionado, setPlanSeleccionado] = useState("");
+
+  // Estados de carga
+  const [loadingPersona, setLoadingPersona] = useState(true);
+  const [loadingRecomendaciones, setLoadingRecomendaciones] = useState(false);
+  const [loadingPlanes, setLoadingPlanes] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  // Estados de mensajes
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  // Referencias
   const fileInputRef = useRef(null);
   const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
-
-  // Refs para almacenar archivos de forma segura
   const pendingFileRef = useRef(null);
   const pendingUpdateFileRef = useRef(null);
 
   useEffect(() => {
-    if (user && isInitialized && !hasLoadedInitialData.current) {
+    if (user && !hasLoadedInitialData.current) {
       hasLoadedInitialData.current = true;
       cargarDatosIniciales();
     }
-  }, [user, isInitialized]);
+  }, [user]);
 
   useEffect(() => {
-    if (
-      state.persona &&
-      !state.historiaAcademica &&
-      state.planes.length === 0
-    ) {
+    if (persona && !historiaAcademica && planes.length === 0) {
       cargarPlanes();
     }
-  }, [state.persona, state.historiaAcademica, state.planes.length]);
+  }, [persona, historiaAcademica, planes.length]);
 
   const cargarDatosIniciales = async () => {
-    updateState({ loadingPersona: true, error: null });
+    setLoadingPersona(true);
+    setError(null);
+
     try {
       let personaData = await personaService.obtenerPersonaPorSupabaseId(
         user.id
@@ -83,14 +90,12 @@ export default function Recomendacion({ user }) {
         personaData = await personaService.obtenerPersonaPorEmail(user.email);
 
       if (!personaData) {
-        updateState({
-          error: "No se encontró tu perfil en el sistema.",
-          loadingPersona: false,
-        });
+        setError("No se encontró tu perfil en el sistema.");
+        setLoadingPersona(false);
         return;
       }
 
-      updateState({ persona: personaData, personaId: personaData.id });
+      setPersona(personaData);
 
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
@@ -98,70 +103,52 @@ export default function Recomendacion({ user }) {
         );
 
       if (historia) {
-        updateState({ historiaAcademica: historia });
-        const tieneRecomendacionesGuardadas =
-          state.recomendaciones.length > 0 &&
-          state.personaId === personaData.id &&
-          state.lastFetch &&
-          !isStateStale(30);
-
-        if (tieneRecomendacionesGuardadas) {
-          // Ya están en el estado
-        } else {
-          await obtenerRecomendaciones(
-            personaData.id,
-            state.criterioOrden,
-            true
-          );
-        }
+        setHistoriaAcademica(historia);
+        await obtenerRecomendaciones(personaData.id, criterioOrden, true);
       } else {
-        updateState({ historiaAcademica: null });
+        setHistoriaAcademica(null);
         await cargarPlanes();
       }
     } catch (err) {
       console.error("Error al cargar datos iniciales:", err);
-      updateState({
-        error: "Error al cargar tus datos. Intenta nuevamente.",
-        loadingPersona: false,
-      });
+      setError("Error al cargar tus datos. Intenta nuevamente.");
     } finally {
-      updateState({ loadingPersona: false });
+      setLoadingPersona(false);
     }
   };
 
   const cargarPlanes = async () => {
-    if (state.loadingPlanes) return;
-    updateState({ loadingPlanes: true });
+    if (loadingPlanes) return;
+    setLoadingPlanes(true);
+
     try {
       const data = await planesEstudioService.obtenerPlanes();
-      updateState({ planes: data || [] });
+      setPlanes(data || []);
     } catch (err) {
       console.error("Error al cargar planes:", err);
-      updateState({ error: "Error al cargar los planes de estudio." });
+      setError("Error al cargar los planes de estudio.");
     } finally {
-      updateState({ loadingPlanes: false });
+      setLoadingPlanes(false);
     }
   };
 
   const obtenerRecomendaciones = async (
-    estudianteId = state.persona?.id,
-    orden = state.criterioOrden,
+    estudianteId = persona?.id,
+    orden = criterioOrden,
     isAutoLoad = false
   ) => {
     if (!estudianteId) return;
-    updateState({ loadingRecomendaciones: true, error: null });
+    setLoadingRecomendaciones(true);
+    setError(null);
+
     try {
       const data = await recomendacionService.obtenerFinalesParaRendir(
         estudianteId,
         orden
       );
       const recomendacionesArray = Array.isArray(data) ? data : [];
-      updateState({
-        recomendaciones: recomendacionesArray,
-        criterioOrden: orden,
-        personaId: estudianteId,
-        lastFetch: new Date().toISOString(),
-      });
+      setRecomendaciones(recomendacionesArray);
+      setCriterioOrden(orden);
     } catch (err) {
       let errorMessage = "Error al obtener las recomendaciones.";
       if (err.response) {
@@ -176,11 +163,17 @@ export default function Recomendacion({ user }) {
             data?.message ||
             `Error ${status}: No se pudieron obtener las recomendaciones.`;
       }
-      updateState({ error: errorMessage, recomendaciones: [] });
+      setError(errorMessage);
+      setRecomendaciones([]);
       if (!isAutoLoad) clearRecomendaciones();
     } finally {
-      updateState({ loadingRecomendaciones: false });
+      setLoadingRecomendaciones(false);
     }
+  };
+
+  const clearRecomendaciones = () => {
+    setRecomendaciones([]);
+    setCriterioOrden("CORRELATIVAS");
   };
 
   // Función auxiliar para procesar archivo de forma segura
@@ -196,22 +189,24 @@ export default function Recomendacion({ user }) {
       !APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
       !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
     ) {
-      updateState({
-        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
-      });
+      setError(
+        `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`
+      );
       return;
     }
 
     const planAUsar = isUpdate
-      ? state.historiaAcademica?.plan_de_estudio_codigo
-      : state.planSeleccionado;
+      ? historiaAcademica?.plan_de_estudio_codigo
+      : planSeleccionado;
 
     if (!planAUsar) {
-      updateState({ error: "Por favor, selecciona un plan de estudio." });
+      setError("Por favor, selecciona un plan de estudio.");
       return;
     }
 
-    updateState({ uploading: true, error: null, success: null });
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
 
     try {
       let resultado;
@@ -221,13 +216,13 @@ export default function Recomendacion({ user }) {
       if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
-          state.persona.id,
+          persona.id,
           planAUsar
         );
       else
         resultado = await historiaAcademicaService.cargarHistoriaAcademica(
           file,
-          state.persona.id,
+          persona.id,
           planAUsar
         );
 
@@ -238,10 +233,10 @@ export default function Recomendacion({ user }) {
           mensaje += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
         if (resultado.cantidadMateriasActualizadas)
           mensaje += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
-        updateState({ success: mensaje });
+        setSuccess(mensaje);
       } else {
         const accion = isUpdate ? "actualizada" : "cargada";
-        updateState({ success: `Historia académica ${accion} exitosamente` });
+        setSuccess(`Historia académica ${accion} exitosamente`);
       }
 
       clearRecomendaciones();
@@ -250,25 +245,21 @@ export default function Recomendacion({ user }) {
         try {
           const historia =
             await historiaAcademicaService.verificarHistoriaAcademica(
-              state.persona.id
+              persona.id
             );
           if (historia) {
-            updateState({
-              historiaAcademica: historia,
-              criterioOrden: "CORRELATIVAS",
-            });
-            await obtenerRecomendaciones(state.persona.id, "CORRELATIVAS");
+            setHistoriaAcademica(historia);
+            setCriterioOrden("CORRELATIVAS");
+            await obtenerRecomendaciones(persona.id, "CORRELATIVAS");
           } else {
-            updateState({
-              error:
-                "La historia se procesó pero no se pudo verificar. Intenta recargar la página.",
-            });
+            setError(
+              "La historia se procesó pero no se pudo verificar. Intenta recargar la página."
+            );
           }
         } catch (reloadErr) {
-          updateState({
-            error:
-              "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
-          });
+          setError(
+            "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página."
+          );
         }
       }, 2000);
     } catch (err) {
@@ -286,9 +277,9 @@ export default function Recomendacion({ user }) {
         errorMessage = "No se pudo conectar con el servidor.";
       else errorMessage = err.message || "Error desconocido.";
 
-      updateState({ error: errorMessage });
+      setError(errorMessage);
     } finally {
-      updateState({ uploading: false });
+      setUploading(false);
       // Limpiar los refs de archivos pendientes
       if (isUpdate) {
         pendingUpdateFileRef.current = null;
@@ -302,7 +293,7 @@ export default function Recomendacion({ user }) {
 
   // Manejador mejorado para la subida de archivos
   const handleFileUpload = async (event, isUpdate = false) => {
-    // CRÍTICO: Capturar el archivo INMEDIATAMENTE antes de cualquier updateState
+    // CRÍTICO: Capturar el archivo INMEDIATAMENTE antes de cualquier setState
     const file = event.target.files?.[0];
 
     if (!file) return;
@@ -326,37 +317,36 @@ export default function Recomendacion({ user }) {
     )
       return;
 
-    updateState({ uploading: true, error: null, success: null });
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+
     try {
-      await historiaAcademicaService.eliminarHistoriaAcademica(
-        state.persona.id
-      );
-      updateState({
-        historiaAcademica: null,
-        recomendaciones: [],
-        criterioOrden: "CORRELATIVAS",
-        success: "Historia académica eliminada.",
-      });
+      await historiaAcademicaService.eliminarHistoriaAcademica(persona.id);
+      setHistoriaAcademica(null);
+      setRecomendaciones([]);
+      setCriterioOrden("CORRELATIVAS");
+      setSuccess("Historia académica eliminada.");
       clearRecomendaciones();
-      if (state.planes.length === 0) await cargarPlanes();
+      if (planes.length === 0) await cargarPlanes();
     } catch (err) {
-      updateState({ error: "Error al eliminar la historia académica." });
+      setError("Error al eliminar la historia académica.");
     } finally {
-      updateState({ uploading: false });
+      setUploading(false);
     }
   };
 
   const handleCriterioChange = (nuevoCriterio) => {
-    updateState({ criterioOrden: nuevoCriterio });
-    if (state.historiaAcademica && state.persona) {
-      obtenerRecomendaciones(state.persona.id, nuevoCriterio);
+    setCriterioOrden(nuevoCriterio);
+    if (historiaAcademica && persona) {
+      obtenerRecomendaciones(persona.id, nuevoCriterio);
     }
   };
 
   const handleRefrescarRecomendaciones = () => {
-    if (state.historiaAcademica && state.persona) {
+    if (historiaAcademica && persona) {
       clearRecomendaciones();
-      obtenerRecomendaciones(state.persona.id, state.criterioOrden);
+      obtenerRecomendaciones(persona.id, criterioOrden);
     }
   };
 
@@ -381,15 +371,16 @@ export default function Recomendacion({ user }) {
             : "Baja";
 
   useEffect(() => {
-    if (state.success || state.error) {
+    if (success || error) {
       const timer = setTimeout(() => {
-        updateState({ success: null, error: null });
+        setSuccess(null);
+        setError(null);
       }, 8000);
       return () => clearTimeout(timer);
     }
-  }, [state.success, state.error, updateState]);
+  }, [success, error]);
 
-  if (!isInitialized || (state.loadingPersona && !state.persona)) {
+  if (loadingPersona && !persona) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-24 w-full" />
@@ -402,7 +393,7 @@ export default function Recomendacion({ user }) {
     );
   }
 
-  if (!state.persona) {
+  if (!persona) {
     return (
       <Card className="text-center p-8">
         <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
@@ -422,27 +413,27 @@ export default function Recomendacion({ user }) {
             📚 Recomendaciones Personalizadas
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Hola {state.persona.nombre_apellido}, aquí tienes las mejores
+            Hola {persona.nombre_apellido}, aquí tienes las mejores
             recomendaciones para tus próximos finales.
           </CardDescription>
         </CardHeader>
       </Card>
 
-      {state.error && (
+      {error && (
         <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
-          <p className="text-sm">{state.error}</p>
+          <p className="text-sm">{error}</p>
         </div>
       )}
 
-      {state.success && (
+      {success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
-          <p className="text-sm">{state.success}</p>
+          <p className="text-sm">{success}</p>
         </div>
       )}
 
-      {!state.historiaAcademica ? (
+      {!historiaAcademica ? (
         <Card>
           <CardHeader className="text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -474,23 +465,21 @@ export default function Recomendacion({ user }) {
                 1. Selecciona tu plan de estudio
               </Label>
               <Select
-                onValueChange={(value) =>
-                  updateState({ planSeleccionado: value })
-                }
-                value={state.planSeleccionado}
-                disabled={state.loadingPlanes}
+                onValueChange={(value) => setPlanSeleccionado(value)}
+                value={planSeleccionado}
+                disabled={loadingPlanes}
               >
                 <SelectTrigger>
                   <SelectValue
                     placeholder={
-                      state.loadingPlanes
+                      loadingPlanes
                         ? "Cargando planes..."
                         : "Selecciona un plan"
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {state.planes.map((plan) => (
+                  {planes.map((plan) => (
                     <SelectItem key={plan.codigo} value={plan.codigo}>
                       {plan.propuesta} ({plan.codigo})
                     </SelectItem>
@@ -506,27 +495,19 @@ export default function Recomendacion({ user }) {
                 onChange={(e) => handleFileUpload(e, false)}
                 accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 className="hidden"
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
+                disabled={uploading || !planSeleccionado || loadingPlanes}
               />
               <Button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={
-                  state.uploading ||
-                  !state.planSeleccionado ||
-                  state.loadingPlanes
-                }
+                disabled={uploading || !planSeleccionado || loadingPlanes}
               >
-                {state.uploading ? (
+                {uploading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <Upload className="mr-2 h-4 w-4" />
                 )}
-                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
+                {uploading ? "Cargando..." : "Subir Historia Académica"}
               </Button>
             </div>
           </CardContent>
@@ -541,7 +522,7 @@ export default function Recomendacion({ user }) {
                   Historia Académica Cargada
                 </CardTitle>
                 <CardDescription>
-                  Plan: {state.historiaAcademica.plan_de_estudio_codigo}
+                  Plan: {historiaAcademica.plan_de_estudio_codigo}
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -551,23 +532,23 @@ export default function Recomendacion({ user }) {
                   onChange={(e) => handleFileUpload(e, true)}
                   accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                   className="hidden"
-                  disabled={state.uploading}
+                  disabled={uploading}
                 />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => updateFileInputRef.current?.click()}
-                  disabled={state.uploading}
+                  disabled={uploading}
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {state.uploading ? "Cargando..." : "Actualizar"}
+                  {uploading ? "Cargando..." : "Actualizar"}
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleEliminarHistoria}
-                  disabled={state.uploading}
+                  disabled={uploading}
                   className="w-full sm:w-auto"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -591,8 +572,8 @@ export default function Recomendacion({ user }) {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <Select
                   onValueChange={handleCriterioChange}
-                  value={state.criterioOrden}
-                  disabled={state.loadingRecomendaciones}
+                  value={criterioOrden}
+                  disabled={loadingRecomendaciones}
                 >
                   <SelectTrigger className="w-full sm:w-[220px]">
                     <SelectValue placeholder="Ordenar por..." />
@@ -611,18 +592,18 @@ export default function Recomendacion({ user }) {
                 </Select>
                 <Button
                   onClick={handleRefrescarRecomendaciones}
-                  disabled={state.loadingRecomendaciones}
+                  disabled={loadingRecomendaciones}
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
                   <RefreshCw
-                    className={`mr-2 h-4 w-4 ${state.loadingRecomendaciones ? "animate-spin" : ""}`}
+                    className={`mr-2 h-4 w-4 ${loadingRecomendaciones ? "animate-spin" : ""}`}
                   />
                   Refrescar
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {state.loadingRecomendaciones ? (
+              {loadingRecomendaciones ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
                   <p className="font-semibold text-gray-700">
@@ -632,7 +613,7 @@ export default function Recomendacion({ user }) {
                     Esto puede tardar un momento.
                   </p>
                 </div>
-              ) : state.recomendaciones.length === 0 ? (
+              ) : recomendaciones.length === 0 ? (
                 <div className="text-center py-12">
                   <ThumbsUp className="mx-auto h-12 w-12 text-green-500 mb-4" />
                   <h3 className="text-xl font-semibold text-gray-800">
@@ -644,7 +625,7 @@ export default function Recomendacion({ user }) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {state.recomendaciones.map((final, index) => (
+                  {recomendaciones.map((final, index) => (
                     <Card
                       key={final.codigoMateria}
                       className="hover:shadow-md transition-shadow"
@@ -663,7 +644,7 @@ export default function Recomendacion({ user }) {
                             </CardDescription>
                           </div>
                         </div>
-                        {state.criterioOrden === "ESTADISTICAS" &&
+                        {criterioOrden === "ESTADISTICAS" &&
                           final.estadisticas && (
                             <span
                               className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(final.estadisticas.promedioDificultad)}`}
@@ -676,7 +657,7 @@ export default function Recomendacion({ user }) {
                           )}
                       </CardHeader>
                       <CardContent>
-                        {state.criterioOrden === "CORRELATIVAS" && (
+                        {criterioOrden === "CORRELATIVAS" && (
                           <div className="bg-blue-50 p-3 rounded-lg flex items-center gap-3">
                             <BookCopy className="h-5 w-5 text-blue-600" />
                             <p className="text-sm">
@@ -687,7 +668,7 @@ export default function Recomendacion({ user }) {
                             </p>
                           </div>
                         )}
-                        {state.criterioOrden === "VENCIMIENTO" && (
+                        {criterioOrden === "VENCIMIENTO" && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="bg-green-50 p-3 rounded-lg">
                               <p className="text-xs text-green-800">
@@ -707,7 +688,7 @@ export default function Recomendacion({ user }) {
                             </div>
                           </div>
                         )}
-                        {state.criterioOrden === "ESTADISTICAS" && (
+                        {criterioOrden === "ESTADISTICAS" && (
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
                             <div className="bg-gray-50 p-2 rounded-lg">
                               <p className="text-xs text-gray-600">Aprobados</p>
