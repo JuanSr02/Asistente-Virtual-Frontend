@@ -439,7 +439,7 @@ export default function Recomendacion({ user }) {
     setTimeout(() => {
       const event = new Event("input", { bubbles: true });
       fileInputRef.current?.dispatchEvent(event);
-    }, 300);
+    }, 10000);
 
   };
 
