@@ -489,31 +489,17 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileUpload(e, false)}
-                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                className="hidden"
-                disabled={uploading || !planSeleccionado || loadingPlanes}
-              />
-              <button
-                className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded disabled:opacity-50"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || !planSeleccionado || loadingPlanes}
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cargando...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Subir Historia Académica
-                  </>
-                )}
-              </button>
+              <label className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded cursor-pointer disabled:opacity-50">
+                <Upload className="mr-2 h-4 w-4" />
+                {uploading ? "Cargando..." : "Subir Historia Académica"}
+                <input
+                  type="file"
+                  accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  onChange={(e) => handleFileUpload(e, false)}
+                  disabled={uploading || !planSeleccionado || loadingPlanes}
+                  className="hidden"
+                />
+              </label>
             </div>
           </CardContent>
         </Card>
