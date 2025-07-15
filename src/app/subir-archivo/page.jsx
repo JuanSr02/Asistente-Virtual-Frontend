@@ -24,34 +24,7 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
     //subirArchivo(file); // delegamos a una función async separada
   };
 
-  const subirArchivo = async (file) => {
-    setMensaje(null);
-    setSubiendo(true);
-
-    try {
-      const resultado = await historiaAcademicaService.cargarHistoriaAcademica(
-        file,
-        personaId,
-        planSeleccionado
-      );
-
-      if (resultado && resultado.mensaje) {
-        let mensajeFinal = `Historia académica cargada: ${resultado.mensaje}`;
-        if (resultado.cantidadMateriasNuevas)
-          mensajeFinal += ` (${resultado.cantidadMateriasNuevas} materias nuevas)`;
-        if (resultado.cantidadMateriasActualizadas)
-          mensajeFinal += ` (${resultado.cantidadMateriasActualizadas} materias actualizadas)`;
-        setMensaje(mensajeFinal);
-      } else {
-        setMensaje("Historia académica cargada exitosamente.");
-      }
-    } catch (error) {
-      console.error("❌ Error al subir:", error);
-      setMensaje("Hubo un error al subir el archivo.");
-    } finally {
-      setSubiendo(false);
-    }
-  };
+  
 
   return (
     <div className="p-4 space-y-4 max-w-md mx-auto">
