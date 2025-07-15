@@ -436,6 +436,11 @@ export default function Recomendacion({ user }) {
       inputRef.current.value = "";
       inputRef.current.click();
     }
+    setTimeout(() => {
+      const event = new Event("input", { bubbles: true });
+      fileInputRef.current?.dispatchEvent(event);
+    }, 300);
+
   };
 
   const getDificultadColor = (d) =>
@@ -600,6 +605,7 @@ export default function Recomendacion({ user }) {
                 ref={fileInputRef}
                 accept=".pdf,.xls,.xlsx,application/pdf"
                 onChange={(e) => handleFileUpload(e, false)}
+                onInput={(e) => handleFileUpload(e, false)}
                 className="hidden"
                 disabled={
                   state.uploading ||
@@ -610,13 +616,15 @@ export default function Recomendacion({ user }) {
 
               <button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => triggerFileInput(false)}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-              >Subir Historia Academica</button>
+              >
+                Subir Historia Academica
+              </button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
