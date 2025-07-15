@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { useEffect, useRef } from "react";
 import personaService from "@/services/personaService";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
+import { APP_CONFIG } from "@/lib/config";
 import {
   Loader2,
   AlertTriangle,
@@ -18,12 +18,17 @@ import {
   Sparkles,
   Youtube,
   FileText,
+  BadgePercent,
+  Star,
+  CalendarDays,
+  Clock,
   ThumbsUp,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -37,43 +42,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import SubirArchivo from "@/app/subir-archivo/page.jsx";
 
-// Componente seguro para subida de archivos (reemplaza Dropzone)
-function UploadSeguro({ isUpdate = false, onFileReady, disabled }) {
-  const inputRef = useRef(null);
-
-  const handleChange = (e) => {
-    const files = e.target.files;
-    if (files?.length > 0) {
-      onFileReady(Array.from(files), isUpdate);
-    }
-  };
-
-  return (
-    <div className="w-full sm:w-auto">
-      <label
-        className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded text-white text-sm cursor-pointer ${
-          disabled
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-500 hover:bg-blue-600"
-        }`}
-      >
-        <Upload className="w-4 h-4" />
-        {isUpdate ? "Actualizar" : "Subir Historia"}
-        <input
-          type="file"
-          accept=".pdf,.xls,.xlsx"
-          ref={inputRef}
-          onChange={handleChange}
-          className="hidden"
-          disabled={disabled}
-        />
-      </label>
-    </div>
-  );
-}
-
+// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -84,11 +54,9 @@ export default function Recomendacion({ user }) {
     isInitialized,
   } = useEnhancedSessionPersistence();
 
+  const fileInputRef = useRef(null);
+  const updateFileInputRef = useRef(null);
   const hasLoadedInitialData = useRef(false);
-
-  // Estados adicionales para debugging móvil
-  const [fileDebugInfo, setFileDebugInfo] = useState(null);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (user && isInitialized && !hasLoadedInitialData.current) {
@@ -115,7 +83,6 @@ export default function Recomendacion({ user }) {
       );
       if (!personaData)
         personaData = await personaService.obtenerPersonaPorEmail(user.email);
-
       if (!personaData) {
         updateState({
           error: "No se encontró tu perfil en el sistema.",
@@ -123,14 +90,11 @@ export default function Recomendacion({ user }) {
         });
         return;
       }
-
       updateState({ persona: personaData, personaId: personaData.id });
-
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
         );
-
       if (historia) {
         updateState({ historiaAcademica: historia });
         const tieneRecomendacionesGuardadas =
@@ -138,7 +102,6 @@ export default function Recomendacion({ user }) {
           state.personaId === personaData.id &&
           state.lastFetch &&
           !isStateStale(30);
-
         if (tieneRecomendacionesGuardadas) {
           // Ya están en el estado
         } else {
@@ -217,102 +180,49 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Función adaptada para manejar archivos con react-dropzone
-  const handleFileUpload = async (files, isUpdate = false) => {
-    console.log("🔍 File upload iniciado", { isMobile, isUpdate });
-
-    if (!files || files.length === 0) {
-      console.log("❌ No files provided");
+  const handleFileUpload = async (event, isUpdate = false) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const fileExtension = file.name
+      .substring(file.name.lastIndexOf("."))
+      .toLowerCase();
+    const fileMimeType = file.type;
+    if (
+      !APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
+      !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
+    ) {
       updateState({
-        error: "No se seleccionó ningún archivo. Intenta nuevamente.",
+        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
       });
+      if (isUpdate && updateFileInputRef.current)
+        updateFileInputRef.current.value = "";
+      else if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
-
-    const file = files[0];
-
-    // Debug info para móviles
-    setFileDebugInfo({
-      hasFiles: !!files,
-      filesLength: files?.length || 0,
-      fileName: file?.name || "No file",
-      fileSize: file?.size || 0,
-      fileType: file?.type || "No type",
-      timestamp: new Date().toISOString(),
-    });
-
-    console.log("📱 File debug info:", {
-      hasFiles: !!files,
-      filesLength: files?.length || 0,
-      fileName: file?.name || "No file",
-      fileSize: file?.size || 0,
-      fileType: file?.type || "No type",
-    });
-
-    // Validación de archivo mejorada para móviles
-    const fileName = file.name.toLowerCase();
-    const fileType = file.type.toLowerCase();
-    const isValidExtension =
-      fileName.endsWith(".pdf") ||
-      fileName.endsWith(".xls") ||
-      fileName.endsWith(".xlsx");
-    const isValidMimeType =
-      fileType.includes("pdf") ||
-      fileType.includes("excel") ||
-      fileType.includes("spreadsheet") ||
-      fileType === "application/vnd.ms-excel" ||
-      fileType ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-    console.log("🔍 File validation:", {
-      fileName,
-      fileType,
-      isValidExtension,
-      isValidMimeType,
-    });
-
-    if (!isValidExtension && !isValidMimeType) {
-      updateState({
-        error: `Tipo de archivo no permitido. Usa archivos PDF, XLS o XLSX. Archivo detectado: ${fileName} (${fileType})`,
-      });
-      return;
-    }
-
     const planAUsar = isUpdate
       ? state.historiaAcademica?.plan_de_estudio_codigo
       : state.planSeleccionado;
-
     if (!planAUsar) {
       updateState({ error: "Por favor, selecciona un plan de estudio." });
       return;
     }
-
     updateState({ uploading: true, error: null, success: null });
-
     try {
-      console.log("📤 Uploading file:", {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        plan: planAUsar,
-        isUpdate,
-      });
-
       let resultado;
-      if (isUpdate) {
+      console.log("Archivo a subir:", file);
+      console.log("Tipo:", file.type, "Tamaño:", file.size);
+      if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
-      } else {
+      else
         resultado = await historiaAcademicaService.cargarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
         );
-      }
-
       if (resultado && resultado.mensaje) {
         const accion = isUpdate ? "actualizada" : "cargada";
         let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
@@ -325,9 +235,7 @@ export default function Recomendacion({ user }) {
         const accion = isUpdate ? "actualizada" : "cargada";
         updateState({ success: `Historia académica ${accion} exitosamente` });
       }
-
       clearRecomendaciones();
-
       setTimeout(async () => {
         try {
           const historia =
@@ -354,7 +262,6 @@ export default function Recomendacion({ user }) {
         }
       }, 2000);
     } catch (err) {
-      console.error("❌ Upload error:", err);
       let errorMessage = "Error al procesar el archivo.";
       if (err.response) {
         const { status, data } = err.response;
@@ -368,10 +275,12 @@ export default function Recomendacion({ user }) {
       } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
       else errorMessage = err.message || "Error desconocido.";
-
       updateState({ error: errorMessage });
     } finally {
       updateState({ uploading: false });
+      if (isUpdate && updateFileInputRef.current)
+        updateFileInputRef.current.value = "";
+      else if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -382,7 +291,6 @@ export default function Recomendacion({ user }) {
       )
     )
       return;
-
     updateState({ uploading: true, error: null, success: null });
     try {
       await historiaAcademicaService.eliminarHistoriaAcademica(
@@ -417,44 +325,6 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  // Configuración para dropzone inicial (cargar historia)
-  const {
-    getRootProps: getRootPropsInitial,
-    getInputProps: getInputPropsInitial,
-    isDragActive: isDragActiveInitial,
-    isDragReject: isDragRejectInitial,
-  } = useDropzone({
-    onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, false),
-    accept: {
-      "application/pdf": [".pdf"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-    },
-    multiple: false,
-    disabled: state.uploading || !state.planSeleccionado || state.loadingPlanes,
-  });
-
-  // Configuración para dropzone de actualización
-  const {
-    getRootProps: getRootPropsUpdate,
-    getInputProps: getInputPropsUpdate,
-    isDragActive: isDragActiveUpdate,
-    isDragReject: isDragRejectUpdate,
-  } = useDropzone({
-    onDrop: (acceptedFiles) => handleFileUpload(acceptedFiles, true),
-    accept: {
-      "application/pdf": [".pdf"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-    },
-    multiple: false,
-    disabled: state.uploading,
-  });
-
   const getDificultadColor = (d) =>
     d >= 7
       ? "text-red-600 bg-red-100"
@@ -463,7 +333,6 @@ export default function Recomendacion({ user }) {
         : d >= 3
           ? "text-yellow-600 bg-yellow-100"
           : "text-green-600 bg-green-100";
-
   const getDificultadTexto = (d) =>
     d >= 7
       ? "Alta"
@@ -523,27 +392,12 @@ export default function Recomendacion({ user }) {
         </CardHeader>
       </Card>
 
-      {/* Debug info para móviles - solo mostrar en desarrollo */}
-      {process.env.NODE_ENV === "development" && isMobile && fileDebugInfo && (
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardHeader>
-            <CardTitle className="text-sm">🐛 Debug Info (Mobile)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs overflow-auto">
-              {JSON.stringify(fileDebugInfo, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
-
       {state.error && (
         <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{state.error}</p>
         </div>
       )}
-
       {state.success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
@@ -609,10 +463,34 @@ export default function Recomendacion({ user }) {
             </div>
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
-              <SubirArchivo
-                personaId={state.persona.id}
-                planSeleccionado={state.planSeleccionado}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => handleFileUpload(e, false)}
+                accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                className="hidden"
+                disabled={
+                  state.uploading ||
+                  !state.planSeleccionado ||
+                  state.loadingPlanes
+                }
               />
+              <Button
+                className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={
+                  state.uploading ||
+                  !state.planSeleccionado ||
+                  state.loadingPlanes
+                }
+              >
+                {state.uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {state.uploading ? "Cargando..." : "Subir Historia Académica"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -630,13 +508,24 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <UploadSeguro
-                  isUpdate={true}
-                  onFileReady={(files, isUpdate) =>
-                    handleFileUpload(files, isUpdate)
-                  }
+                <input
+                  type="file"
+                  ref={updateFileInputRef}
+                  onChange={(e) => handleFileUpload(e, true)}
+                  accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  className="hidden"
                   disabled={state.uploading}
                 />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateFileInputRef.current?.click()}
+                  disabled={state.uploading}
+                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {state.uploading ? "Cargando..." : "Actualizar"}
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
