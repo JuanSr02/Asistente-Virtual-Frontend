@@ -574,45 +574,17 @@ export default function Recomendacion({ user }) {
             <div className="space-y-2">
               <Label>2. Sube el archivo</Label>
               {/* DROPZONE para cargar historia inicial */}
-              <div
-                {...getRootPropsInitial()}
-                className={`w-full border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  isDragActiveInitial
-                    ? "border-blue-500 bg-blue-50"
-                    : isDragRejectInitial
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-                } ${
+              <UploadSeguro
+                isUpdate={false}
+                onFileReady={(files, isUpdate) =>
+                  handleFileUpload(files, isUpdate)
+                }
+                disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-              >
-                <input {...getInputPropsInitial()} />
-                <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                {isDragActiveInitial ? (
-                  <p className="text-blue-600 font-medium">
-                    Suelta el archivo aquí...
-                  </p>
-                ) : isDragRejectInitial ? (
-                  <p className="text-red-600 font-medium">
-                    Tipo de archivo no válido
-                  </p>
-                ) : (
-                  <div>
-                    <p className="text-gray-600 font-medium mb-1">
-                      {state.uploading
-                        ? "Cargando..."
-                        : "Arrastra tu archivo aquí o haz clic para seleccionar"}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Archivos soportados: PDF, XLS, XLSX
-                    </p>
-                  </div>
-                )}
-              </div>
+                }
+              />
             </div>
           </CardContent>
         </Card>
@@ -630,25 +602,14 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {/* DROPZONE para actualizar historia */}
-                <div
-                  {...getRootPropsUpdate()}
-                  className={`inline-flex justify-center items-center bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm cursor-pointer transition-colors ${
-                    isDragActiveUpdate
-                      ? "bg-blue-600"
-                      : isDragRejectUpdate
-                        ? "bg-red-500"
-                        : ""
-                  } ${state.uploading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <input {...getInputPropsUpdate()} />
-                  <Upload className="mr-2 h-4 w-4" />
-                  {state.uploading
-                    ? "Cargando..."
-                    : isDragActiveUpdate
-                      ? "Suelta aquí"
-                      : "Actualizar"}
-                </div>
+                <UploadSeguro
+                  isUpdate={true}
+                  onFileReady={(files, isUpdate) =>
+                    handleFileUpload(files, isUpdate)
+                  }
+                  disabled={state.uploading}
+                />
+
                 <Button
                   variant="destructive"
                   size="sm"
