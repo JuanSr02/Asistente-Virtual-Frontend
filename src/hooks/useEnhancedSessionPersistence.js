@@ -41,12 +41,12 @@ export function useEnhancedSessionPersistence() {
         if (savedState) {
           const parsed = JSON.parse(savedState);
           console.log("Cargando estado guardado:", parsed);
-          // Solo cargar si los datos no están muy antiguos (menos de 1 hora)
+          // Solo cargar si los datos no están muy antiguos (menos de 5 minutos)
           const lastUpdate = parsed.lastUpdate
             ? new Date(parsed.lastUpdate)
             : null;
           const now = new Date();
-          const oneHour = 60 * 60 * 1000;
+          const oneHour = 5 * 60 * 1000;
           if (lastUpdate && now - lastUpdate < oneHour) {
             setState((prevState) => ({
               ...prevState,
