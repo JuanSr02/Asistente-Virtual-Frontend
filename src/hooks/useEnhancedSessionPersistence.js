@@ -27,6 +27,8 @@ export function useEnhancedSessionPersistence() {
     // Estados de mensajes (no se persisten)
     error: null,
     success: null,
+    // NUEVO: Estado para operaciones críticas
+    criticalOperationInProgress: false,
   });
 
   const initialized = useRef(false);
@@ -45,7 +47,6 @@ export function useEnhancedSessionPersistence() {
             : null;
           const now = new Date();
           const oneHour = 60 * 60 * 1000;
-
           if (lastUpdate && now - lastUpdate < oneHour) {
             setState((prevState) => ({
               ...prevState,
@@ -58,6 +59,7 @@ export function useEnhancedSessionPersistence() {
               uploading: false,
               error: null,
               success: null,
+              criticalOperationInProgress: false, // Siempre resetear esto
             }));
           } else {
             console.log("Estado guardado muy antiguo, iniciando fresh");
@@ -87,15 +89,14 @@ export function useEnhancedSessionPersistence() {
         uploading: undefined,
         error: undefined,
         success: undefined,
+        criticalOperationInProgress: undefined, // No persistir operaciones críticas
       };
-
       // Limpiar propiedades undefined
       Object.keys(stateToSave).forEach((key) => {
         if (stateToSave[key] === undefined) {
           delete stateToSave[key];
         }
       });
-
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
       console.log("Estado guardado en sessionStorage");
     } catch (error) {
@@ -119,20 +120,27 @@ export function useEnhancedSessionPersistence() {
           "personaId",
           "lastFetch",
         ];
-
         const hasSignificantChanges = Object.keys(updates).some((key) =>
           significantKeys.includes(key)
         );
-
         if (hasSignificantChanges) {
           saveState(newState);
         }
-
         return newState;
       });
     },
     [saveState]
   );
+
+  // NUEVA: Función para marcar inicio de operación crítica
+  const startCriticalOperation = useCallback(() => {
+    updateState({ criticalOperationInProgress: true });
+  }, [updateState]);
+
+  // NUEVA: Función para marcar fin de operación crítica
+  const endCriticalOperation = useCallback(() => {
+    updateState({ criticalOperationInProgress: false });
+  }, [updateState]);
 
   // Función para limpiar recomendaciones
   const clearRecomendaciones = useCallback(() => {
@@ -164,6 +172,7 @@ export function useEnhancedSessionPersistence() {
         uploading: false,
         error: null,
         success: null,
+        criticalOperationInProgress: false,
       });
     } catch (error) {
       console.error("Error limpiando estado:", error);
@@ -189,5 +198,7 @@ export function useEnhancedSessionPersistence() {
     clearAllState,
     isStateStale,
     isInitialized: state.isInitialized,
+    startCriticalOperation, // NUEVO
+    endCriticalOperation, // NUEVO
   };
 }

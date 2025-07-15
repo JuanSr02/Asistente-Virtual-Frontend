@@ -16,7 +16,12 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
+// Función para detectar si es dispositivo móvil
+function esDispositivoMovil() {
+  if (typeof window === "undefined") return false;
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 export default function StudentDashboard({ user }) {
   const { dashboardState, setDashboardState, updateLastVisited } =
     useSessionPersistence();
@@ -26,6 +31,10 @@ export default function StudentDashboard({ user }) {
       ? "recomendacion"
       : dashboardState?.activeTab || "recomendacion"
   );
+
+  // NUEVO: Estado para controlar si hay operaciones críticas
+  const [criticalOperationInProgress, setCriticalOperationInProgress] =
+    useState(false);
 
   useEffect(() => {
     updateLastVisited();
@@ -40,7 +49,80 @@ export default function StudentDashboard({ user }) {
     }
   }, [dashboardState?.activeTab]);
 
+  // NUEVO: Escuchar eventos de operaciones críticas desde el componente Recomendacion
+  useEffect(() => {
+    const handleCriticalOperationStart = () => {
+      setCriticalOperationInProgress(true);
+    };
+
+    const handleCriticalOperationEnd = () => {
+      setCriticalOperationInProgress(false);
+    };
+
+    window.addEventListener(
+      "criticalOperationStart",
+      handleCriticalOperationStart
+    );
+    window.addEventListener("criticalOperationEnd", handleCriticalOperationEnd);
+
+    return () => {
+      window.removeEventListener(
+        "criticalOperationStart",
+        handleCriticalOperationStart
+      );
+      window.removeEventListener(
+        "criticalOperationEnd",
+        handleCriticalOperationEnd
+      );
+    };
+  }, []);
+
+  // NUEVO: Prevenir navegación durante operaciones críticas (solo en desktop)
+  useEffect(() => {
+    if (!esDispositivoMovil() && criticalOperationInProgress) {
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue =
+          "Hay una operación en progreso. ¿Estás seguro de que quieres salir?";
+        return e.returnValue;
+      };
+
+      const handlePopState = (e) => {
+        if (criticalOperationInProgress) {
+          const confirmLeave = window.confirm(
+            "Hay una operación crítica en progreso. ¿Estás seguro de que quieres salir? Esto podría causar problemas con la persistencia de datos."
+          );
+          if (!confirmLeave) {
+            // Prevenir la navegación
+            window.history.pushState(null, "", window.location.href);
+          }
+        }
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("popstate", handlePopState);
+
+      // Agregar estado al historial para detectar navegación hacia atrás
+      window.history.pushState(null, "", window.location.href);
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("popstate", handlePopState);
+      };
+    }
+  }, [criticalOperationInProgress]);
+
   const handleTabChange = (tab) => {
+    // NUEVO: Prevenir cambio de pestaña durante operaciones críticas (solo en desktop)
+    if (!esDispositivoMovil() && criticalOperationInProgress) {
+      const confirmChange = window.confirm(
+        "Hay una operación crítica en progreso. ¿Estás seguro de que quieres cambiar de pestaña? Esto podría causar problemas con la persistencia de datos."
+      );
+      if (!confirmChange) {
+        return; // No cambiar de pestaña
+      }
+    }
+
     setActiveTab(tab);
     setDashboardState("activeTab", tab);
     updateLastVisited();
@@ -53,9 +135,10 @@ export default function StudentDashboard({ user }) {
         handleTabChange(newTab);
       }
     };
+
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
-  }, [activeTab]);
+  }, [activeTab, criticalOperationInProgress]); // Agregar criticalOperationInProgress como dependencia
 
   // Array de pestañas para un código más limpio
   const tabs = [
@@ -90,9 +173,16 @@ export default function StudentDashboard({ user }) {
     }
   };
 
-  // --- JSX RESPONSIVE ---
   return (
     <div className="flex-1 flex flex-col bg-gray-50">
+      {/* NUEVO: Indicador de operación crítica en progreso */}
+      {!esDispositivoMovil() && criticalOperationInProgress && (
+        <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium">
+          ⚠️ Operación en progreso - No cierres esta ventana ni cambies de
+          pestaña
+        </div>
+      )}
+
       {/* Barra de navegación de pestañas */}
       <nav className="bg-white border-b border-gray-200 sticky top-16 z-30">
         <div className="container mx-auto px-2 sm:px-6 lg:px-8">
@@ -105,15 +195,27 @@ export default function StudentDashboard({ user }) {
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
                     className={`
-                      inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3 
-                      text-sm font-medium border-b-2 transition-colors duration-200
+                      inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3
+                       text-sm font-medium border-b-2 transition-colors duration-200
                       ${
                         activeTab === tab.id
                           ? "text-blue-600 border-blue-600"
                           : "text-gray-500 border-transparent hover:text-blue-600 hover:bg-gray-50"
                       }
+                      ${
+                        !esDispositivoMovil() &&
+                        criticalOperationInProgress &&
+                        activeTab !== tab.id
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      }
                     `}
                     aria-current={activeTab === tab.id ? "page" : undefined}
+                    disabled={
+                      !esDispositivoMovil() &&
+                      criticalOperationInProgress &&
+                      activeTab !== tab.id
+                    }
                   >
                     <tab.icon className="h-5 w-5 flex-shrink-0" />
                     {/* El texto se muestra a partir de 'sm' para algunas y 'md' para otras */}
@@ -129,7 +231,6 @@ export default function StudentDashboard({ user }) {
                 ))}
               </div>
             </div>
-
             {/* Información del usuario (oculto en pantallas muy pequeñas) */}
             <div className="hidden lg:block text-right pl-4">
               <span className="text-xs text-gray-500 truncate">

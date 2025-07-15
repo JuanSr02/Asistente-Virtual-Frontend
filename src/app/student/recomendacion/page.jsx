@@ -18,17 +18,12 @@ import {
   Sparkles,
   Youtube,
   FileText,
-  BadgePercent,
-  Star,
-  CalendarDays,
-  Clock,
   ThumbsUp,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -48,8 +43,19 @@ function esDispositivoMovil() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+// NUEVA: Función para emitir eventos de operación crítica
+const emitCriticalOperationStart = () => {
+  if (!esDispositivoMovil()) {
+    window.dispatchEvent(new CustomEvent("criticalOperationStart"));
+  }
+};
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
+const emitCriticalOperationEnd = () => {
+  if (!esDispositivoMovil()) {
+    window.dispatchEvent(new CustomEvent("criticalOperationEnd"));
+  }
+};
+
 export default function Recomendacion({ user }) {
   const {
     state,
@@ -58,6 +64,8 @@ export default function Recomendacion({ user }) {
     clearAllState,
     isStateStale,
     isInitialized,
+    startCriticalOperation, // NUEVO
+    endCriticalOperation, // NUEVO
   } = useEnhancedSessionPersistence();
 
   const fileInputRef = useRef(null);
@@ -96,7 +104,9 @@ export default function Recomendacion({ user }) {
         });
         return;
       }
+
       updateState({ persona: personaData, personaId: personaData.id });
+
       const historia =
         await historiaAcademicaService.verificarHistoriaAcademica(
           personaData.id
@@ -189,10 +199,12 @@ export default function Recomendacion({ user }) {
   const handleFileUpload = async (event, isUpdate = false) => {
     const file = event.target.files[0];
     if (!file) return;
+
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
       .toLowerCase();
     const fileMimeType = file.type;
+
     if (
       !APP_CONFIG.FILES.ALLOWED_EXTENSIONS.includes(fileExtension) &&
       !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
@@ -205,6 +217,7 @@ export default function Recomendacion({ user }) {
       else if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
+
     const planAUsar = isUpdate
       ? state.historiaAcademica?.plan_de_estudio_codigo
       : state.planSeleccionado;
@@ -212,11 +225,17 @@ export default function Recomendacion({ user }) {
       updateState({ error: "Por favor, selecciona un plan de estudio." });
       return;
     }
+
+    // NUEVO: Iniciar operación crítica
+    startCriticalOperation();
+    emitCriticalOperationStart();
     updateState({ uploading: true, error: null, success: null });
+
     try {
       let resultado;
       console.log("Archivo a subir:", file);
       console.log("Tipo:", file.type, "Tamaño:", file.size);
+
       if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
           file,
@@ -229,6 +248,7 @@ export default function Recomendacion({ user }) {
           state.persona.id,
           planAUsar
         );
+
       if (resultado && resultado.mensaje) {
         const accion = isUpdate ? "actualizada" : "cargada";
         let mensaje = `Historia académica ${accion}: ${resultado.mensaje}`;
@@ -241,6 +261,7 @@ export default function Recomendacion({ user }) {
         const accion = isUpdate ? "actualizada" : "cargada";
         updateState({ success: `Historia académica ${accion} exitosamente` });
       }
+
       clearRecomendaciones();
       setTimeout(async () => {
         try {
@@ -265,6 +286,10 @@ export default function Recomendacion({ user }) {
             error:
               "Historia cargada pero hubo un problema al actualizar la vista. Recarga la página.",
           });
+        } finally {
+          // NUEVO: Finalizar operación crítica
+          endCriticalOperation();
+          emitCriticalOperationEnd();
         }
       }, 2000);
     } catch (err) {
@@ -281,7 +306,12 @@ export default function Recomendacion({ user }) {
       } else if (err.request)
         errorMessage = "No se pudo conectar con el servidor.";
       else errorMessage = err.message || "Error desconocido.";
+
       updateState({ error: errorMessage });
+
+      // NUEVO: Finalizar operación crítica en caso de error
+      endCriticalOperation();
+      emitCriticalOperationEnd();
     } finally {
       updateState({ uploading: false });
       if (isUpdate && updateFileInputRef.current)
@@ -297,7 +327,12 @@ export default function Recomendacion({ user }) {
       )
     )
       return;
+
+    // NUEVO: Iniciar operación crítica
+    startCriticalOperation();
+    emitCriticalOperationStart();
     updateState({ uploading: true, error: null, success: null });
+
     try {
       await historiaAcademicaService.eliminarHistoriaAcademica(
         state.persona.id
@@ -314,6 +349,9 @@ export default function Recomendacion({ user }) {
       updateState({ error: "Error al eliminar la historia académica." });
     } finally {
       updateState({ uploading: false });
+      // NUEVO: Finalizar operación crítica
+      endCriticalOperation();
+      emitCriticalOperationEnd();
     }
   };
 
@@ -339,6 +377,7 @@ export default function Recomendacion({ user }) {
         : d >= 3
           ? "text-yellow-600 bg-yellow-100"
           : "text-green-600 bg-green-100";
+
   const getDificultadTexto = (d) =>
     d >= 7
       ? "Alta"
@@ -404,6 +443,7 @@ export default function Recomendacion({ user }) {
           <p className="text-sm">{state.error}</p>
         </div>
       )}
+
       {state.success && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
@@ -496,7 +536,8 @@ export default function Recomendacion({ user }) {
                     disabled={
                       state.uploading ||
                       !state.planSeleccionado ||
-                      state.loadingPlanes
+                      state.loadingPlanes ||
+                      state.criticalOperationInProgress
                     }
                   />
                   <Button
@@ -505,7 +546,8 @@ export default function Recomendacion({ user }) {
                     disabled={
                       state.uploading ||
                       !state.planSeleccionado ||
-                      state.loadingPlanes
+                      state.loadingPlanes ||
+                      state.criticalOperationInProgress
                     }
                   >
                     {state.uploading ? (
@@ -546,7 +588,9 @@ export default function Recomendacion({ user }) {
                       const url = `/subida-mobile?personaId=${state.persona?.id}&plan=${plan}&actualizar=true`;
                       window.location.href = url;
                     }}
-                    disabled={state.uploading}
+                    disabled={
+                      state.uploading || state.criticalOperationInProgress
+                    }
                     className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                   >
                     <Upload className="mr-2 h-4 w-4" />
@@ -560,13 +604,17 @@ export default function Recomendacion({ user }) {
                       onChange={(e) => handleFileUpload(e, true)}
                       accept=".xls,.xlsx,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       className="hidden"
-                      disabled={state.uploading}
+                      disabled={
+                        state.uploading || state.criticalOperationInProgress
+                      }
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => updateFileInputRef.current?.click()}
-                      disabled={state.uploading}
+                      disabled={
+                        state.uploading || state.criticalOperationInProgress
+                      }
                       className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                     >
                       <Upload className="mr-2 h-4 w-4" />
@@ -578,7 +626,9 @@ export default function Recomendacion({ user }) {
                   variant="destructive"
                   size="sm"
                   onClick={handleEliminarHistoria}
-                  disabled={state.uploading}
+                  disabled={
+                    state.uploading || state.criticalOperationInProgress
+                  }
                   className="w-full sm:w-auto"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -603,7 +653,10 @@ export default function Recomendacion({ user }) {
                 <Select
                   onValueChange={handleCriterioChange}
                   value={state.criterioOrden}
-                  disabled={state.loadingRecomendaciones}
+                  disabled={
+                    state.loadingRecomendaciones ||
+                    state.criticalOperationInProgress
+                  }
                 >
                   <SelectTrigger className="w-full sm:w-[220px]">
                     <SelectValue placeholder="Ordenar por..." />
@@ -622,7 +675,10 @@ export default function Recomendacion({ user }) {
                 </Select>
                 <Button
                   onClick={handleRefrescarRecomendaciones}
-                  disabled={state.loadingRecomendaciones}
+                  disabled={
+                    state.loadingRecomendaciones ||
+                    state.criticalOperationInProgress
+                  }
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
                   <RefreshCw
