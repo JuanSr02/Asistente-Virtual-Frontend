@@ -119,24 +119,39 @@ export default function Dashboard({ user }) {
             {/* Acciones de Usuario */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
+                onClick={() =>
+                  window.open("https://youtu.be/eJyXexJL2LE", "_blank")
+                }
+                className="
+                flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
+                bg-white/10 hover:bg-white/20 transition-colors
+              "
+                title="Ver Manual de Uso"
+              >
+                📘
+                <span className="hidden sm:inline">Ver manual de uso</span>
+              </button>
+
+              <button
                 onClick={handleGoToProfile}
                 className="
-                  flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
-                  bg-white/10 hover:bg-white/20 transition-colors
-                "
+                flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
+                bg-white/10 hover:bg-white/20 transition-colors
+              "
                 title="Ir a Perfil"
               >
                 <UserCircle className="h-4 w-4 hidden sm:block" />
                 <span className="capitalize">{role?.toLowerCase()}</span>
               </button>
+
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
                 className="
-                  h-9 w-9 inline-flex items-center justify-center whitespace-nowrap rounded-md
-                  text-sm font-medium text-white hover:bg-white/20
-                  transition-colors disabled:opacity-50
-                "
+                h-9 w-9 inline-flex items-center justify-center whitespace-nowrap rounded-md
+                text-sm font-medium text-white hover:bg-white/20
+                transition-colors disabled:opacity-50
+              "
                 title="Cerrar Sesión"
               >
                 {signingOut ? (
@@ -150,7 +165,6 @@ export default function Dashboard({ user }) {
         </div>
       </header>
 
-      {/* El contenido principal ya está configurado para ser flexible */}
       <main className="flex-1">
         {role === "ADMINISTRADOR" ? (
           <AdminDashboard user={user} />
