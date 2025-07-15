@@ -599,7 +599,7 @@ export default function Recomendacion({ user }) {
                 type="file"
                 ref={fileInputRef}
                 accept=".pdf,.xls,.xlsx,application/pdf"
-                onChange={(e) => handleFileUpload(e, false)}
+                onChange={alert(`Archivo seleccionado: ${file.name}`)}
                 className="hidden"
                 disabled={
                   state.uploading ||
@@ -610,15 +610,13 @@ export default function Recomendacion({ user }) {
 
               <button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={alert("Tebo")}
+                onClick={() => fileInputRef.current?.click()}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
                   state.loadingPlanes
                 }
-              >
-                Subir Historia Academica
-              </button>
+              >Subir Historia Academica</button>
 
               {isMobile && (
                 <p className="text-xs text-gray-500 text-center">
