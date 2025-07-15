@@ -7,13 +7,23 @@ export default function SubirArchivo({ personaId, planSeleccionado }) {
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState(null);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) {
+  const handleFileChange = (e) => {
+    const archivoOriginal = e.target.files?.[0];
+
+    if (!archivoOriginal) {
       alert("No se seleccionó ningún archivo.");
       return;
     }
 
+    // 💥 Clonamos el archivo sin usar await todavía
+    const file = new File([archivoOriginal], archivoOriginal.name, {
+      type: archivoOriginal.type,
+    });
+
+    subirArchivo(file); // delegamos a una función async separada
+  };
+
+  const subirArchivo = async (file) => {
     setMensaje(null);
     setSubiendo(true);
 
