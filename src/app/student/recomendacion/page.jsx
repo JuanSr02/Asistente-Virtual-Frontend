@@ -437,6 +437,11 @@ export default function Recomendacion({ user }) {
       inputRef.current.value = ""; // Resetear
       inputRef.current.click(); // Solo click, sin más circo
     }
+    setTimeout(() => {
+      const event = new Event("input", { bubbles: true });
+      fileInputRef.current?.dispatchEvent(event);
+    }, 300);
+
   };
 
 
