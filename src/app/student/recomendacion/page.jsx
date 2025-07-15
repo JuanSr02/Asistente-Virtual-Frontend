@@ -427,7 +427,7 @@ export default function Recomendacion({ user }) {
           <Label>Subir archivo</Label>
           <label className="w-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center px-4 py-2 rounded cursor-pointer disabled:opacity-50">
             <Upload className="mr-2 h-4 w-4" />
-            {uploading ? "Cargando..." : "Subir Historia Académica"}
+            {state.uploading ? "Cargando..." : "Subir Historia Académica"}
             <input
               type="file"
               accept=".xls,.xlsx,.pdf"
