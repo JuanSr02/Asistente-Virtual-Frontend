@@ -610,7 +610,7 @@ export default function Recomendacion({ user }) {
 
               <button
                 className="w-full bg-blue-400 hover:bg-blue-500 text-white"
-                onClick={alert(Tebo)}
+                onClick={alert("Tebo")}
                 disabled={
                   state.uploading ||
                   !state.planSeleccionado ||
