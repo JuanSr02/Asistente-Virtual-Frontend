@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Upload,
+  Book,
   BookCopy,
   Trash2,
   RefreshCw,
@@ -464,19 +465,32 @@ export default function Recomendacion({ user }) {
           <CardContent className="space-y-4 max-w-lg mx-auto">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
               <p className="text-sm text-blue-800">
-                ¿No sabes cómo descargarla? Haz clic en el video tutorial.
+                ¿No sabes cómo descargarla? Haz clic en el video tutorial y luego
+                accede al SIU Guarani.
               </p>
-              <Button
-                variant="destructive"
-                size="sm"
-                className="mt-2"
-                onClick={() =>
-                  window.open("https://youtu.be/K4uE6e0xp3M", "_blank")
-                }
-              >
-                <Youtube className="mr-2 h-4 w-4" />
-                Ver Video
-              </Button>
+              <div className="flex gap-2 justify-center mt-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() =>
+                    window.open("https://youtu.be/K4uE6e0xp3M", "_blank")
+                  }
+                >
+                  <Youtube className="mr-2 h-4 w-4" />
+                  Ver Video
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() =>
+                    window.open("https://g3.unsl.edu.ar/g3/", "_blank")
+                  }
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Book className="mr-2 h-4 w-4" />
+                  SIU Guarani (FCFMYN)
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="plan-select">
@@ -578,6 +592,19 @@ export default function Recomendacion({ user }) {
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* Botón para acceder al SIU Guarani */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    window.open("https://g3.unsl.edu.ar/g3/", "_blank")
+                  }
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Book className="mr-2 h-4 w-4" />
+                  SIU Guarani
+                </Button>
+
                 {esDispositivoMovil() ? (
                   <Button
                     variant="outline"
