@@ -68,6 +68,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+
     if (
       !ctx ||
       !data ||
@@ -127,7 +128,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
         ctx.fillRect(x, y, width, barHeight);
       }
 
-      ctx.fillStyle = "#718096"; // Un gris neutro (como text-gray-500 de Tailwind)
+      ctx.fillStyle = "#718096";
       ctx.font = `${topLabelFontSize}px ${fontFamily}`;
       ctx.textAlign = "center";
       const text =
@@ -138,8 +139,21 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
           : value;
       ctx.fillText(text, x + width / 2, y - 5);
 
+      // 👇 REEMPLAZÁ ESTO:
       barDataRef.current.push({ x, y, width, barHeight, label, color });
+
+      // 👇 POR ESTO:
+      barDataRef.current.push({
+        x,
+        y,
+        width,
+        barHeight,
+        label: String(label),
+        value,
+        color,
+      });
     });
+
 
     if (showBaseLabels) {
       ctx.fillStyle = mutedColor;
@@ -169,7 +183,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
           mouseX >= bar.x &&
           mouseX <= bar.x + bar.width &&
           mouseY >= bar.y &&
-          mouseY <= bar.y + bar.height
+          mouseY <= bar.y + bar.barHeight // Cambia bar.height por bar.barHeight
       );
 
       canvas.style.cursor = hoveredBar ? "pointer" : "default";
