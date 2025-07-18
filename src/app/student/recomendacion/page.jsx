@@ -465,8 +465,8 @@ export default function Recomendacion({ user }) {
           <CardContent className="space-y-4 max-w-lg mx-auto">
             <div className="bg-blue-50 p-4 rounded-lg text-center">
               <p className="text-sm text-blue-800">
-                ¿No sabes cómo descargarla? Haz clic en el video tutorial y luego
-                accede al SIU Guarani.
+                ¿No sabes cómo descargarla? Haz clic en el video tutorial y
+                luego accede al SIU Guarani.
               </p>
               <div className="flex gap-2 justify-center mt-2">
                 <Button
@@ -781,26 +781,84 @@ export default function Recomendacion({ user }) {
                             </p>
                           </div>
                         )}
-                        {state.criterioOrden === "VENCIMIENTO" && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="bg-green-50 p-3 rounded-lg">
-                              <p className="text-xs text-green-800">
-                                Regularidad
-                              </p>
-                              <p className="font-semibold">
-                                {final.fechaRegularidad || "N/A"}
-                              </p>
-                            </div>
-                            <div className="bg-orange-50 p-3 rounded-lg">
-                              <p className="text-xs text-orange-800">
-                                Vencimiento
-                              </p>
-                              <p className="font-semibold">
-                                {final.fechaVencimiento || "N/A"}
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                        {state.criterioOrden === "VENCIMIENTO" &&
+                          (() => {
+                            // Función para calcular el estado del vencimiento
+                            const getVencimientoStatus = (fechaVencimiento) => {
+                              if (
+                                !fechaVencimiento ||
+                                fechaVencimiento === "N/A"
+                              ) {
+                                return { texto: "N/A", color: "gray" };
+                              }
+
+                              const hoy = new Date();
+                              // Convertir formato DD-MM-YYYY a YYYY-MM-DD para que Date() lo reconozca
+                              const [dia, mes, año] =
+                                fechaVencimiento.split("-");
+                              const vencimiento = new Date(
+                                `${año}-${mes}-${dia}`
+                              );
+                              const diffTime = vencimiento - hoy;
+                              const diffDays = Math.ceil(
+                                diffTime / (1000 * 60 * 60 * 24)
+                              );
+
+                              if (diffDays < 0) {
+                                return {
+                                  texto: "Materia vencida",
+                                  color: "red",
+                                  bgColor: "bg-red-50",
+                                  textColor: "text-red-800",
+                                };
+                              } else if (diffDays <= 30) {
+                                // Falta poco (30 días o menos)
+                                return {
+                                  texto: fechaVencimiento,
+                                  color: "yellow",
+                                  bgColor: "bg-yellow-50",
+                                  textColor: "text-yellow-800",
+                                };
+                              } else {
+                                // Falta mucho (más de 30 días)
+                                return {
+                                  texto: fechaVencimiento,
+                                  color: "green",
+                                  bgColor: "bg-green-50",
+                                  textColor: "text-green-800",
+                                };
+                              }
+                            };
+
+                            const vencimientoStatus = getVencimientoStatus(
+                              final.fechaVencimiento
+                            );
+
+                            return (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="bg-green-50 p-3 rounded-lg">
+                                  <p className="text-xs text-green-800">
+                                    Regularidad
+                                  </p>
+                                  <p className="font-semibold">
+                                    {final.fechaRegularidad || "N/A"}
+                                  </p>
+                                </div>
+                                <div
+                                  className={`${vencimientoStatus.bgColor} p-3 rounded-lg`}
+                                >
+                                  <p
+                                    className={`text-xs ${vencimientoStatus.textColor}`}
+                                  >
+                                    Vencimiento
+                                  </p>
+                                  <p className="font-semibold">
+                                    {vencimientoStatus.texto}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })()}
                         {state.criterioOrden === "ESTADISTICAS" && (
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
                             <div className="bg-gray-50 p-2 rounded-lg">
