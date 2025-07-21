@@ -737,6 +737,7 @@ function FormularioExperiencia({
             <SelectContent>
               <SelectItem value="ESCRITO">Escrito</SelectItem>
               <SelectItem value="ORAL">Oral</SelectItem>
+              <SelectItem value="ESCRITO Y ORAL">Escrito y Oral</SelectItem>            
             </SelectContent>
           </Select>
         </div>
