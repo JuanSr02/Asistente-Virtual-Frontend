@@ -585,9 +585,7 @@ function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
             {isOwner ? experiencia.nombreMateria : `Nota: ${experiencia.nota}`}
           </CardTitle>
           <CardDescription>
-            {isOwner
-              ? `Examen del ${experiencia.fechaExamen}`
-              : `Por ${experiencia.nombreEstudiante}`}
+            {`Examen del ${experiencia.fechaExamen}`}
           </CardDescription>
         </div>
         <div className="flex items-center gap-2">
