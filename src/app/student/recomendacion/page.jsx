@@ -814,7 +814,7 @@ export default function Recomendacion({ user }) {
                               } else if (diffDays <= 30) {
                                 // Falta poco (30 días o menos)
                                 return {
-                                  texto: fechaVencimiento,
+                                  texto: fechaVencimiento + " (Pronto)",
                                   color: "yellow",
                                   bgColor: "bg-yellow-50",
                                   textColor: "text-yellow-800",
@@ -822,7 +822,7 @@ export default function Recomendacion({ user }) {
                               } else {
                                 // Falta mucho (más de 30 días)
                                 return {
-                                  texto: fechaVencimiento,
+                                  texto: fechaVencimiento + " (Lejano)",
                                   color: "green",
                                   bgColor: "bg-green-50",
                                   textColor: "text-green-800",
