@@ -91,176 +91,184 @@ export default function EstadisticasPorCarrera() {
     }
   };
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">
-          Estadísticas por Carrera
-        </h2>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <select
-            className="border px-3 py-2 rounded-lg"
-            value={planSeleccionado || ""}
-            onChange={(e) => setPlanSeleccionado(e.target.value)}
-          >
-            <option value="" disabled>
-              Seleccionar carrera
+return (
+  <div className="p-4 md:p-6 lg:p-8 space-y-6">
+    {/* Título */}
+    <h2 className="text-2xl font-bold text-gray-800">
+      Estadísticas por Carrera
+    </h2>
+
+    {/* Controles */}
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {/* Selector de carrera */}
+      <select
+        className="w-full lg:w-[40%] border border-gray-300 px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+        value={planSeleccionado || ""}
+        onChange={(e) => setPlanSeleccionado(e.target.value)}
+      >
+        <option value="" disabled>
+          Seleccionar carrera
+        </option>
+        {planes.map((plan) => (
+          <option key={plan.codigo} value={plan.codigo}>
+            {plan.propuesta} ({plan.codigo})
+          </option>
+        ))}
+      </select>
+
+      {/* Selector de periodo + botón refrescar */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+        <select
+          className="flex-1 min-w-[150px] border border-gray-300 px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={periodo}
+          onChange={(e) => setPeriodo(e.target.value)}
+        >
+          {PERIODOS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
             </option>
-            {planes.map((plan) => (
-              <option key={plan.codigo} value={plan.codigo}>
-                {plan.propuesta} ({plan.codigo})
-              </option>
-            ))}
-          </select>
-          <select
-            className="border px-3 py-2 rounded-lg"
-            value={periodo}
-            onChange={(e) => setPeriodo(e.target.value)}
-          >
-            {PERIODOS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-          <button
-            className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600"
-            onClick={cargarEstadisticas}
-          >
-            <RefreshCw className="w-4 h-4" /> Refrescar
-          </button>
-        </div>
+          ))}
+        </select>
+
+        <button
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base transition-colors"
+          onClick={cargarEstadisticas}
+        >
+          <RefreshCw className="w-5 h-5" />
+          <span className="hidden xs:inline">Refrescar</span>
+        </button>
       </div>
-
-      {loading && <MetricSkeleton />}
-
-      {!loading && estadisticas && (
-        <>
-          {/* MÉTRICAS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <MetricCard
-              title="Estudiantes Activos"
-              value={estadisticas.estudiantesActivos}
-              color="blue"
-            />
-            <MetricCard
-              title="Materias"
-              value={estadisticas.totalMaterias}
-              color="gray"
-            />
-            <MetricCard
-              title="Exámenes Rendidos"
-              value={estadisticas.totalExamenesRendidos}
-              color="green"
-            />
-            <MetricCard
-              title="% Aprobación"
-              value={`${estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%`}
-              color="orange"
-            />
-            <MetricCard
-              title="Promedio General"
-              value={estadisticas.promedioGeneral.toFixed(2)}
-              color="teal"
-            />
-          </div>
-
-          {/* MATERIA MÁS RENDIDA */}
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
-            <h4 className="text-base font-semibold mb-2 opacity-90">
-              Materia Más Rendida
-            </h4>
-            <p className="text-xl font-bold">
-              {estadisticas.materiaMasRendida.nombre}
-            </p>
-            <div className="my-4">
-              <p className="text-4xl font-extrabold">
-                {estadisticas.cantidadMateriaMasRendida}
-              </p>
-              <p className="opacity-80">exámenes</p>
-            </div>
-            <div className="text-lg opacity-90">
-              {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% de
-              aprobación
-            </div>
-          </div>
-
-          {/* GRÁFICOS */}
-          <div className="grid grid-cols-1 gap-6">
-            <BarChart
-              data={estadisticas.distribucionExamenesPorMateria}
-              title="Exámenes por Materia"
-              colors={["#4299e1"]}
-              maxBars={10}
-              useIntegers={true}
-              showNameBelow={true}
-            />
-          </div>
-
-          {/* RANKINGS */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
-              <h4 className="text-base font-semibold text-gray-700 mb-4">
-                🏆 Top 5 Mayor Aprobación
-              </h4>
-              <div className="flex flex-col gap-3">
-                {estadisticas.top5Aprobadas.map((materia, index) => (
-                  <RankingListItem
-                    key={materia.codigoMateria}
-                    rank={index + 1}
-                    name={materia.nombre}
-                    value={materia.porcentaje.toFixed(1)}
-                    color="green"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
-              <h4 className="text-base font-semibold text-gray-700 mb-4">
-                📉 Top 5 Menor Aprobación
-              </h4>
-              <div className="flex flex-col gap-3">
-                {estadisticas.top5Reprobadas.map((materia, index) => (
-                  <RankingListItem
-                    key={materia.codigoMateria}
-                    rank={index + 1}
-                    name={materia.nombre}
-                    value={materia.porcentaje.toFixed(1)}
-                    color="red"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* PROMEDIOS DE NOTAS - MEJORES Y PEORES */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BarChart
-              data={Object.fromEntries(
-                Object.entries(estadisticas.promedioNotasPorMateria)
-                  .sort((a, b) => b[1] - a[1])
-                  .slice(0, 10)
-              )}
-              title="Top 10 Mejor Promedio por Materia"
-              colors={["#38b2ac"]}
-              maxBars={10}
-              useIntegers={false}
-              showNameBelow={true}
-            />
-            <BarChart
-              data={Object.fromEntries(
-                Object.entries(estadisticas.promedioNotasPorMateria)
-                  .sort((a, b) => a[1] - b[1])
-                  .slice(0, 10)
-              )}
-              title="Top 10 Peor Promedio por Materia"
-              colors={["#f56565"]}
-              maxBars={10}
-              useIntegers={false}
-              showNameBelow={true}
-            />
-          </div>
-        </>
-      )}
     </div>
-  );
+
+    {loading && <MetricSkeleton />}
+
+    {!loading && estadisticas && (
+      <>
+        {/* MÉTRICAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <MetricCard
+            title="Estudiantes Activos"
+            value={estadisticas.estudiantesActivos}
+            color="blue"
+          />
+          <MetricCard
+            title="Materias"
+            value={estadisticas.totalMaterias}
+            color="gray"
+          />
+          <MetricCard
+            title="Exámenes Rendidos"
+            value={estadisticas.totalExamenesRendidos}
+            color="green"
+          />
+          <MetricCard
+            title="% Aprobación"
+            value={`${estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%`}
+            color="orange"
+          />
+          <MetricCard
+            title="Promedio General"
+            value={estadisticas.promedioGeneral.toFixed(2)}
+            color="teal"
+          />
+        </div>
+
+        {/* MATERIA MÁS RENDIDA */}
+        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
+          <h4 className="text-base font-semibold mb-2 opacity-90">
+            Materia Más Rendida
+          </h4>
+          <p className="text-xl font-bold">
+            {estadisticas.materiaMasRendida.nombre}
+          </p>
+          <div className="my-4">
+            <p className="text-4xl font-extrabold">
+              {estadisticas.cantidadMateriaMasRendida}
+            </p>
+            <p className="opacity-80">exámenes</p>
+          </div>
+          <div className="text-lg opacity-90">
+            {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% de
+            aprobación
+          </div>
+        </div>
+
+        {/* GRÁFICOS */}
+        <div className="grid grid-cols-1 gap-6">
+          <BarChart
+            data={estadisticas.distribucionExamenesPorMateria}
+            title="Exámenes por Materia"
+            colors={["#4299e1"]}
+            maxBars={10}
+            useIntegers={true}
+            showNameBelow={true}
+          />
+        </div>
+
+        {/* RANKINGS */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+            <h4 className="text-base font-semibold text-gray-700 mb-4">
+              🏆 Top 5 Mayor Aprobación
+            </h4>
+            <div className="flex flex-col gap-3">
+              {estadisticas.top5Aprobadas.map((materia, index) => (
+                <RankingListItem
+                  key={materia.codigoMateria}
+                  rank={index + 1}
+                  name={materia.nombre}
+                  value={materia.porcentaje.toFixed(1)}
+                  color="green"
+                />
+              ))}
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+            <h4 className="text-base font-semibold text-gray-700 mb-4">
+              📉 Top 5 Menor Aprobación
+            </h4>
+            <div className="flex flex-col gap-3">
+              {estadisticas.top5Reprobadas.map((materia, index) => (
+                <RankingListItem
+                  key={materia.codigoMateria}
+                  rank={index + 1}
+                  name={materia.nombre}
+                  value={materia.porcentaje.toFixed(1)}
+                  color="red"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* PROMEDIOS DE NOTAS - MEJORES Y PEORES */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <BarChart
+            data={Object.fromEntries(
+              Object.entries(estadisticas.promedioNotasPorMateria)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+            )}
+            title="Top 10 Mejor Promedio por Materia"
+            colors={["#38b2ac"]}
+            maxBars={10}
+            useIntegers={false}
+            showNameBelow={true}
+          />
+          <BarChart
+            data={Object.fromEntries(
+              Object.entries(estadisticas.promedioNotasPorMateria)
+                .sort((a, b) => a[1] - b[1])
+                .slice(0, 10)
+            )}
+            title="Top 10 Peor Promedio por Materia"
+            colors={["#f56565"]}
+            maxBars={10}
+            useIntegers={false}
+            showNameBelow={true}
+          />
+        </div>
+      </>
+    )}
+  </div>
+);
 }

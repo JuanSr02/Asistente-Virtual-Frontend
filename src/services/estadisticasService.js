@@ -44,13 +44,33 @@ const estadisticasService = {
 
   obtenerEstadisticasPorCarrera: async (codigoPlan, periodo) => {
     try {
-      const response = await api.get(
-        "/api/shared/estadisticas/generales/carrera",
-        {
-          params: { plan: codigoPlan, periodo: periodo },
+      // Primero intentamos con el endpoint rápido (cache)
+      try {
+        const fastResponse = await api.get(
+          "/api/shared/fast/estadisticas/generales/carrera",
+          {
+            params: { plan: codigoPlan, periodo: periodo },
+          }
+        );
+        return fastResponse.data;
+      } catch (fastError) {
+        // Solo continuamos con el endpoint lento si el error es 404 (Not Found)
+        if (fastError.response && fastError.response.status === 404) {
+          console.log(
+            "No se encontraron estadísticas cacheadas, calculando en tiempo real..."
+          );
+
+          const slowResponse = await api.get(
+            "/api/shared/estadisticas/generales/carrera",
+            {
+              params: { plan: codigoPlan, periodo: periodo },
+            }
+          );
+          return slowResponse.data;
         }
-      );
-      return response.data;
+        // Si es otro tipo de error, lo relanzamos
+        throw fastError;
+      }
     } catch (error) {
       console.error("Error al obtener estadísticas por carrera:", error);
       throw error;
