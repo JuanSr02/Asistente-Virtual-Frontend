@@ -15,7 +15,14 @@ import {
   Info,
 } from "lucide-react";
 
-// --- TODA LA LÓGICA PERMANECE INTACTA ---
+// Definimos los períodos disponibles
+const PERIODOS_ESTADISTICAS = [
+  { value: "ULTIMO_ANIO", label: "Último año" },
+  { value: "ULTIMOS_2_ANIOS", label: "Últimos 2 años" },
+  { value: "ULTIMOS_5_ANIOS", label: "Últimos 5 años" },
+  { value: "TODOS_LOS_TIEMPOS", label: "Todos los tiempos" },
+];
+
 export default function EstadisticasMateria() {
   const { estadisticasState, setEstadisticasState } = useSessionPersistence();
 
@@ -35,6 +42,9 @@ export default function EstadisticasMateria() {
   const [materiaSeleccionada, setMateriaSeleccionada] = useState(
     estadisticasState.materiaSeleccionada
   );
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState(
+    estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
+  );
 
   const [loadingPlanes, setLoadingPlanes] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
@@ -46,9 +56,13 @@ export default function EstadisticasMateria() {
   useEffect(() => {
     setPlanSeleccionado(estadisticasState.planSeleccionado);
     setMateriaSeleccionada(estadisticasState.materiaSeleccionada);
+    setPeriodoSeleccionado(
+      estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
+    );
   }, [
     estadisticasState.planSeleccionado,
     estadisticasState.materiaSeleccionada,
+    estadisticasState.periodoSeleccionado,
   ]);
 
   useEffect(() => {
@@ -88,7 +102,7 @@ export default function EstadisticasMateria() {
       const savedData = localStorage.getItem("estadisticasMateria");
       const savedMateria = localStorage.getItem("savedMateriaCode");
       if (!savedData || savedMateria !== materiaSeleccionada) {
-        buscarEstadisticasRapido(materiaSeleccionada);
+        buscarEstadisticasRapido(materiaSeleccionada, periodoSeleccionado);
       }
     } else {
       setEstadisticasState("materiaSeleccionada", "");
@@ -98,6 +112,12 @@ export default function EstadisticasMateria() {
       localStorage.removeItem("savedMateriaCode");
     }
   }, [materiaSeleccionada]);
+
+  useEffect(() => {
+    if (materiaSeleccionada) {
+      buscarEstadisticasRapido(materiaSeleccionada, periodoSeleccionado);
+    }
+  }, [periodoSeleccionado]);
 
   const cargarPlanes = async () => {
     setLoadingPlanes(true);
@@ -151,21 +171,30 @@ export default function EstadisticasMateria() {
     }
   };
 
-  const buscarEstadisticasRapido = async (codigoMateria) => {
+  const buscarEstadisticasRapido = async (codigoMateria, periodo) => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
     try {
-      const data =
-        await estadisticasService.obtenerEstadisticasMateriaRapido(
-          codigoMateria
+      let data;
+      if (periodo === "TODOS_LOS_TIEMPOS") {
+        data =
+          await estadisticasService.obtenerEstadisticasMateriaRapido(
+            codigoMateria
+          );
+      } else {
+        data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
+          codigoMateria,
+          periodo
         );
+      }
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
       localStorage.setItem("estadisticasMateria", JSON.stringify(data));
       localStorage.setItem("estadisticasMateriaTime", now.toISOString());
       localStorage.setItem("savedMateriaCode", codigoMateria);
+      setEstadisticasState("periodoSeleccionado", periodo);
     } catch (err) {
       console.error("Error al cargar estadísticas de materia:", err);
       setError("No se encontraron estadísticas para la materia seleccionada.");
@@ -182,10 +211,18 @@ export default function EstadisticasMateria() {
     setError(null);
     setLoadingMessage("Actualizando estadísticas...");
     try {
-      const data =
-        await estadisticasService.obtenerEstadisticasMateria(
-          materiaSeleccionada
+      let data;
+      if (periodoSeleccionado === "TODOS_LOS_TIEMPOS") {
+        data =
+          await estadisticasService.obtenerEstadisticasMateria(
+            materiaSeleccionada
+          );
+      } else {
+        data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
+          materiaSeleccionada,
+          periodoSeleccionado
         );
+      }
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
@@ -208,7 +245,6 @@ export default function EstadisticasMateria() {
     return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
   };
 
-  // --- JSX RESPONSIVE ---
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* --- HEADER --- */}
@@ -236,7 +272,7 @@ export default function EstadisticasMateria() {
 
       {/* --- FILTROS --- */}
       <div className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <label
               htmlFor="plan-select"
@@ -289,6 +325,27 @@ export default function EstadisticasMateria() {
               {materias.map((materia) => (
                 <option key={materia.codigo} value={materia.codigo}>
                   {materia.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="periodo-select"
+              className="text-sm font-semibold text-gray-700 block mb-2"
+            >
+              Período de tiempo
+            </label>
+            <select
+              id="periodo-select"
+              value={periodoSeleccionado}
+              onChange={(e) => setPeriodoSeleccionado(e.target.value)}
+              disabled={!materiaSeleccionada}
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+            >
+              {PERIODOS_ESTADISTICAS.map((periodo) => (
+                <option key={periodo.value} value={periodo.value}>
+                  {periodo.label}
                 </option>
               ))}
             </select>
@@ -432,7 +489,28 @@ export default function EstadisticasMateria() {
                   <PieChart
                     data={estadisticas.distribucionRecursos}
                     title="Recursos Utilizados"
-                    colors={["#9f7aea", "#38b2ac", "#f56565"]}
+                    colors={[
+                      "#9f7aea", // Morado pastel
+                      "#38b2ac", // Verde azulado
+                      "#f56565", // Rojo coral
+                      "#4299e1", // Azul brillante
+                      "#ed8936", // Naranja cálido
+                      "#48bb78", // Verde esmeralda
+                      "#667eea", // Azul suave
+                      "#f6ad55", // Melocotón
+                      "#a0aec0", // Gris azulado
+                      "#e53e3e", // Rojo intenso
+                      "#805ad5", // Morado vibrante
+                      "#319795", // Verde turquesa
+                      "#d53f8c", // Rosa fuerte
+                      "#f687b3", // Rosa pastel
+                      "#4fd1c5", // Cian claro
+                      "#68d391", // Verde menta
+                      "#fbbf24", // Amarillo dorado
+                      "#fc8181", // Rosa salmón
+                      "#0bc5ea", // Azul cielo
+                      "#9ae6b4", // Verde manzana
+                    ]}
                     showHover={false}
                   />
                 </div>

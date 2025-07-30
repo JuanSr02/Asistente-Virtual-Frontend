@@ -42,6 +42,39 @@ const estadisticasService = {
       "estadísticas generales"
     ),
 
+  obtenerEstadisticasPorCarrera: async (codigoPlan, periodo) => {
+    try {
+      const response = await api.get(
+        "/api/shared/estadisticas/generales/carrera",
+        {
+          params: { plan: codigoPlan, periodo: periodo },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener estadísticas por carrera:", error);
+      throw error;
+    }
+  },
+
+  obtenerEstadisticasMateriaPorPeriodo: async (codigoMateria, periodo) => {
+    try {
+      const response = await api.get(
+        `/api/shared/estadisticas/materia/${codigoMateria}/periodo`,
+        {
+          params: { periodo: periodo },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error al obtener estadísticas de materia por período:",
+        error
+      );
+      throw error;
+    }
+  },
+
   obtenerEstadisticasGenerales: async () => {
     try {
       console.log("Obteniendo estadísticas generales completas...");
