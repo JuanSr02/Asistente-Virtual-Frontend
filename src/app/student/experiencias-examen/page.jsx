@@ -24,6 +24,7 @@ import {
   SlidersHorizontal,
   ChevronRight,
   BookOpenCheck,
+  Calendar,
 } from "lucide-react";
 import {
   Card,
@@ -44,7 +45,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function ExperienciasExamen({ user }) {
   const [loading, setLoading] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
@@ -68,6 +68,10 @@ export default function ExperienciasExamen({ user }) {
   const [filtroCalificacion, setFiltroCalificacion] = usePersistedState(
     "filtro-calificacion",
     ""
+  );
+  const [filtroTiempo, setFiltroTiempo] = usePersistedState(
+    "filtro-tiempo",
+    "all"
   );
   const {
     isOpen: showCrearModal,
@@ -102,6 +106,39 @@ export default function ExperienciasExamen({ user }) {
     "Materia karma",
   ];
 
+  // Función para filtrar experiencias por rango de tiempo
+  const filtrarPorTiempo = (data) => {
+    const hoy = new Date();
+    switch (filtroTiempo) {
+      case "1year":
+        return data.filter((exp) => {
+          const [dia, mes, año] = exp.fechaExamen.split("-");
+          const fechaExamen = new Date(`${año}-${mes}-${dia}`);
+          const unAnioAtras = new Date();
+          unAnioAtras.setFullYear(hoy.getFullYear() - 1);
+          return fechaExamen >= unAnioAtras;
+        });
+      case "2years":
+        return data.filter((exp) => {
+          const [dia, mes, año] = exp.fechaExamen.split("-");
+          const fechaExamen = new Date(`${año}-${mes}-${dia}`);
+          const dosAniosAtras = new Date();
+          dosAniosAtras.setFullYear(hoy.getFullYear() - 2);
+          return fechaExamen >= dosAniosAtras;
+        });
+      case "5years":
+        return data.filter((exp) => {
+          const [dia, mes, año] = exp.fechaExamen.split("-");
+          const fechaExamen = new Date(`${año}-${mes}-${dia}`);
+          const cincoAniosAtras = new Date();
+          cincoAniosAtras.setFullYear(hoy.getFullYear() - 5);
+          return fechaExamen >= cincoAniosAtras;
+        });
+      default:
+        return data;
+    }
+  };
+
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
@@ -116,7 +153,7 @@ export default function ExperienciasExamen({ user }) {
     if (materiaSeleccionada && filtroCalificacion)
       cargarExperienciasPorMateria();
     else setExperiencias([]);
-  }, [materiaSeleccionada, filtroCalificacion]);
+  }, [materiaSeleccionada, filtroCalificacion, filtroTiempo]);
   useEffect(() => {
     if (persona?.id) {
       historiaAcademicaService
@@ -192,7 +229,8 @@ export default function ExperienciasExamen({ user }) {
       const filtradas = filtroCalificacion
         ? data.filter((e) => e.nota >= parseInt(filtroCalificacion))
         : data;
-      setExperiencias(filtradas);
+      const filtradasPorTiempo = filtrarPorTiempo(filtradas);
+      setExperiencias(filtradasPorTiempo);
     } catch (error) {
       setExperiencias([]);
       setError("Error al cargar experiencias.");
@@ -250,7 +288,6 @@ export default function ExperienciasExamen({ user }) {
       resetFormData();
       cargarMisExperiencias();
       cargarExamenesDisponibles();
-      // --- MODIFICACIÓN #2: Actualizar la búsqueda si hay filtros activos ---
       cargarExperienciasPorMateria();
     } catch (error) {
       setError("Error al guardar la experiencia.");
@@ -317,7 +354,6 @@ export default function ExperienciasExamen({ user }) {
           ? "text-orange-600"
           : "text-red-600";
 
-  // --- JSX RESPONSIVE ---
   if (loading) {
     return (
       <div className="space-y-6">
@@ -382,7 +418,6 @@ export default function ExperienciasExamen({ user }) {
       ) : (
         <>
           <Card>
-            {/* --- MODIFICACIÓN #1: Añadir botón de actualizar --- */}
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="flex items-center gap-3">
                 <FileSearch className="w-5 h-5 text-purple-600" />
@@ -438,21 +473,38 @@ export default function ExperienciasExamen({ user }) {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
-                onValueChange={setFiltroCalificacion}
-                value={filtroCalificacion}
-                disabled={!materiaSeleccionada}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="3. Filtra por Nota" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Todas</SelectItem>
-                  <SelectItem value="4">4 o más</SelectItem>
-                  <SelectItem value="6">6 o más</SelectItem>
-                  <SelectItem value="8">8 o más</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <Select
+                  onValueChange={setFiltroCalificacion}
+                  value={filtroCalificacion}
+                  disabled={!materiaSeleccionada}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="3. Filtra por Nota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Todas</SelectItem>
+                    <SelectItem value="4">4 o más</SelectItem>
+                    <SelectItem value="6">6 o más</SelectItem>
+                    <SelectItem value="8">8 o más</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  onValueChange={setFiltroTiempo}
+                  value={filtroTiempo}
+                  disabled={!materiaSeleccionada}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="4. Rango de tiempo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los tiempos</SelectItem>
+                    <SelectItem value="1year">Último año</SelectItem>
+                    <SelectItem value="2years">Últimos 2 años</SelectItem>
+                    <SelectItem value="5years">Últimos 5 años</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
@@ -735,7 +787,7 @@ function FormularioExperiencia({
             <SelectContent>
               <SelectItem value="ESCRITO">Escrito</SelectItem>
               <SelectItem value="ORAL">Oral</SelectItem>
-              <SelectItem value="ESCRITO Y ORAL">Escrito y Oral</SelectItem>            
+              <SelectItem value="ESCRITO Y ORAL">Escrito y Oral</SelectItem>
             </SelectContent>
           </Select>
         </div>
