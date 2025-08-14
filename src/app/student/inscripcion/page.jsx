@@ -267,7 +267,7 @@ export default function Inscripcion({ user }) {
       DICIEMBRE: 12,
     };
     const mesMesa = mesesNumeros[mesa];
-    if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 10))
+    if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 15))
       return anioActual + 1;
     return anioActual;
   };

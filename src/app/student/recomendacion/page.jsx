@@ -864,7 +864,10 @@ export default function Recomendacion({ user }) {
                             <div className="bg-gray-50 p-2 rounded-lg">
                               <p className="text-xs text-gray-600">Aprobados</p>
                               <p className="font-bold text-sm">
-                                {final.estadisticas?.porcentajeAprobados || 0}%
+                                {(
+                                  final.estadisticas?.porcentajeAprobados || 0
+                                ).toFixed(1)}
+                                %
                               </p>
                             </div>
                             <div className="bg-gray-50 p-2 rounded-lg">
@@ -878,7 +881,9 @@ export default function Recomendacion({ user }) {
                             <div className="bg-gray-50 p-2 rounded-lg">
                               <p className="text-xs text-gray-600">Días Est.</p>
                               <p className="font-bold text-sm">
-                                {final.estadisticas?.promedioDiasEstudio || 0}
+                                {(
+                                  final.estadisticas?.promedioDiasEstudio || 0
+                                ).toFixed(1)}
                               </p>
                             </div>
                             <div className="bg-gray-50 p-2 rounded-lg">
