@@ -5,6 +5,7 @@ export interface HistoriaAcademica {
   id: number;
   persona_id_estudiante: number;
   plan_de_estudio_codigo: string;
+  estado: "ACTIVA" | "BAJA";
 }
 
 export interface HistoriaAcademicaResponseDTO {
@@ -26,6 +27,7 @@ const historiaAcademicaService = {
         .from("historia_academica")
         .select("*")
         .eq("persona_id_estudiante", personaId)
+        .eq("estado", "ACTIVA")
         .single();
 
       if (error) {
