@@ -6,6 +6,7 @@ import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence"; // PASO 1: Importar useSessionPersistence
 import { APP_CONFIG } from "@/lib/config";
 import {
   Loader2,
@@ -27,6 +28,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter, // PASO 2: Importar CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,6 +70,9 @@ export default function Recomendacion({ user }) {
     startCriticalOperation, // NUEVO
     endCriticalOperation, // NUEVO
   } = useEnhancedSessionPersistence();
+
+  // PASO 3.1: Obtener el setter para el estado de estadísticas/dashboard
+  const { setEstadisticasState } = useSessionPersistence();
 
   const fileInputRef = useRef(null);
   const updateFileInputRef = useRef(null);
@@ -211,7 +216,9 @@ export default function Recomendacion({ user }) {
       !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
     ) {
       updateState({
-        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
+        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(
+          ", "
+        )}`,
       });
       if (isUpdate && updateFileInputRef.current)
         updateFileInputRef.current.value = "";
@@ -368,6 +375,31 @@ export default function Recomendacion({ user }) {
       clearRecomendaciones();
       obtenerRecomendaciones(state.persona.id, state.criterioOrden);
     }
+  };
+
+  // PASO 3.2: Definir manejador para ir a Estadísticas
+  const handleGoToEstadisticas = (final) => {
+    // 1. Persistir la selección de materia y plan en el estado de estadísticas
+    if (state.historiaAcademica?.plan_de_estudio_codigo) {
+      setEstadisticasState(
+        "planSeleccionado",
+        state.historiaAcademica.plan_de_estudio_codigo
+      );
+    }
+    setEstadisticasState("materiaSeleccionada", final.codigoMateria);
+    setEstadisticasState("activeTab", "materia"); // Asegurar que está en la sub-pestaña por materia
+    // 2. Cambiar a la pestaña principal de Estadísticas
+    window.dispatchEvent(
+      new CustomEvent("changeTab", { detail: "estadisticas" })
+    );
+  };
+
+  // PASO 3.3: Definir manejador para ir a Inscripción
+  const handleGoToInscripcion = () => {
+    // 1. Cambiar a la pestaña de Inscripción
+    window.dispatchEvent(
+      new CustomEvent("changeTab", { detail: "inscripcion" })
+    );
   };
 
   const getDificultadColor = (d) =>
@@ -709,7 +741,9 @@ export default function Recomendacion({ user }) {
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
                 >
                   <RefreshCw
-                    className={`mr-2 h-4 w-4 ${state.loadingRecomendaciones ? "animate-spin" : ""}`}
+                    className={`mr-2 h-4 w-4 ${
+                      state.loadingRecomendaciones ? "animate-spin" : ""
+                    }`}
                   />
                   Refrescar
                 </Button>
@@ -760,7 +794,9 @@ export default function Recomendacion({ user }) {
                         {state.criterioOrden === "ESTADISTICAS" &&
                           final.estadisticas && (
                             <span
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(final.estadisticas.promedioDificultad)}`}
+                              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(
+                                final.estadisticas.promedioDificultad
+                              )}`}
                             >
                               Dificultad{" "}
                               {getDificultadTexto(
@@ -907,6 +943,27 @@ export default function Recomendacion({ user }) {
                           </div>
                         )}
                       </CardContent>
+                      {/* PASO 4: Añadir CardFooter con los botones */}
+                      <CardFooter className="pt-4 flex justify-end gap-2">
+                        {/* Botón Estadísticas */}
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleGoToEstadisticas(final)}
+                          className="bg-purple-100 text-purple-700 hover:bg-purple-200"
+                        >
+                          Estadísticas
+                        </Button>
+                        {/* Botón Inscribirse */}
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleGoToInscripcion()}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Inscribirse
+                        </Button>
+                      </CardFooter>
                     </Card>
                   ))}
                 </div>
