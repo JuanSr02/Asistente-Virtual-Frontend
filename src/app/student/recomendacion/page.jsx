@@ -947,21 +947,21 @@ export default function Recomendacion({ user }) {
                       <CardFooter className="pt-4 flex justify-end gap-2">
                         {/* Botón Estadísticas */}
                         <Button
-                          variant="secondary"
+                          variant="default"
                           size="sm"
                           onClick={() => handleGoToEstadisticas(final)}
-                          className="bg-purple-100 text-purple-700 hover:bg-purple-200"
+                          className="bg-blue-600 text-white hover:bg-blue-700"
                         >
-                          Estadísticas
+                          📊 Estadísticas
                         </Button>
                         {/* Botón Inscribirse */}
                         <Button
                           variant="default"
                           size="sm"
                           onClick={() => handleGoToInscripcion()}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-blue-600 text-white hover:bg-blue-700"
                         >
-                          Inscribirse
+                          ✍️ Inscribirse
                         </Button>
                       </CardFooter>
                     </Card>
