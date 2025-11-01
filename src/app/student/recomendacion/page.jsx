@@ -44,7 +44,6 @@ function esDispositivoMovil() {
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-// NUEVA: Función para emitir eventos de operación crítica
 const emitCriticalOperationStart = () => {
   if (!esDispositivoMovil()) {
     window.dispatchEvent(new CustomEvent("criticalOperationStart"));
@@ -65,8 +64,8 @@ export default function Recomendacion({ user }) {
     clearAllState,
     isStateStale,
     isInitialized,
-    startCriticalOperation, // NUEVO
-    endCriticalOperation, // NUEVO
+    startCriticalOperation,
+    endCriticalOperation,
   } = useEnhancedSessionPersistence();
 
   const fileInputRef = useRef(null);
@@ -177,18 +176,18 @@ export default function Recomendacion({ user }) {
         lastFetch: new Date().toISOString(),
       });
     } catch (err) {
-      let errorMessage = "Error al obtener las recomendaciones.";
+      let errorMessage = "Error al obtener las sugerencias.";
       if (err.response) {
         const { status, data } = err.response;
         if (status === 404)
           errorMessage = "No se encontraron finales disponibles para rendir.";
         else if (status === 400)
           errorMessage =
-            data?.message || "Datos inválidos para obtener recomendaciones.";
+            data?.message || "Datos inválidos para obtener sugerencias.";
         else
           errorMessage =
             data?.message ||
-            `Error ${status}: No se pudieron obtener las recomendaciones.`;
+            `Error ${status}: No se pudieron obtener las sugerencias.`;
       }
       updateState({ error: errorMessage, recomendaciones: [] });
       if (!isAutoLoad) clearRecomendaciones();
@@ -350,7 +349,6 @@ export default function Recomendacion({ user }) {
       updateState({ error: "Error al eliminar la historia académica." });
     } finally {
       updateState({ uploading: false });
-      // NUEVO: Finalizar operación crítica
       endCriticalOperation();
       emitCriticalOperationEnd();
     }
@@ -429,11 +427,11 @@ export default function Recomendacion({ user }) {
       <Card className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
-            📚 Recomendaciones Personalizadas
+            📚 Sugerencias Personalizadas
           </CardTitle>
           <CardDescription className="text-gray-600">
             Hola {state.persona.nombre_apellido}, aquí tienes las mejores
-            recomendaciones para tus próximos finales.
+            sugerencias para tus próximos finales.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -458,7 +456,7 @@ export default function Recomendacion({ user }) {
             <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <CardTitle>Carga tu Historia Académica</CardTitle>
             <CardDescription>
-              Para obtener recomendaciones, necesitamos tu historia académica
+              Para obtener sugerencias, necesitamos tu historia académica
               completa en formato Excel o PDF.
             </CardDescription>
           </CardHeader>
@@ -673,7 +671,7 @@ export default function Recomendacion({ user }) {
                   Controles de Recomendación
                 </CardTitle>
                 <CardDescription>
-                  Ajusta cómo se ordenan tus recomendaciones.
+                  Ajusta cómo se ordenan tus sugerencias.
                 </CardDescription>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
@@ -720,7 +718,7 @@ export default function Recomendacion({ user }) {
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
                   <p className="font-semibold text-gray-700">
-                    Generando recomendaciones...
+                    Generando sugerencias...
                   </p>
                   <p className="text-sm text-gray-500">
                     Esto puede tardar un momento.
