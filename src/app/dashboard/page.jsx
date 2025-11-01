@@ -8,7 +8,6 @@ import { useState } from "react";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Loader2, LogOut, ShieldAlert, UserCircle } from "lucide-react";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function Dashboard({ user }) {
   const { role, loading, error } = useUserRole(user);
   const [signingOut, setSigningOut] = useState(false);
