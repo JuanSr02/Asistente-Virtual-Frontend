@@ -109,11 +109,29 @@ export default function RootLayout({
   return (
     <html lang="es" className="scroll-smooth">
       <head>
-        {/* Next.js maneja el viewport, pero si quisieras añadir algo más, va aquí */}
         <title>Asistente Virtual</title>
+        {/* --- Configuración PWA --- */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="Asistente Virtual" />
+        <meta name="apple-mobile-web-app-title" content="Asistente Virtual" />
+        <meta name="theme-color" content="#2563eb" />
+        <meta name="msapplication-navbutton-color" content="#2563eb" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="msapplication-starturl" content="/dashboard" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        />
+        {/* Usamos el favicon existente para el icono de iOS */}
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        {/* --- Fin Configuración PWA --- */}
       </head>
-      {/* 
-        La estructura de flex-col con min-h-screen en el body y flex-1 en main
+      {/* La estructura de flex-col con min-h-screen en el body y flex-1 en main
         es una excelente base para un "sticky footer" y ya es inherentemente responsive.
         No se necesita cambiar.
       */}
