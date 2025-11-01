@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+// Importar el plugin next-pwa
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development", // Desactivar en desarrollo para evitar problemas de caché
+  register: true, // Registrar el Service Worker automáticamente
+  skipWaiting: true, // Forzar la activación del Service Worker inmediatamente
+});
+
 const nextConfig = {
   // Configuración para evitar problemas de chunks en desarrollo
   webpack: (config, { dev, isServer }) => {
@@ -51,4 +60,5 @@ const nextConfig = {
   }),
 };
 
-module.exports = nextConfig;
+// Exportar la configuración envuelta en withPWA
+module.exports = withPWA(nextConfig);
