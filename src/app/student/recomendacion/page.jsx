@@ -700,7 +700,7 @@ export default function Recomendacion({ user }) {
               <div>
                 <CardTitle className="flex items-center gap-3">
                   <Sparkles className="h-6 w-6 text-blue-500" />
-                  Controles de Recomendación
+                  Control de Sugerencias
                 </CardTitle>
                 <CardDescription>
                   Ajusta cómo se ordenan tus sugerencias.

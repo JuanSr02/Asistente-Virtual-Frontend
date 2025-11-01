@@ -142,7 +142,7 @@ export default function StudentDashboard({ user }) {
 
   // Array de pestañas para un código más limpio
   const tabs = [
-    { id: "recomendacion", label: "Recomendación", icon: GraduationCap },
+    { id: "recomendacion", label: "Sugerencias", icon: GraduationCap },
     { id: "experiencias", label: "Experiencias", icon: MessageSquareQuote },
     { id: "inscripcion", label: "Inscripción", icon: PencilRuler },
     { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
