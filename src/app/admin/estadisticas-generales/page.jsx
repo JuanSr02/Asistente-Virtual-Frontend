@@ -33,6 +33,61 @@ const MetricCard = ({ icon, title, value, color }) => {
   );
 };
 
+/**
+ * Procesa un objeto de distribución de estadísticas:
+ * 1. Normaliza los nombres de las claves (quita acentos y convierte a mayúsculas) para unificar duplicados.
+ * 2. Suma las cantidades de las claves unificadas.
+ * 3. Ordena el resultado de forma descendente por cantidad.
+ * 4. Limita el resultado al número 'topN' especificado.
+ *
+ * @param {Object} data - Objeto de estadísticas, ej: {"MATERIA A": 10, "Materia a": 5}
+ * @param {number} topN - Número de elementos principales a devolver (por defecto 15).
+ * @returns {Array<{name: string, count: number}>} - Array de objetos ordenado.
+ */
+const getTopNUnificadoYOrdenado = (data, topN = 15) => {
+    // Función de normalización de nombres
+    const normalizeName = (name) => {
+        let normalized = name.toUpperCase();
+        
+        // 1. Quitar acentos de forma robusta (caracteres diacríticos)
+        normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // 2. Corregir cualquier error tipográfico conocido (ej. el que encontré antes)
+        if (normalized.includes("CO0MUNICACION")) {
+            normalized = normalized.replace("CO0MUNICACION", "COMUNICACION");
+        }
+        
+        return normalized;
+    };
+
+    // 1. Unificación y Suma
+    const aggregatedData = {};
+
+    for (const [key, count] of Object.entries(data)) {
+        const normalizedName = normalizeName(key);
+        // Suma las cantidades para el nombre normalizado
+        aggregatedData[normalizedName] = (aggregatedData[normalizedName] || 0) + count;
+    }
+
+    // 2. Conversión a Array de Objetos
+    let sortedItems = Object.entries(aggregatedData).map(([name, count]) => ({
+        name: name,
+        count: count
+    }));
+
+    // 3. Ordenamiento (descendente por 'count')
+    sortedItems.sort((a, b) => b.count - a.count);
+
+    // 4. Filtrar Top N y devolver
+    return sortedItems.slice(0, topN);
+};
+
+const dataParaGrafico = getTopNUnificadoYOrdenado(
+  estadisticas.distribucionExamenesPorMateria,
+  10
+);
+
+
 // Componente auxiliar para las listas de ranking
 const RankingListItem = ({ rank, name, value, color }) => {
   const colorClasses = {
@@ -255,10 +310,10 @@ export default function EstadisticasGenerales() {
 
       {/* --- GRÁFICO DE MATERIAS MÁS RENDIDAS --- */}
       <BarChart
-        data={estadisticas.distribucionExamenesPorMateria}
+        data={dataParaGrafico}
         title="Top 15 Materias más Rendidas"
         colors={["#4299e1"]}
-        maxBars={15}
+        maxBars={10}
         useIntegers={true}
         showNameBelow={true}
       />
