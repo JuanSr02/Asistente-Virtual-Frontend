@@ -82,11 +82,6 @@ const getTopNUnificadoYOrdenado = (data, topN = 15) => {
     return sortedItems.slice(0, topN);
 };
 
-const dataParaGrafico = getTopNUnificadoYOrdenado(
-  estadisticas.distribucionExamenesPorMateria,
-  10
-);
-
 
 // Componente auxiliar para las listas de ranking
 const RankingListItem = ({ rank, name, value, color }) => {
@@ -310,7 +305,7 @@ export default function EstadisticasGenerales() {
 
       {/* --- GRÁFICO DE MATERIAS MÁS RENDIDAS --- */}
       <BarChart
-        data={dataParaGrafico}
+        data={getTopNUnificadoYOrdenado(estadisticas.distribucionExamenesPorMateria,10)}
         title="Top 15 Materias más Rendidas"
         colors={["#4299e1"]}
         maxBars={10}
