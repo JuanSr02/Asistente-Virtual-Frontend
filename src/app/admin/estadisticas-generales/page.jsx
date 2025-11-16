@@ -255,7 +255,15 @@ export default function EstadisticasGenerales() {
 
       {/* --- GRÁFICO DE MATERIAS MÁS RENDIDAS --- */}
       <BarChart
-        data={estadisticas.distribucionExamenesPorMateria}
+        data={Object.fromEntries(
+          Object.entries(estadisticas.distribucionExamenesPorMateria)
+            // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes (el valor, índice 1)
+            .sort((a, b) => b[1] - a[1])
+            // 2. Tomar los primeros 10 elementos
+            .slice(0, 10)
+            // 3. Reordenar de menor a mayor (ascendente) por la cantidad de exámenes
+            .sort((a, b) => a[1] - b[1])
+        )}
         title="Top 10 Materias más Rendidas"
         colors={["#4299e1"]}
         maxBars={10}
@@ -305,6 +313,7 @@ export default function EstadisticasGenerales() {
           data={Object.entries(estadisticas.promedioNotasPorMateria)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10)
+            .reverse()
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
           title="Top 10 - Mejor Promedio de Notas"
           colors={["#38b2ac"]}
