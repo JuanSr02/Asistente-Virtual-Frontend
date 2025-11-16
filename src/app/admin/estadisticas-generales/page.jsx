@@ -264,7 +264,7 @@ export default function EstadisticasGenerales() {
             // 3. Reordenar de menor a mayor (ascendente) por la cantidad de exámenes
             .sort((a, b) => a[1] - b[1])
         )}
-        title="Top 10 Materias más Rendidas"
+        title="Top 10 - Materias más Rendidas"
         colors={["#4299e1"]}
         maxBars={10}
         useIntegers={true}
@@ -315,7 +315,7 @@ export default function EstadisticasGenerales() {
             .slice(0, 10)
             .reverse()
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Mejor Promedio de Notas"
+          title="Top 10 - Promedios mas altos por Materia"
           colors={["#38b2ac"]}
           maxBars={10}
           useIntegers={false}
@@ -326,7 +326,7 @@ export default function EstadisticasGenerales() {
             .sort((a, b) => a[1] - b[1])
             .slice(0, 10)
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Peor Promedio de Notas"
+          title="Top 10 - Promedios mas bajos por Materia"
           colors={["#f56565"]}
           maxBars={10}
           useIntegers={false}
