@@ -492,7 +492,7 @@ export default function Inscripcion({ user }) {
             <CardTitle>Carga tu Historia Académica Primero</CardTitle>
             <CardDescription>
               Para inscribirte a mesas de examen, ve a la pestaña
-              "Recomendación" y sube tu historia académica.
+              "Sugerencias" y sube tu historia académica.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
@@ -504,7 +504,7 @@ export default function Inscripcion({ user }) {
               }
             >
               <GraduationCap className="mr-2 h-4 w-4" />
-              Ir a Recomendación
+              Ir a Sugerencias
             </Button>
           </CardContent>
         </Card>

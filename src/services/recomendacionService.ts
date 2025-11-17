@@ -22,7 +22,7 @@ export interface FinalDTO {
 
 const recomendacionService = {
   /**
-   * Obtiene las recomendaciones de finales para un estudiante
+   * Obtiene las sugerencias de finales para un estudiante
    */
   obtenerFinalesParaRendir: async (
     estudianteId: number,

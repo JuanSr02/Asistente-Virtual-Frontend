@@ -398,7 +398,7 @@ export default function ExperienciasExamen({ user }) {
             <GraduationCap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <CardTitle>Carga tu Historia Académica</CardTitle>
             <CardDescription>
-              Para ver y compartir experiencias, primero ve a "Recomendación" y
+              Para ver y compartir experiencias, primero ve a "Sugerencias" y
               sube tu historia.
             </CardDescription>
           </CardHeader>
@@ -411,7 +411,7 @@ export default function ExperienciasExamen({ user }) {
               }
             >
               <GraduationCap className="mr-2 h-4 w-4" />
-              Ir a Recomendación
+              Ir a Sugerencias
             </Button>
           </CardContent>
         </Card>
