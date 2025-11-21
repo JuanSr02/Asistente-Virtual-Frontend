@@ -308,14 +308,14 @@ export default function PerfilPage() {
 
   // --- JSX RESPONSIVE ---
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <Card className="w-full max-w-2xl mx-auto bg-white shadow-lg border border-gray-200 rounded-xl">
+    <div className="min-h-screen bg-muted p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-2xl mx-auto bg-background shadow-lg border border-gray-200 rounded-xl">
         <CardHeader className="p-6 border-b">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
             <User className="w-6 h-6 text-blue-600" />
             Mi Perfil
           </CardTitle>
-          <CardDescription className="text-sm text-gray-500 mt-1">
+          <CardDescription className="text-sm text-muted-foreground mt-1">
             Actualiza tus datos personales y de acceso.
           </CardDescription>
         </CardHeader>
@@ -329,7 +329,7 @@ export default function PerfilPage() {
             >
               Nombre y Apellido
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border">
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border">
               {usuario.nombre_apellido}
             </div>
             <div className="relative">
@@ -370,8 +370,8 @@ export default function PerfilPage() {
             <Label htmlFor="mail" className="font-semibold text-gray-700">
               Email
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border flex items-center gap-2">
-              <Mail className="h-4 w-4 text-gray-500" />
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
               {usuario.mail}
             </div>
             <div className="relative">
@@ -402,8 +402,8 @@ export default function PerfilPage() {
             <Label htmlFor="telefono" className="font-semibold text-gray-700">
               Teléfono (Opcional)
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border flex items-center gap-2">
-              <Phone className="h-4 w-4 text-gray-500" />{" "}
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />{" "}
               {usuario.telefono || "No especificado"}
             </div>
             <div className="relative">
@@ -443,7 +443,7 @@ export default function PerfilPage() {
             >
               Nueva Contraseña
             </Label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Si la cambias, deberás volver a iniciar sesión.
             </p>
             <div className="relative">
@@ -473,7 +473,7 @@ export default function PerfilPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-gray-700"
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
@@ -492,11 +492,11 @@ export default function PerfilPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="p-6 bg-gray-50 border-t flex flex-col sm:flex-row gap-3">
+        <CardFooter className="p-6 bg-muted border-t flex flex-col sm:flex-row gap-3">
           <Button
             onClick={handleActualizar}
             disabled={updating || !hasValidChanges}
-            className="w-full sm:w-auto flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+            className="w-full sm:w-auto flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-muted-foreground"
           >
             {updating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

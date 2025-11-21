@@ -7,6 +7,7 @@ import { supabase } from "@/supabaseClient";
 import { useState } from "react";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Loader2, LogOut, ShieldAlert, UserCircle } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Dashboard({ user }) {
   const { role, loading, error } = useUserRole(user);
@@ -123,32 +124,31 @@ export default function Dashboard({ user }) {
                 }
                 className="
                 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
-                bg-white/10 hover:bg-white/20 transition-colors
+                bg-background/10 hover:bg-background/20 transition-colors
               "
                 title="Ver Manual de Uso"
               >
                 📘
                 <span className="hidden sm:inline">Ver manual de uso</span>
               </button>
-
               <button
                 onClick={handleGoToProfile}
                 className="
                 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold
-                bg-white/10 hover:bg-white/20 transition-colors
+                bg-background/10 hover:bg-background/20 transition-colors
               "
                 title="Ir a Perfil"
               >
                 <UserCircle className="h-4 w-4 hidden sm:block" />
                 <span className="capitalize">{role?.toLowerCase()}</span>
               </button>
-
+              <ModeToggle />
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
                 className="
                 h-9 w-9 inline-flex items-center justify-center whitespace-nowrap rounded-md
-                text-sm font-medium text-white hover:bg-white/20
+                text-sm font-medium text-white hover:bg-background/20
                 transition-colors disabled:opacity-50
               "
                 title="Cerrar Sesión"

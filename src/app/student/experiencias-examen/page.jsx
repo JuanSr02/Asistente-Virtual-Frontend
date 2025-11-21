@@ -381,11 +381,11 @@ export default function ExperienciasExamen({ user }) {
 
       <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50">
         <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
             <MessageSquareQuote className="w-6 h-6 text-purple-600" />
             Experiencias de Examen
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-muted-foreground">
             Descubre las experiencias de otros y comparte la tuya para ayudar a
             la comunidad.
           </CardDescription>
@@ -521,7 +521,7 @@ export default function ExperienciasExamen({ user }) {
                     <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                   </div>
                 ) : experiencias.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-muted-foreground py-8">
                     No se encontraron experiencias con esos filtros.
                   </p>
                 ) : (
@@ -564,7 +564,7 @@ export default function ExperienciasExamen({ user }) {
                   <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
                 </div>
               ) : misExperiencias.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-muted-foreground py-8">
                   Aún no has compartido ninguna experiencia.
                 </p>
               ) : (
@@ -703,8 +703,8 @@ function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
 
 function MetricItem({ label, value }) {
   return (
-    <div className="bg-gray-50 p-2 rounded-lg">
-      <p className="text-xs text-gray-600">{label}</p>
+    <div className="bg-muted p-2 rounded-lg">
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className="font-bold text-sm">{value}</p>
     </div>
   );
@@ -713,11 +713,13 @@ function MetricItem({ label, value }) {
 function DetailItem({ icon: Icon, label, value }) {
   return (
     <div>
-      <h5 className="font-semibold text-gray-800 mb-1 text-sm flex items-center gap-2">
+      <h5 className="font-semibold text-foreground mb-1 text-sm flex items-center gap-2">
         <Icon className="h-4 w-4" />
         {label}:
       </h5>
-      <p className="text-gray-600 bg-gray-50 p-3 rounded-lg text-sm">{value}</p>
+      <p className="text-muted-foreground bg-muted p-3 rounded-lg text-sm">
+        {value}
+      </p>
     </div>
   );
 }

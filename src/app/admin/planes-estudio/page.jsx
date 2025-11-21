@@ -166,17 +166,17 @@ export default function PlanesEstudio() {
   return (
     <Card className="w-full shadow-lg border border-gray-200">
       <CardHeader className="p-4 sm:p-6">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
           <FileText className="w-6 h-6 text-blue-600" />
           Planes de Estudio
         </CardTitle>
-        <CardDescription className="text-sm text-gray-500 mt-1">
+        <CardDescription className="text-sm text-muted-foreground mt-1">
           Administra los planes de estudio cargados en el sistema.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 space-y-6">
         {/* --- BARRA DE ACCIONES --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-gray-50 border rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-muted border rounded-lg">
           <div className="relative">
             <input
               type="file"
@@ -201,7 +201,7 @@ export default function PlanesEstudio() {
                 {uploading ? "Cargando..." : "Cargar Plan"}
               </label>
             </Button>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Formatos permitidos: XLS, XLSX
             </p>
           </div>
@@ -260,41 +260,41 @@ export default function PlanesEstudio() {
           {loading ? (
             <TableSkeleton rows={5} columns={3} />
           ) : planes.length === 0 ? (
-            <div className="text-center py-16 text-gray-500">
+            <div className="text-center py-16 text-muted-foreground">
               <FileText className="mx-auto text-6xl mb-4 text-gray-300" />
               <h4 className="text-xl text-gray-700 mb-2 font-semibold">
                 No hay planes de estudio
               </h4>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Cargue un archivo para comenzar a administrar los planes.
               </p>
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
                     Código
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
                     Propuesta
                   </th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">
+                  <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
                     Cant. Materias
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-background divide-y divide-gray-200">
                 {planes.map((plan) => (
                   <tr
                     key={plan.codigo}
                     onClick={() => handleSelectPlan(plan)}
-                    className={`cursor-pointer transition-colors duration-200 ${selectedPlan?.codigo === plan.codigo ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                    className={`cursor-pointer transition-colors duration-200 ${selectedPlan?.codigo === plan.codigo ? "bg-blue-50" : "hover:bg-muted"}`}
                   >
                     <td className="px-4 py-3 font-mono text-gray-700">
                       {plan.codigo}
                     </td>
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                    <td className="px-4 py-3 font-medium text-foreground">
                       {plan.propuesta}
                     </td>
                     <td className="px-4 py-3">

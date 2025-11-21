@@ -249,7 +249,7 @@ export default function EstadisticasMateria() {
     <div className="p-4 sm:p-6 lg:p-8">
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-        <h3 className="text-2xl font-bold text-gray-800">
+        <h3 className="text-2xl font-bold text-foreground">
           Estadísticas por Materia
         </h3>
         <div className="flex items-center gap-4">
@@ -271,7 +271,7 @@ export default function EstadisticasMateria() {
       </div>
 
       {/* --- FILTROS --- */}
-      <div className="bg-gray-50 rounded-xl p-4 sm:p-6 border border-gray-200 mb-8">
+      <div className="bg-muted rounded-xl p-4 sm:p-6 border border-gray-200 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <label
@@ -285,7 +285,7 @@ export default function EstadisticasMateria() {
               value={planSeleccionado}
               onChange={(e) => setPlanSeleccionado(e.target.value)}
               disabled={loadingPlanes}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
                 {loadingPlanes ? "Cargando..." : "Seleccione un plan"}
@@ -311,7 +311,7 @@ export default function EstadisticasMateria() {
               disabled={
                 !planSeleccionado || loadingMaterias || materias.length === 0
               }
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               <option value="">
                 {!planSeleccionado
@@ -341,7 +341,7 @@ export default function EstadisticasMateria() {
               value={periodoSeleccionado}
               onChange={(e) => setPeriodoSeleccionado(e.target.value)}
               disabled={!materiaSeleccionada}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-white text-gray-800 transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               {PERIODOS_ESTADISTICAS.map((periodo) => (
                 <option key={periodo.value} value={periodo.value}>
@@ -402,21 +402,21 @@ export default function EstadisticasMateria() {
           </div>
 
           {estadisticas.totalRendidos === 0 ? (
-            <div className="text-center py-12 px-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+            <div className="text-center py-12 px-4 bg-muted rounded-xl border-2 border-dashed border-gray-300">
               <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
-              <h4 className="text-xl sm:text-2xl text-gray-800 mb-2 font-semibold">
+              <h4 className="text-xl sm:text-2xl text-foreground mb-2 font-semibold">
                 No hay estadísticas disponibles
               </h4>
-              <p className="text-base text-gray-600 mb-6 max-w-lg mx-auto">
+              <p className="text-base text-muted-foreground mb-6 max-w-lg mx-auto">
                 Esta materia aún no tiene exámenes rendidos registrados en el
                 sistema.
               </p>
-              <div className="bg-white p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 max-w-md mx-auto text-left space-y-2">
-                <span className="text-sm text-gray-600 flex items-center gap-2">
+              <div className="bg-background p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 max-w-md mx-auto text-left space-y-2">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Info className="h-4 w-4 text-orange-500" /> Total de exámenes
-                  rendidos: <strong className="text-gray-800">0</strong>
+                  rendidos: <strong className="text-foreground">0</strong>
                 </span>
-                <span className="text-sm text-gray-600 flex items-center gap-2">
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Info className="h-4 w-4 text-orange-500" /> Los datos
                   aparecerán cuando se registren exámenes.
                 </span>
@@ -543,12 +543,12 @@ export default function EstadisticasMateria() {
 
       {/* --- ESTADO VACÍO INICIAL --- */}
       {!estadisticas && !loading && !error && (
-        <div className="text-center py-16 px-4 text-gray-500">
+        <div className="text-center py-16 px-4 text-muted-foreground">
           <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
-          <h4 className="text-xl sm:text-2xl text-gray-600 mb-2 font-semibold">
+          <h4 className="text-xl sm:text-2xl text-muted-foreground mb-2 font-semibold">
             Seleccione un plan y una materia
           </h4>
-          <p className="text-base text-gray-500 max-w-md mx-auto">
+          <p className="text-base text-muted-foreground max-w-md mx-auto">
             Elija un plan de estudio y luego una materia para ver las
             estadísticas detalladas.
           </p>
@@ -572,14 +572,14 @@ const MetricCard = ({ icon, title, value, color }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
+      className={`bg-background rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
     >
       <div className="text-2xl sm:text-3xl opacity-80">{icon}</div>
       <div>
-        <h5 className="text-xs sm:text-sm text-gray-500 uppercase tracking-wide mb-1">
+        <h5 className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wide mb-1">
           {title}
         </h5>
-        <div className="text-2xl sm:text-3xl font-bold text-gray-800">
+        <div className="text-2xl sm:text-3xl font-bold text-foreground">
           {value}
         </div>
       </div>

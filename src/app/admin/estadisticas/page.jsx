@@ -44,7 +44,7 @@ export default function Estadisticas() {
         return <EstadisticasPorCarrera />; // NUEVO CASO
       default:
         return (
-          <div className="text-center py-16 text-gray-500 flex flex-col items-center gap-4">
+          <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
             <LineChart className="w-12 h-12 text-gray-300" />
             <p className="text-lg">Contenido no disponible.</p>
           </div>
@@ -55,11 +55,11 @@ export default function Estadisticas() {
   return (
     <Card className="w-full shadow-lg border border-gray-200">
       <CardHeader className="p-4 sm:p-6">
-        <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
           <LineChart className="w-6 h-6 text-blue-600" />
           Estadísticas del Sistema
         </CardTitle>
-        <CardDescription className="text-sm text-gray-500 mt-1">
+        <CardDescription className="text-sm text-muted-foreground mt-1">
           Visualiza estadísticas generales, por materia o por carrera
           específica.
         </CardDescription>
@@ -78,7 +78,7 @@ export default function Estadisticas() {
                   ${
                     activeTab === tab.id
                       ? "text-blue-600 border-blue-600 font-semibold"
-                      : "text-gray-500 border-transparent hover:text-blue-600 hover:border-gray-300"
+                      : "text-muted-foreground border-transparent hover:text-blue-600 hover:border-gray-300"
                   }
                 `}
                 aria-current={activeTab === tab.id ? "page" : undefined}

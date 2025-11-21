@@ -424,12 +424,12 @@ export default function Recomendacion({ user }) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <Card className="bg-gradient-to-br from-blue-50/50 via-background to-purple-50/50 dark:from-blue-950/30 dark:via-background dark:to-purple-950/30">
         <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
             📚 Sugerencias Personalizadas
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-muted-foreground">
             Hola {state.persona.nombre_apellido}, aquí tienes las mejores
             sugerencias para tus próximos finales.
           </CardDescription>
@@ -720,17 +720,17 @@ export default function Recomendacion({ user }) {
                   <p className="font-semibold text-gray-700">
                     Generando sugerencias...
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Esto puede tardar un momento.
                   </p>
                 </div>
               ) : state.recomendaciones.length === 0 ? (
                 <div className="text-center py-12">
                   <ThumbsUp className="mx-auto h-12 w-12 text-green-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-800">
+                  <h3 className="text-xl font-semibold text-foreground">
                     ¡Felicitaciones!
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     No tienes finales pendientes para rendir según tu historia.
                   </p>
                 </div>
@@ -859,36 +859,44 @@ export default function Recomendacion({ user }) {
                           })()}
                         {state.criterioOrden === "ESTADISTICAS" && (
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-xs text-gray-600">Aprobados</p>
+                            <div className="bg-muted p-2 rounded-lg">
+                              <p className="text-xs text-muted-foreground">
+                                Aprobados
+                              </p>
                               <p className="font-bold text-sm">
                                 {final.estadisticas?.porcentajeAprobados || 0}%
                               </p>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-xs text-gray-600">Promedio</p>
+                            <div className="bg-muted p-2 rounded-lg">
+                              <p className="text-xs text-muted-foreground">
+                                Promedio
+                              </p>
                               <p className="font-bold text-sm">
                                 {(
                                   final.estadisticas?.promedioNotas || 0
                                 ).toFixed(1)}
                               </p>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-xs text-gray-600">Días Est.</p>
+                            <div className="bg-muted p-2 rounded-lg">
+                              <p className="text-xs text-muted-foreground">
+                                Días Est.
+                              </p>
                               <p className="font-bold text-sm">
                                 {final.estadisticas?.promedioDiasEstudio || 0}
                               </p>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-xs text-gray-600">Hrs/Día</p>
+                            <div className="bg-muted p-2 rounded-lg">
+                              <p className="text-xs text-muted-foreground">
+                                Hrs/Día
+                              </p>
                               <p className="font-bold text-sm">
                                 {(
                                   final.estadisticas?.promedioHorasDiarias || 0
                                 ).toFixed(1)}
                               </p>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded-lg col-span-2 md:col-span-1 lg:col-span-1">
-                              <p className="text-xs text-gray-600">
+                            <div className="bg-muted p-2 rounded-lg col-span-2 md:col-span-1 lg:col-span-1">
+                              <p className="text-xs text-muted-foreground">
                                 Dificultad
                               </p>
                               <p className="font-bold text-sm">

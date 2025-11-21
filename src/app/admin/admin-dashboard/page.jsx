@@ -55,7 +55,7 @@ export default function AdminDashboard({ user }) {
         return <Perfil />;
       default:
         return (
-          <div className="text-center py-16 text-gray-500 flex flex-col items-center gap-4">
+          <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
             <LayoutDashboard className="w-12 h-12 text-gray-300" />
             <p className="text-lg">
               Selecciona una opción del menú para comenzar.
@@ -67,9 +67,9 @@ export default function AdminDashboard({ user }) {
 
   // --- JSX RESPONSIVE ---
   return (
-    <div className="flex-1 flex flex-col bg-gray-50">
+    <div className="flex-1 flex flex-col bg-muted">
       {/* Barra de navegación de pestañas */}
-      <nav className="bg-white border-b border-gray-200 sticky top-16 z-30">
+      <nav className="bg-background border-b border-gray-200 sticky top-16 z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Pestañas de navegación */}
@@ -84,7 +84,7 @@ export default function AdminDashboard({ user }) {
                     ${
                       activeTab === tab.id
                         ? "text-blue-600 border-blue-600"
-                        : "text-gray-500 border-transparent hover:text-blue-600 hover:bg-gray-50"
+                        : "text-muted-foreground border-transparent hover:text-blue-600 hover:bg-muted"
                     }
                   `}
                   aria-current={activeTab === tab.id ? "page" : undefined}
@@ -98,7 +98,7 @@ export default function AdminDashboard({ user }) {
 
             {/* Información del usuario (oculto en pantallas muy pequeñas) */}
             <div className="hidden md:block text-right">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 Usuario: {user.email}
               </span>
             </div>

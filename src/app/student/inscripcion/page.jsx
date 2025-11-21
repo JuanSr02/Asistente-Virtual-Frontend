@@ -443,11 +443,11 @@ export default function Inscripcion({ user }) {
     <div className="space-y-6">
       <Card className="bg-gradient-to-br from-green-50 via-white to-blue-50">
         <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
             <Pencil className="w-6 h-6 text-blue-600" />
             Inscripción a Mesas de Examen
           </CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardDescription className="text-muted-foreground">
             Inscríbete para ponerte en contacto con compañeros y estudiar en
             conjunto.{" "}
             <strong className="text-yellow-800">
@@ -491,8 +491,8 @@ export default function Inscripcion({ user }) {
             <GraduationCap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <CardTitle>Carga tu Historia Académica Primero</CardTitle>
             <CardDescription>
-              Para inscribirte a mesas de examen, ve a la pestaña
-              "Sugerencias" y sube tu historia académica.
+              Para inscribirte a mesas de examen, ve a la pestaña "Sugerencias"
+              y sube tu historia académica.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
@@ -529,7 +529,7 @@ export default function Inscripcion({ user }) {
                       {state.companerosInscriptos.map((c) => (
                         <div
                           key={c.id}
-                          className="bg-white p-2 rounded border text-sm"
+                          className="bg-background p-2 rounded border text-sm"
                         >
                           {c.estudianteNombre}
                         </div>
@@ -550,7 +550,7 @@ export default function Inscripcion({ user }) {
               </CardHeader>
               <CardContent>
                 {materiasDisponiblesFiltradas.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-muted-foreground py-8">
                     No tienes materias disponibles para inscribirte.
                   </p>
                 ) : (
@@ -559,10 +559,10 @@ export default function Inscripcion({ user }) {
                       <div
                         key={m.codigo}
                         onClick={() => handleSeleccionarMateria(m)}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${state.materiaSeleccionada?.codigo === m.codigo ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"}`}
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${state.materiaSeleccionada?.codigo === m.codigo ? "border-blue-500 bg-blue-50" : "hover:bg-muted"}`}
                       >
                         <p className="font-semibold">{m.nombre}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           Código: {m.codigo}
                         </p>
                       </div>
@@ -577,7 +577,7 @@ export default function Inscripcion({ user }) {
               </CardHeader>
               <CardContent>
                 {!state.materiaSeleccionada ? (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-muted-foreground py-8">
                     Selecciona una materia para ver las mesas.
                   </p>
                 ) : (
@@ -591,7 +591,7 @@ export default function Inscripcion({ user }) {
                       <button
                         key={mesa}
                         onClick={() => handleSeleccionarMesa(mesa)}
-                        className="w-full p-3 border rounded-lg hover:bg-gray-50 transition-colors flex justify-between items-center text-left"
+                        className="w-full p-3 border rounded-lg hover:bg-muted transition-colors flex justify-between items-center text-left"
                       >
                         <span className="font-medium">
                           {mesa} {calcularAnioMesa(mesa)}
@@ -611,7 +611,7 @@ export default function Inscripcion({ user }) {
             </CardHeader>
             <CardContent>
               {state.inscripcionesEstudiante.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-muted-foreground py-8">
                   No tienes inscripciones activas.
                 </p>
               ) : (
@@ -623,7 +623,7 @@ export default function Inscripcion({ user }) {
                     >
                       <div>
                         <p className="font-semibold">{i.materiaNombre}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {i.turno} {i.anio}
                         </p>
                       </div>
@@ -723,7 +723,7 @@ export default function Inscripcion({ user }) {
                   <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                 </div>
               ) : inscriptosConsulta.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-muted-foreground py-8">
                   No hay otros inscriptos.
                 </p>
               ) : (

@@ -50,7 +50,7 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
     <>
       <span className="hidden sm:inline">Materias del Plan: </span>
       <span>{plan?.propuesta || "Plan"}</span>
-      <span className="text-gray-500 font-normal ml-2">
+      <span className="text-muted-foreground font-normal ml-2">
         ({plan?.codigo || "N/A"})
       </span>
     </>
@@ -70,25 +70,25 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
         ) : error ? (
           <div className="flex flex-col items-center justify-center text-center h-full py-12">
             <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <Button onClick={() => cargarMaterias(plan.codigo)}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Reintentar
             </Button>
           </div>
         ) : materias.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center h-full py-12 text-gray-500">
+          <div className="flex flex-col items-center justify-center text-center h-full py-12 text-muted-foreground">
             <Book className="w-12 h-12 text-gray-300 mb-4" />
             <h4 className="text-lg font-semibold text-gray-700">
               No hay materias registradas
             </h4>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Este plan de estudio no tiene materias cargadas.
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="text-sm font-medium text-gray-600 px-2">
+            <div className="text-sm font-medium text-muted-foreground px-2">
               {materias.length} materia{materias.length !== 1 && "s"} encontrada
               {materias.length !== 1 && "s"}
             </div>
@@ -100,16 +100,16 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
               {materias.map((materia, index) => (
                 <div
                   key={materia.codigo}
-                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border-l-4 border-gray-200 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200"
+                  className="flex items-center gap-4 p-3 bg-muted rounded-lg border-l-4 border-gray-200 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200"
                 >
                   <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {index + 1}
                   </div>
                   <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold text-gray-800 text-sm truncate">
+                    <p className="font-semibold text-foreground text-sm truncate">
                       {materia.nombre}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Código: {materia.codigo}
                     </p>
                   </div>

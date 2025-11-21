@@ -7,6 +7,8 @@ import Auth from "@/app/auth/page";
 import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider" // Asegúrate de importar esto
+
 
 const publicRoutes = ["/reset-password", "/auth", "/subida-mobile"];
 
@@ -107,7 +109,7 @@ export default function RootLayout({
   const isPublicRoute = publicRoutes.includes(pathname || "");
 
   return (
-    <html lang="es" className="scroll-smooth">
+    <html lang="es" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <title>Asistente Virtual</title>
         {/* --- Configuración PWA --- */}
@@ -136,43 +138,50 @@ export default function RootLayout({
         No se necesita cambiar.
       */}
       <body className="min-h-screen flex flex-col bg-background text-foreground">
-        <main className="flex-1">
-          {
-            /* El contenido principal crece para empujar el footer hacia abajo */
-            !isPublicRoute && !session ? (
-              <Auth />
-            ) : session && !isPublicRoute ? (
-              <Dashboard user={session.user} />
-            ) : (
-              children
-            )
-          }
-        </main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <main className="flex-1">
+            {
+              /* El contenido principal crece para empujar el footer hacia abajo */
+              !isPublicRoute && !session ? (
+                <Auth />
+              ) : session && !isPublicRoute ? (
+                <Dashboard user={session.user} />
+              ) : (
+                children
+              )
+            }
+          </main>
 
-        <Toaster />
+          <Toaster />
 
-        {/* --- FOOTER RESPONSIVE --- */}
-        <footer
-          className="
+          {/* --- FOOTER RESPONSIVE --- */}
+          <footer
+            className="
             bg-muted text-muted-foreground border-t border-border
             py-4 px-4 sm:px-6 lg:px-8
           "
-        >
-          <div
-            className="
+          >
+            <div
+              className="
               container mx-auto flex flex-col sm:flex-row items-center justify-between
               text-center sm:text-left gap-2
             "
-          >
-            <span className="text-sm">
-              Asistente Virtual - UNSL · Dept. de Informática · © 2025
-            </span>
-            <span className="text-xs text-muted-foreground/80">
-              Juan Sánchez (juanma2002123@gmail.com)
-            </span>
-          </div>
-        </footer>
-        <div id="modal-root"></div>
+            >
+              <span className="text-sm">
+                Asistente Virtual - UNSL · Dept. de Informática · © 2025
+              </span>
+              <span className="text-xs text-muted-foreground/80">
+                Juan Sánchez (juanma2002123@gmail.com)
+              </span>
+            </div>
+          </footer>
+          <div id="modal-root"></div>
+        </ThemeProvider>
       </body>
     </html>
   );

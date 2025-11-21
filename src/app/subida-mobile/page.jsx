@@ -78,7 +78,7 @@ export default function SubidaMobile() {
             accept=".pdf,.xls,.xlsx"
             onChange={handleChange}
             disabled={subiendo}
-            className="block w-full max-w-xs border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-white shadow-sm"
+            className="block w-full max-w-xs border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-background shadow-sm"
           />
           {subiendo && (
             <p className="text-blue-500 text-sm animate-pulse">
@@ -93,7 +93,7 @@ export default function SubidaMobile() {
           {error && (
             <p className="text-red-600 text-sm whitespace-pre-wrap">{error}</p>
           )}
-          <p className="text-xs text-gray-500 mt-6">
+          <p className="text-xs text-muted-foreground mt-6">
             Serás redirigido automáticamente luego de subir el archivo.
           </p>
         </>

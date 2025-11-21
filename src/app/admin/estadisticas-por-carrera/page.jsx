@@ -19,10 +19,10 @@ const MetricCard = ({ title, value, color }) => {
   };
   return (
     <div
-      className={`p-4 border-l-4 bg-white rounded shadow ${borderColors[color]}`}
+      className={`p-4 border-l-4 bg-background rounded shadow ${borderColors[color]}`}
     >
-      <div className="text-sm text-gray-500">{title}</div>
-      <div className="text-2xl font-bold text-gray-800">{value}</div>
+      <div className="text-sm text-muted-foreground">{title}</div>
+      <div className="text-2xl font-bold text-foreground">{value}</div>
     </div>
   );
 };
@@ -37,13 +37,13 @@ const RankingListItem = ({ rank, name, value, color }) => {
     <div
       className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${bgColor}`}
     >
-      <div className="font-bold text-lg text-gray-500 w-8 text-center">
+      <div className="font-bold text-lg text-muted-foreground w-8 text-center">
         #{rank}
       </div>
-      <div className="flex-1 font-semibold text-sm text-gray-800 truncate">
+      <div className="flex-1 font-semibold text-sm text-foreground truncate">
         {name}
       </div>
-      <div className="font-bold text-base text-gray-800">{value}%</div>
+      <div className="font-bold text-base text-foreground">{value}%</div>
     </div>
   );
 };
@@ -94,7 +94,7 @@ export default function EstadisticasPorCarrera() {
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6">
       {/* Título */}
-      <h2 className="text-2xl font-bold text-gray-800">
+      <h2 className="text-2xl font-bold text-foreground">
         Estadísticas por Carrera
       </h2>
 
@@ -215,7 +215,7 @@ export default function EstadisticasPorCarrera() {
 
           {/* RANKINGS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
               <h4 className="text-base font-semibold text-gray-700 mb-4">
                 🏆 Top 5 Mayor Aprobación
               </h4>
@@ -231,7 +231,7 @@ export default function EstadisticasPorCarrera() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-md">
+            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
               <h4 className="text-base font-semibold text-gray-700 mb-4">
                 📉 Top 5 Menor Aprobación
               </h4>

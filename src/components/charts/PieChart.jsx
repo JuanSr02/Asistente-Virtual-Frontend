@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
+
 
 export default function PieChart({
   data,
@@ -8,23 +10,43 @@ export default function PieChart({
   colors = [],
   showHover = false,
 }) {
+  const { theme } = useTheme();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [hoveredSegment, setHoveredSegment] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const defaultColors = [
-    "#4299e1",
-    "#48bb78",
-    "#ed8936",
-    "#9f7aea",
-    "#38b2ac",
-    "#f56565",
-    "#ecc94b",
-    "#667eea",
-    "#f093fb",
-    "#4fd1c7",
+  // Colores originales (para modo claro)
+  const lightColors = [
+    "#4299e1", // Azul
+    "#48bb78", // Verde
+    "#ed8936", // Naranja
+    "#9f7aea", // Morado
+    "#38b2ac", // Verde azulado
+    "#f56565", // Rojo
+    "#ecc94b", // Amarillo
+    "#667eea", // Indigo
+    "#f093fb", // Rosa
+    "#4fd1c7", // Cian
   ];
+
+  // Colores optimizados para modo oscuro (más brillantes/pasteles)
+  const darkColors = [
+    "#63b3ed", // Azul claro
+    "#68d391", // Verde claro
+    "#f6ad55", // Naranja claro
+    "#b794f4", // Morado claro
+    "#4fd1c5", // Verde azulado claro
+    "#fc8181", // Rojo claro
+    "#f6e05e", // Amarillo claro
+    "#7f9cf5", // Indigo claro
+    "#f687b3", // Rosa claro
+    "#81e6d9", // Cian claro
+  ];
+
+  // Selección automática basada en el tema
+  // Si se pasan 'colors' por props, se usan esos. Si no, se usa la lógica de temas.
+  const defaultColors = theme === "dark" ? darkColors : lightColors;
 
   const chartColors = colors.length > 0 ? colors : defaultColors;
 
@@ -161,8 +183,8 @@ export default function PieChart({
 
   if (!data || Object.keys(data).length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-md">
-        <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">
+      <div className="bg-background rounded-xl p-6 shadow-md">
+        <h4 className="text-base text-muted-foreground mb-4 text-center font-semibold">
           {title}
         </h4>
         <div className="text-center py-8 text-gray-400 italic">
@@ -173,8 +195,8 @@ export default function PieChart({
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-md">
-      <h4 className="text-base text-gray-600 mb-4 text-center font-semibold">
+    <div className="bg-background rounded-xl p-6 shadow-md">
+      <h4 className="text-base text-muted-foreground mb-4 text-center font-semibold">
         {title}
       </h4>
       <div className="relative" ref={containerRef}>
@@ -184,7 +206,7 @@ export default function PieChart({
             <div
               key={label}
               className={`flex items-center gap-3 p-2 rounded transition-colors ${
-                showHover && hoveredSegment === index ? "bg-gray-100" : ""
+                showHover && hoveredSegment === index ? "bg-muted" : ""
               }`}
               onMouseEnter={() => showHover && setHoveredSegment(index)}
               onMouseLeave={() => showHover && setHoveredSegment(null)}
@@ -196,7 +218,7 @@ export default function PieChart({
                 }}
               />
               <span className="text-gray-700 font-medium flex-1">{label}</span>
-              <span className="text-gray-600">({value})</span>
+              <span className="text-muted-foreground">({value})</span>
             </div>
           ))}
         </div>

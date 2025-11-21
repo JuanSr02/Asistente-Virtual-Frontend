@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, memo, type FC } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
-import { useTheme } from "next-themes"; // <-- 1. IMPORTAR EL HOOK
+import { useTheme } from "next-themes";
 
 // --- HELPER SIN CAMBIOS ---
 const shadeColor = (color: string, percent: number): string => {
@@ -46,9 +46,39 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
   const [hoveredLabel, setHoveredLabel] = useState("");
   const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
 
-  const { theme } = useTheme(); // <-- 2. OBTENER EL TEMA ACTUAL
+  const { theme } = useTheme();
 
-  const defaultColors = ["#4299e1", "#48bb78", "#ed8936"];
+  // Colores originales (para modo claro)
+  const lightColors = [
+    "#4299e1", // Azul
+    "#48bb78", // Verde
+    "#ed8936", // Naranja
+    "#9f7aea", // Morado
+    "#38b2ac", // Verde azulado
+    "#f56565", // Rojo
+    "#ecc94b", // Amarillo
+    "#667eea", // Indigo
+    "#f093fb", // Rosa
+    "#4fd1c7", // Cian
+  ];
+
+  // Colores optimizados para modo oscuro (más brillantes/pasteles)
+  const darkColors = [
+    "#63b3ed", // Azul claro
+    "#68d391", // Verde claro
+    "#f6ad55", // Naranja claro
+    "#b794f4", // Morado claro
+    "#4fd1c5", // Verde azulado claro
+    "#fc8181", // Rojo claro
+    "#f6e05e", // Amarillo claro
+    "#7f9cf5", // Indigo claro
+    "#f687b3", // Rosa claro
+    "#81e6d9", // Cian claro
+  ];
+
+  // Selección automática basada en el tema
+  // Si se pasan 'colors' por props, se usan esos. Si no, se usa la lógica de temas.
+  const defaultColors = theme === "dark" ? darkColors : lightColors;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -154,7 +184,6 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       });
     });
 
-
     if (showBaseLabels) {
       ctx.fillStyle = mutedColor;
       ctx.font = `${baseLabelFontSize}px ${fontFamily}`;
@@ -230,7 +259,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       <CardContent>
         {!data || Object.keys(data).length === 0 ? (
           <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-4">
-            <BarChart3 className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+            <BarChart3 className="w-10 h-10 text-gray-300 dark:text-muted-foreground" />
             <p>No hay datos disponibles</p>
           </div>
         ) : (

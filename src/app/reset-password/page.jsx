@@ -148,14 +148,14 @@ export default function ResetPassword() {
 
   // --- JSX RESPONSIVE ---
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md mx-auto bg-white shadow-lg border border-gray-200 rounded-xl">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+      <Card className="w-full max-w-md mx-auto bg-background shadow-lg border border-gray-200 rounded-xl">
         <CardHeader className="p-6 text-center">
           <Lock className="mx-auto h-10 w-10 text-blue-600 mb-3" />
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
             Restablecer Contraseña
           </CardTitle>
-          <CardDescription className="text-sm text-gray-500 mt-1">
+          <CardDescription className="text-sm text-muted-foreground mt-1">
             Ingresa y confirma tu nueva contraseña.
           </CardDescription>
         </CardHeader>
@@ -164,10 +164,10 @@ export default function ResetPassword() {
           {success ? (
             <div className="text-center space-y-4 py-8 animate-fade-in">
               <PartyPopper className="mx-auto h-16 w-16 text-green-500" />
-              <h3 className="text-xl font-semibold text-gray-800">
+              <h3 className="text-xl font-semibold text-foreground">
                 ¡Contraseña Actualizada!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Serás redirigido a la página de inicio de sesión en unos
                 segundos.
               </p>
@@ -206,7 +206,7 @@ export default function ResetPassword() {
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-muted-foreground hover:text-gray-700"
                       aria-label={
                         showNewPassword
                           ? "Ocultar contraseña"
@@ -266,7 +266,7 @@ export default function ResetPassword() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-muted-foreground hover:text-gray-700"
                       aria-label={
                         showConfirmPassword
                           ? "Ocultar contraseña"
@@ -296,7 +296,7 @@ export default function ResetPassword() {
               type="submit"
               onClick={handleReset} // El botón está fuera del form, necesita su propio onClick
               disabled={loading || !hasValidPasswords()}
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-muted-foreground"
             >
               {loading ? (
                 <>

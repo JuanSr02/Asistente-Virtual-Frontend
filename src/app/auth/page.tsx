@@ -191,15 +191,15 @@ export default function Auth() {
   );
 
   const inputClasses = (hasError: boolean, hasContent: boolean) =>
-    `w-full h-11 px-4 border-2 rounded-lg bg-slate-50/50 text-gray-800 text-sm 
-     transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400
+    `w-full h-11 px-4 border-2 rounded-lg bg-slate-50/50 text-foreground text-sm 
+     transition-all focus:bg-background focus:outline-none focus:ring-2 focus:ring-blue-400
      ${hasError ? "border-red-500" : ""}
      ${!hasError && hasContent ? "border-green-500" : "border-blue-200"}`;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 p-4">
       <div className="w-full max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-5 bg-white text-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-5 bg-background text-foreground rounded-2xl shadow-2xl overflow-hidden">
           {/* --- Panel izquierdo - Información con gradiente --- */}
           <div className="col-span-1 lg:col-span-2 p-8 flex flex-col justify-between bg-gradient-to-b from-blue-600 to-indigo-700 text-white">
             <div>
@@ -235,8 +235,8 @@ export default function Auth() {
                 onClick={handleGoogleAuth}
                 disabled={loading}
                 className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all
-                           border-2 border-gray-200 bg-white text-gray-700
-                           hover:bg-gray-50 hover:shadow-md
+                           border-2 border-gray-200 bg-background text-gray-700
+                           hover:bg-muted hover:shadow-md
                            disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-gray-400"
               >
                 {loading ? (
@@ -263,7 +263,7 @@ export default function Auth() {
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                     Recuperar Contraseña
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-muted-foreground text-sm mt-1">
                     Ingresa tu email para recibir un enlace.
                   </p>
                 </div>
@@ -323,7 +323,7 @@ export default function Auth() {
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-blue-500">
                     Crear Cuenta
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-muted-foreground text-sm mt-1">
                     Completa los datos para empezar.
                   </p>
                 </div>
@@ -468,7 +468,7 @@ export default function Auth() {
                   {loading ? renderLoadingSpinner() : "Registrarse"}
                 </button>
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     ¿Ya tienes cuenta?{" "}
                     <button
                       type="button"
@@ -486,7 +486,7 @@ export default function Auth() {
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                     Iniciar Sesión
                   </h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-muted-foreground text-sm mt-1">
                     Bienvenido de nuevo.
                   </p>
                 </div>
@@ -570,7 +570,7 @@ export default function Auth() {
                   {loading ? renderLoadingSpinner() : "Iniciar Sesión"}
                 </button>
                 <div className="text-center">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     ¿No tienes cuenta?{" "}
                     <button
                       type="button"
