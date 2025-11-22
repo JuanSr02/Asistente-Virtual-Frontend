@@ -1,13 +1,12 @@
 import React from "react";
-import Link from "next/link"; // Importar Link de Next.js
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button"; // Importar Button
-import { ShieldCheck, ArrowLeft } from "lucide-react"; // Importar ArrowLeft
+import { Button } from "@/components/ui/button"; 
+import { ShieldCheck, ArrowLeft } from "lucide-react"; 
 
 export default function PoliticaPrivacidad() {
   return (
     <div className="container mx-auto py-10 px-4 sm:px-6 max-w-4xl space-y-6">
-      {/* Botón de Volver */}
       <div>
         <Button
           variant="ghost"
