@@ -7,10 +7,11 @@ import Auth from "@/app/auth/page";
 import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider" // Asegúrate de importar esto
+import { ThemeProvider } from "@/components/theme-provider"
+import Link  from "next/link";
 
 
-const publicRoutes = ["/reset-password", "/auth", "/subida-mobile"];
+const publicRoutes = ["/reset-password", "/auth", "/subida-mobile","/terminos-condiciones","/politica-privacidad"];
 
 // Componente separado para el loading (sin cambios, ya es responsive)
 const LoadingScreen = () => (
@@ -175,8 +176,25 @@ export default function RootLayout({
               <span className="text-sm">
                 Asistente Virtual - UNSL · Dept. de Informática · © 2025
               </span>
+
+              <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm">
+                <Link
+                  href="/terminos-condiciones"
+                  className="hover:text-blue-600 transition-colors hover:underline"
+                >
+                  Términos y Condiciones
+                </Link>
+                <span className="hidden sm:inline text-gray-300">|</span>
+                <Link
+                  href="/politica-privacidad"
+                  className="hover:text-blue-600 transition-colors hover:underline"
+                >
+                  Política de Privacidad
+                </Link>
+              </div>
+
               <span className="text-xs text-muted-foreground/80">
-                Juan Sánchez (juanma2002123@gmail.com)
+                Desarrollado por Juan Sánchez (juanma2002123@gmail.com)
               </span>
             </div>
           </footer>
