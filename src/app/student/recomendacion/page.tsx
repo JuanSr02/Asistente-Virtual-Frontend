@@ -39,6 +39,35 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 
+// Tipos auxiliares
+interface User {
+  id: string;
+  email: string;
+}
+
+interface EstadisticasMateria {
+  porcentajeAprobados: number;
+  promedioNotas: number;
+  promedioDiasEstudio: number;
+  promedioHorasDiarias: number;
+  promedioDificultad: number;
+}
+
+interface FinalRecomendado {
+  codigoMateria: string;
+  nombreMateria: string;
+  fechaRegularidad: string;
+  fechaVencimiento: string;
+  semanasParaVencimiento: number;
+  vecesEsCorrelativa: number;
+  estadisticas: EstadisticasMateria;
+}
+
+interface Plan {
+  codigo: string;
+  propuesta: string;
+}
+
 function esDispositivoMovil() {
   if (typeof window === "undefined") return false;
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -56,7 +85,7 @@ const emitCriticalOperationEnd = () => {
   }
 };
 
-export default function Recomendacion({ user }) {
+export default function Recomendacion({ user }: { user: User }) {
   const {
     state,
     updateState,
@@ -68,8 +97,8 @@ export default function Recomendacion({ user }) {
     endCriticalOperation,
   } = useEnhancedSessionPersistence();
 
-  const fileInputRef = useRef(null);
-  const updateFileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const updateFileInputRef = useRef<HTMLInputElement>(null);
   const hasLoadedInitialData = useRef(false);
 
   useEffect(() => {
@@ -175,7 +204,7 @@ export default function Recomendacion({ user }) {
         personaId: estudianteId,
         lastFetch: new Date().toISOString(),
       });
-    } catch (err) {
+    } catch (err: any) {
       let errorMessage = "Error al obtener las sugerencias.";
       if (err.response) {
         const { status, data } = err.response;
@@ -196,8 +225,11 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  const handleFileUpload = async (event, isUpdate = false) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    isUpdate = false
+  ) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     const fileExtension = file.name
@@ -233,8 +265,6 @@ export default function Recomendacion({ user }) {
 
     try {
       let resultado;
-      console.log("Archivo a subir:", file);
-      console.log("Tipo:", file.type, "Tamaño:", file.size);
 
       if (isUpdate)
         resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
@@ -292,7 +322,7 @@ export default function Recomendacion({ user }) {
           emitCriticalOperationEnd();
         }
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       let errorMessage = "Error al procesar el archivo.";
       if (err.response) {
         const { status, data } = err.response;
@@ -354,7 +384,7 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  const handleCriterioChange = (nuevoCriterio) => {
+  const handleCriterioChange = (nuevoCriterio: string) => {
     updateState({ criterioOrden: nuevoCriterio });
     if (state.historiaAcademica && state.persona) {
       obtenerRecomendaciones(state.persona.id, nuevoCriterio);
@@ -368,16 +398,16 @@ export default function Recomendacion({ user }) {
     }
   };
 
-  const getDificultadColor = (d) =>
+  const getDificultadColor = (d: number) =>
     d >= 7
-      ? "text-red-600 bg-red-100"
+      ? "text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-300"
       : d >= 5
-        ? "text-orange-600 bg-orange-100"
+        ? "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-300"
         : d >= 3
-          ? "text-yellow-600 bg-yellow-100"
-          : "text-green-600 bg-green-100";
+          ? "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300"
+          : "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-300";
 
-  const getDificultadTexto = (d) =>
+  const getDificultadTexto = (d: number) =>
     d >= 7
       ? "Alta"
       : d >= 5
@@ -437,14 +467,14 @@ export default function Recomendacion({ user }) {
       </Card>
 
       {state.error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{state.error}</p>
         </div>
       )}
 
       {state.success && (
-        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{state.success}</p>
         </div>
@@ -453,7 +483,7 @@ export default function Recomendacion({ user }) {
       {!state.historiaAcademica ? (
         <Card>
           <CardHeader className="text-center">
-            <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <FileText className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
             <CardTitle>Carga tu Historia Académica</CardTitle>
             <CardDescription>
               Para obtener sugerencias, necesitamos tu historia académica
@@ -461,8 +491,8 @@ export default function Recomendacion({ user }) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-w-lg mx-auto">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 ¿No sabes cómo descargarla? Haz clic en el video tutorial y
                 luego accede al SIU Guarani.
               </p>
@@ -483,7 +513,7 @@ export default function Recomendacion({ user }) {
                   onClick={() =>
                     window.open("https://g3.unsl.edu.ar/g3/", "_blank")
                   }
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white"
                 >
                   <Book className="mr-2 h-4 w-4" />
                   SIU Guarani (FCFMYN)
@@ -511,7 +541,7 @@ export default function Recomendacion({ user }) {
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {state.planes.map((plan) => (
+                  {state.planes.map((plan: Plan) => (
                     <SelectItem key={plan.codigo} value={plan.codigo}>
                       {plan.propuesta} ({plan.codigo})
                     </SelectItem>
@@ -523,7 +553,7 @@ export default function Recomendacion({ user }) {
               <Label>2. Sube el archivo</Label>
               {esDispositivoMovil() ? (
                 <Button
-                  className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                  className="w-full bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                   onClick={() => {
                     if (state.persona?.id && state.planSeleccionado) {
                       const url = `/subida-mobile?personaId=${state.persona.id}&plan=${state.planSeleccionado}`;
@@ -553,7 +583,7 @@ export default function Recomendacion({ user }) {
                     }
                   />
                   <Button
-                    className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+                    className="w-full bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={
                       state.uploading ||
@@ -582,7 +612,7 @@ export default function Recomendacion({ user }) {
             <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <CardTitle className="flex items-center gap-3">
-                  <CheckCircle className="h-6 w-6 text-green-500" />
+                  <CheckCircle className="h-6 w-6 text-green-500 dark:text-green-400" />
                   Historia Académica Cargada
                 </CardTitle>
                 <CardDescription>
@@ -597,7 +627,7 @@ export default function Recomendacion({ user }) {
                   onClick={() =>
                     window.open("https://g3.unsl.edu.ar/g3/", "_blank")
                   }
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white"
                 >
                   <Book className="mr-2 h-4 w-4" />
                   SIU Guarani
@@ -616,7 +646,7 @@ export default function Recomendacion({ user }) {
                     disabled={
                       state.uploading || state.criticalOperationInProgress
                     }
-                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                   >
                     <Upload className="mr-2 h-4 w-4" />
                     Actualizar (modo móvil)
@@ -640,7 +670,7 @@ export default function Recomendacion({ user }) {
                       disabled={
                         state.uploading || state.criticalOperationInProgress
                       }
-                      className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                      className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                     >
                       <Upload className="mr-2 h-4 w-4" />
                       {state.uploading ? "Cargando..." : "Actualizar"}
@@ -667,7 +697,7 @@ export default function Recomendacion({ user }) {
             <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div>
                 <CardTitle className="flex items-center gap-3">
-                  <Sparkles className="h-6 w-6 text-blue-500" />
+                  <Sparkles className="h-6 w-6 text-blue-500 dark:text-blue-400" />
                   Control de Sugerencias
                 </CardTitle>
                 <CardDescription>
@@ -704,7 +734,7 @@ export default function Recomendacion({ user }) {
                     state.loadingRecomendaciones ||
                     state.criticalOperationInProgress
                   }
-                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white"
+                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                 >
                   <RefreshCw
                     className={`mr-2 h-4 w-4 ${state.loadingRecomendaciones ? "animate-spin" : ""}`}
@@ -717,7 +747,7 @@ export default function Recomendacion({ user }) {
               {state.loadingRecomendaciones ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
-                  <p className="font-semibold text-gray-700">
+                  <p className="font-semibold text-gray-700 dark:text-gray-300">
                     Generando sugerencias...
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -736,180 +766,190 @@ export default function Recomendacion({ user }) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {state.recomendaciones.map((final, index) => (
-                    <Card
-                      key={final.codigoMateria}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardHeader className="flex flex-col sm:flex-row sm:justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                            {index + 1}
-                          </span>
-                          <div>
-                            <CardTitle className="text-base sm:text-lg">
-                              {final.nombreMateria}
-                            </CardTitle>
-                            <CardDescription>
-                              Código: {final.codigoMateria}
-                            </CardDescription>
-                          </div>
-                        </div>
-                        {state.criterioOrden === "ESTADISTICAS" &&
-                          final.estadisticas && (
-                            <span
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(final.estadisticas.promedioDificultad)}`}
-                            >
-                              Dificultad{" "}
-                              {getDificultadTexto(
-                                final.estadisticas.promedioDificultad
-                              )}
+                  {state.recomendaciones.map(
+                    (final: FinalRecomendado, index: number) => (
+                      <Card
+                        key={final.codigoMateria}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        <CardHeader className="flex flex-col sm:flex-row sm:justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <span className="bg-blue-600 dark:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                              {index + 1}
                             </span>
+                            <div>
+                              <CardTitle className="text-base sm:text-lg">
+                                {final.nombreMateria}
+                              </CardTitle>
+                              <CardDescription>
+                                Código: {final.codigoMateria}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          {state.criterioOrden === "ESTADISTICAS" &&
+                            final.estadisticas && (
+                              <span
+                                className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(final.estadisticas.promedioDificultad)}`}
+                              >
+                                Dificultad{" "}
+                                {getDificultadTexto(
+                                  final.estadisticas.promedioDificultad
+                                )}
+                              </span>
+                            )}
+                        </CardHeader>
+                        <CardContent>
+                          {state.criterioOrden === "CORRELATIVAS" && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg flex items-center gap-3">
+                              <BookCopy className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                              <p className="text-sm">
+                                <strong className="font-semibold text-blue-800 dark:text-blue-300">
+                                  {final.vecesEsCorrelativa || 0}
+                                </strong>{" "}
+                                materias la requieren como correlativa.
+                              </p>
+                            </div>
                           )}
-                      </CardHeader>
-                      <CardContent>
-                        {state.criterioOrden === "CORRELATIVAS" && (
-                          <div className="bg-blue-50 p-3 rounded-lg flex items-center gap-3">
-                            <BookCopy className="h-5 w-5 text-blue-600" />
-                            <p className="text-sm">
-                              <strong className="font-semibold text-blue-800">
-                                {final.vecesEsCorrelativa || 0}
-                              </strong>{" "}
-                              materias la requieren como correlativa.
-                            </p>
-                          </div>
-                        )}
-                        {state.criterioOrden === "VENCIMIENTO" &&
-                          (() => {
-                            // Función para calcular el estado del vencimiento
-                            const getVencimientoStatus = (fechaVencimiento) => {
-                              if (
-                                !fechaVencimiento ||
-                                fechaVencimiento === "N/A"
-                              ) {
-                                return { texto: "N/A", color: "gray" };
-                              }
+                          {state.criterioOrden === "VENCIMIENTO" &&
+                            (() => {
+                              // Función para calcular el estado del vencimiento
+                              const getVencimientoStatus = (
+                                fechaVencimiento: string
+                              ) => {
+                                if (
+                                  !fechaVencimiento ||
+                                  fechaVencimiento === "N/A"
+                                ) {
+                                  return { texto: "N/A", color: "gray" };
+                                }
 
-                              const hoy = new Date();
-                              // Convertir formato DD-MM-YYYY a YYYY-MM-DD para que Date() lo reconozca
-                              const [dia, mes, año] =
-                                fechaVencimiento.split("-");
-                              const vencimiento = new Date(
-                                `${año}-${mes}-${dia}`
+                                const hoy = new Date();
+                                // Convertir formato DD-MM-YYYY a YYYY-MM-DD para que Date() lo reconozca
+                                const [dia, mes, año] =
+                                  fechaVencimiento.split("-");
+                                const vencimiento = new Date(
+                                  `${año}-${mes}-${dia}`
+                                );
+                                const diffTime =
+                                  vencimiento.getTime() - hoy.getTime();
+                                const diffDays = Math.ceil(
+                                  diffTime / (1000 * 60 * 60 * 24)
+                                );
+
+                                if (diffDays < 0) {
+                                  return {
+                                    texto: "Materia vencida",
+                                    color: "red",
+                                    bgColor: "bg-red-50 dark:bg-red-900/20",
+                                    textColor: "text-red-800 dark:text-red-300",
+                                  };
+                                } else if (diffDays <= 30) {
+                                  // Falta poco (30 días o menos)
+                                  return {
+                                    texto: fechaVencimiento + " (Pronto)",
+                                    color: "yellow",
+                                    bgColor:
+                                      "bg-yellow-50 dark:bg-yellow-900/20",
+                                    textColor:
+                                      "text-yellow-800 dark:text-yellow-300",
+                                  };
+                                } else {
+                                  // Falta mucho (más de 30 días)
+                                  return {
+                                    texto: fechaVencimiento + " (Lejano)",
+                                    color: "green",
+                                    bgColor: "bg-green-50 dark:bg-green-900/20",
+                                    textColor:
+                                      "text-green-800 dark:text-green-300",
+                                  };
+                                }
+                              };
+
+                              const vencimientoStatus = getVencimientoStatus(
+                                final.fechaVencimiento
                               );
-                              const diffTime = vencimiento - hoy;
-                              const diffDays = Math.ceil(
-                                diffTime / (1000 * 60 * 60 * 24)
-                              );
 
-                              if (diffDays < 0) {
-                                return {
-                                  texto: "Materia vencida",
-                                  color: "red",
-                                  bgColor: "bg-red-50",
-                                  textColor: "text-red-800",
-                                };
-                              } else if (diffDays <= 30) {
-                                // Falta poco (30 días o menos)
-                                return {
-                                  texto: fechaVencimiento + " (Pronto)",
-                                  color: "yellow",
-                                  bgColor: "bg-yellow-50",
-                                  textColor: "text-yellow-800",
-                                };
-                              } else {
-                                // Falta mucho (más de 30 días)
-                                return {
-                                  texto: fechaVencimiento + " (Lejano)",
-                                  color: "green",
-                                  bgColor: "bg-green-50",
-                                  textColor: "text-green-800",
-                                };
-                              }
-                            };
-
-                            const vencimientoStatus = getVencimientoStatus(
-                              final.fechaVencimiento
-                            );
-
-                            return (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="bg-green-50 p-3 rounded-lg">
-                                  <p className="text-xs text-green-800">
-                                    Regularidad
-                                  </p>
-                                  <p className="font-semibold">
-                                    {final.fechaRegularidad || "N/A"}
-                                  </p>
-                                </div>
-                                <div
-                                  className={`${vencimientoStatus.bgColor} p-3 rounded-lg`}
-                                >
-                                  <p
-                                    className={`text-xs ${vencimientoStatus.textColor}`}
+                              return (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                                    <p className="text-xs text-green-800 dark:text-green-300">
+                                      Regularidad
+                                    </p>
+                                    <p className="font-semibold">
+                                      {final.fechaRegularidad || "N/A"}
+                                    </p>
+                                  </div>
+                                  <div
+                                    className={`${vencimientoStatus.bgColor} p-3 rounded-lg`}
                                   >
-                                    Vencimiento
-                                  </p>
-                                  <p className="font-semibold">
-                                    {vencimientoStatus.texto}
-                                  </p>
+                                    <p
+                                      className={`text-xs ${vencimientoStatus.textColor}`}
+                                    >
+                                      Vencimiento
+                                    </p>
+                                    <p className="font-semibold">
+                                      {vencimientoStatus.texto}
+                                    </p>
+                                  </div>
                                 </div>
+                              );
+                            })()}
+                          {state.criterioOrden === "ESTADISTICAS" && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
+                              <div className="bg-muted p-2 rounded-lg">
+                                <p className="text-xs text-muted-foreground">
+                                  Aprobados
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {final.estadisticas?.porcentajeAprobados || 0}
+                                  %
+                                </p>
                               </div>
-                            );
-                          })()}
-                        {state.criterioOrden === "ESTADISTICAS" && (
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-center">
-                            <div className="bg-muted p-2 rounded-lg">
-                              <p className="text-xs text-muted-foreground">
-                                Aprobados
-                              </p>
-                              <p className="font-bold text-sm">
-                                {final.estadisticas?.porcentajeAprobados || 0}%
-                              </p>
+                              <div className="bg-muted p-2 rounded-lg">
+                                <p className="text-xs text-muted-foreground">
+                                  Promedio
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {(
+                                    final.estadisticas?.promedioNotas || 0
+                                  ).toFixed(1)}
+                                </p>
+                              </div>
+                              <div className="bg-muted p-2 rounded-lg">
+                                <p className="text-xs text-muted-foreground">
+                                  Días Est.
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {final.estadisticas?.promedioDiasEstudio || 0}
+                                </p>
+                              </div>
+                              <div className="bg-muted p-2 rounded-lg">
+                                <p className="text-xs text-muted-foreground">
+                                  Hrs/Día
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {(
+                                    final.estadisticas?.promedioHorasDiarias ||
+                                    0
+                                  ).toFixed(1)}
+                                </p>
+                              </div>
+                              <div className="bg-muted p-2 rounded-lg col-span-2 md:col-span-1 lg:col-span-1">
+                                <p className="text-xs text-muted-foreground">
+                                  Dificultad
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {(
+                                    final.estadisticas?.promedioDificultad || 0
+                                  ).toFixed(1)}
+                                </p>
+                              </div>
                             </div>
-                            <div className="bg-muted p-2 rounded-lg">
-                              <p className="text-xs text-muted-foreground">
-                                Promedio
-                              </p>
-                              <p className="font-bold text-sm">
-                                {(
-                                  final.estadisticas?.promedioNotas || 0
-                                ).toFixed(1)}
-                              </p>
-                            </div>
-                            <div className="bg-muted p-2 rounded-lg">
-                              <p className="text-xs text-muted-foreground">
-                                Días Est.
-                              </p>
-                              <p className="font-bold text-sm">
-                                {final.estadisticas?.promedioDiasEstudio || 0}
-                              </p>
-                            </div>
-                            <div className="bg-muted p-2 rounded-lg">
-                              <p className="text-xs text-muted-foreground">
-                                Hrs/Día
-                              </p>
-                              <p className="font-bold text-sm">
-                                {(
-                                  final.estadisticas?.promedioHorasDiarias || 0
-                                ).toFixed(1)}
-                              </p>
-                            </div>
-                            <div className="bg-muted p-2 rounded-lg col-span-2 md:col-span-1 lg:col-span-1">
-                              <p className="text-xs text-muted-foreground">
-                                Dificultad
-                              </p>
-                              <p className="font-bold text-sm">
-                                {(
-                                  final.estadisticas?.promedioDificultad || 0
-                                ).toFixed(1)}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
                 </div>
               )}
             </CardContent>

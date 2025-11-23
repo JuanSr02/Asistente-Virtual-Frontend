@@ -8,7 +8,7 @@ import Modal from "@/components/modals/Modal";
 import { useModalPersistence } from "@/hooks/useModalPersistence";
 import personaService from "@/services/personaService";
 import { usePersistedState } from "@/hooks/usePersistedState";
-import { Skeleton as UiSkeleton } from "@/components/ui/skeleton"; // Renombramos para evitar colisión
+import { Skeleton as UiSkeleton } from "@/components/ui/skeleton";
 import {
   Loader2,
   AlertTriangle,
@@ -22,9 +22,7 @@ import {
   Link,
   Book,
   SlidersHorizontal,
-  ChevronRight,
   BookOpenCheck,
-  Calendar,
 } from "lucide-react";
 import {
   Card,
@@ -45,26 +43,44 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-export default function ExperienciasExamen({ user }) {
+// Definición de interfaces básicas para TypeScript
+interface Experiencia {
+  id: number;
+  fechaExamen: string;
+  nota: number;
+  dificultad: number;
+  diasEstudio: number;
+  horasDiarias: number;
+  intentosPrevios: number;
+  modalidad: string;
+  recursos: string;
+  motivacion: string;
+  linkResumen?: string;
+  nombreMateria?: string;
+}
+
+interface ExperienciasExamenProps {
+  user: any; // Se puede refinar con el tipo User de Supabase si está disponible
+}
+
+export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
   const [loading, setLoading] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
   const [loadingExperiencias, setLoadingExperiencias] = useState(false);
   const [loadingMisExperiencias, setLoadingMisExperiencias] = useState(false);
-  const [planes, setPlanes] = useState([]);
-  const [materias, setMaterias] = useState([]);
-  const [experiencias, setExperiencias] = useState([]);
-  const [misExperiencias, setMisExperiencias] = useState([]);
-  const [examenesDisponibles, setExamenesDisponibles] = useState([]);
-  const [persona, setPersona] = useState(null);
-  const [historiaAcademica, setHistoriaAcademica] = useState(null);
+  const [planes, setPlanes] = useState<any[]>([]);
+  const [materias, setMaterias] = useState<any[]>([]);
+  const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
+  const [misExperiencias, setMisExperiencias] = useState<Experiencia[]>([]);
+  const [examenesDisponibles, setExamenesDisponibles] = useState<any[]>([]);
+  const [persona, setPersona] = useState<any>(null);
+  const [historiaAcademica, setHistoriaAcademica] = useState<any>(null);
   const [planSeleccionado, setPlanSeleccionado] = usePersistedState(
     "plan-seleccionado",
     ""
   );
-  const [materiaSeleccionada, setMateriaSeleccionada] = usePersistedState(
-    "materia-seleccionada",
-    ""
-  );
+  const [materiaSeleccionada, setMateriaSeleccionada] =
+    usePersistedState("materia-seleccionada", "");
   const [filtroCalificacion, setFiltroCalificacion] = usePersistedState(
     "filtro-calificacion",
     ""
@@ -79,6 +95,7 @@ export default function ExperienciasExamen({ user }) {
     openModal: openCrearModal,
     closeModal: closeCrearModal,
   } = useModalPersistence("crear-experiencia-modal");
+
   const [formData, setFormData] = usePersistedState("experiencia-form", {
     examenId: "",
     dificultad: 5,
@@ -86,10 +103,11 @@ export default function ExperienciasExamen({ user }) {
     horasDiarias: 1,
     intentosPrevios: 0,
     modalidad: "ESCRITO",
-    recursos: [],
+    recursos: [] as string[],
     motivacion: "Solo para avanzar en la carrera",
     linkResumen: "",
   });
+
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const recursosDisponibles = [
@@ -107,7 +125,7 @@ export default function ExperienciasExamen({ user }) {
   ];
 
   // Función para filtrar experiencias por rango de tiempo
-  const filtrarPorTiempo = (data) => {
+  const filtrarPorTiempo = (data: Experiencia[]) => {
     const hoy = new Date();
     switch (filtroTiempo) {
       case "1year":
@@ -142,6 +160,7 @@ export default function ExperienciasExamen({ user }) {
   useEffect(() => {
     cargarDatosIniciales();
   }, []);
+
   useEffect(() => {
     if (planSeleccionado) cargarMaterias(planSeleccionado);
     else {
@@ -149,11 +168,13 @@ export default function ExperienciasExamen({ user }) {
       setMateriaSeleccionada("");
     }
   }, [planSeleccionado]);
+
   useEffect(() => {
     if (materiaSeleccionada && filtroCalificacion)
       cargarExperienciasPorMateria();
     else setExperiencias([]);
   }, [materiaSeleccionada, filtroCalificacion, filtroTiempo]);
+
   useEffect(() => {
     if (persona?.id) {
       historiaAcademicaService
@@ -168,6 +189,7 @@ export default function ExperienciasExamen({ user }) {
         .catch(() => setHistoriaAcademica(null));
     }
   }, [persona]);
+
   useEffect(() => {
     if (success || error) {
       const timer = setTimeout(() => {
@@ -206,7 +228,8 @@ export default function ExperienciasExamen({ user }) {
       setLoading(false);
     }
   };
-  const cargarMaterias = async (codigoPlan) => {
+
+  const cargarMaterias = async (codigoPlan: string) => {
     setLoadingMaterias(true);
     try {
       const data =
@@ -218,6 +241,7 @@ export default function ExperienciasExamen({ user }) {
       setLoadingMaterias(false);
     }
   };
+
   const cargarExperienciasPorMateria = async () => {
     if (!materiaSeleccionada) return;
     setLoadingExperiencias(true);
@@ -227,7 +251,7 @@ export default function ExperienciasExamen({ user }) {
           materiaSeleccionada
         );
       const filtradas = filtroCalificacion
-        ? data.filter((e) => e.nota >= parseInt(filtroCalificacion))
+        ? data.filter((e: any) => e.nota >= parseInt(filtroCalificacion))
         : data;
       const filtradasPorTiempo = filtrarPorTiempo(filtradas);
       setExperiencias(filtradasPorTiempo);
@@ -238,6 +262,7 @@ export default function ExperienciasExamen({ user }) {
       setLoadingExperiencias(false);
     }
   };
+
   const cargarMisExperiencias = async () => {
     if (!persona?.id) return;
     setLoadingMisExperiencias(true);
@@ -252,6 +277,7 @@ export default function ExperienciasExamen({ user }) {
       setLoadingMisExperiencias(false);
     }
   };
+
   const cargarExamenesDisponibles = async () => {
     if (!persona?.id) return;
     try {
@@ -259,13 +285,14 @@ export default function ExperienciasExamen({ user }) {
         persona.id
       );
       const conExp = misExperiencias.map((e) => e.id);
-      const sinExp = examenes.filter((e) => !conExp.includes(e.id));
+      const sinExp = examenes.filter((e: any) => !conExp.includes(e.id));
       setExamenesDisponibles(sinExp);
     } catch (error) {
       setExamenesDisponibles([]);
     }
   };
-  const handleCrearExperiencia = async (e) => {
+
+  const handleCrearExperiencia = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const dto = {
@@ -293,7 +320,8 @@ export default function ExperienciasExamen({ user }) {
       setError("Error al guardar la experiencia.");
     }
   };
-  const handleEliminarExperiencia = async (id) => {
+
+  const handleEliminarExperiencia = async (id: number) => {
     if (!confirm("¿Seguro que quieres eliminar esta experiencia?")) return;
     try {
       await experienciaService.eliminarExperiencia(id);
@@ -304,7 +332,8 @@ export default function ExperienciasExamen({ user }) {
       setError("Error al eliminar la experiencia.");
     }
   };
-  const handleEditarExperiencia = (exp) => {
+
+  const handleEditarExperiencia = (exp: any) => {
     setFormData({
       examenId: exp.id,
       dificultad: exp.dificultad,
@@ -318,6 +347,7 @@ export default function ExperienciasExamen({ user }) {
     });
     openCrearModal(exp, "editar");
   };
+
   const resetFormData = () =>
     setFormData({
       examenId: "",
@@ -330,59 +360,26 @@ export default function ExperienciasExamen({ user }) {
       motivacion: "Solo para avanzar en la carrera",
       linkResumen: "",
     });
-  const handleRecursoChange = (rec) =>
-    setFormData((prev) => ({
-      ...prev,
-      recursos: prev.recursos.includes(rec)
-        ? prev.recursos.filter((r) => r !== rec)
-        : [...prev.recursos, rec],
-    }));
-  const getDificultadColor = (d) =>
-    d >= 8
-      ? "bg-red-100 text-red-800"
-      : d >= 6
-        ? "bg-orange-100 text-orange-800"
-        : d >= 4
-          ? "bg-yellow-100 text-yellow-800"
-          : "bg-green-100 text-green-800";
-  const getCalificacionColor = (c) =>
-    c >= 8
-      ? "text-green-600"
-      : c >= 6
-        ? "text-blue-600"
-        : c >= 4
-          ? "text-orange-600"
-          : "text-red-600";
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <UiSkeleton className="h-28 w-full" />
-        <UiSkeleton className="h-44 w-full" />
-        <UiSkeleton className="h-64 w-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8">
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-800 text-red-800 dark:text-red-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{error}</p>
         </div>
       )}
       {success && (
-        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 dark:border-green-800 text-green-800 dark:text-green-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{success}</p>
         </div>
       )}
 
-      <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-purple-950/40 dark:via-background dark:to-pink-950/40">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
-            <MessageSquareQuote className="w-6 h-6 text-purple-600" />
+            <MessageSquareQuote className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             Experiencias de Examen
           </CardTitle>
           <CardDescription className="text-muted-foreground">
@@ -392,218 +389,228 @@ export default function ExperienciasExamen({ user }) {
         </CardHeader>
       </Card>
 
-      {!historiaAcademica && persona ? (
-        <Card>
-          <CardHeader className="text-center">
-            <GraduationCap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <CardTitle>Carga tu Historia Académica</CardTitle>
-            <CardDescription>
-              Para ver y compartir experiencias, primero ve a "Sugerencias" y
-              sube tu historia.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("changeTab", { detail: "recomendacion" })
-                )
-              }
-            >
-              <GraduationCap className="mr-2 h-4 w-4" />
-              Ir a Sugerencias
-            </Button>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <div className="space-y-6">
+          <UiSkeleton className="h-28 w-full" />
+          <UiSkeleton className="h-44 w-full" />
+          <UiSkeleton className="h-64 w-full" />
+        </div>
       ) : (
         <>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-3">
-                <FileSearch className="w-5 h-5 text-purple-600" />
-                Buscar Experiencias
-              </CardTitle>
-              <Button
-                onClick={cargarExperienciasPorMateria}
-                disabled={
-                  !materiaSeleccionada ||
-                  !filtroCalificacion ||
-                  loadingExperiencias
-                }
-                className="bg-blue-400 hover:bg-blue-500 text-white"
-              >
-                Actualizar
-              </Button>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Select
-                onValueChange={setPlanSeleccionado}
-                value={planSeleccionado}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="1. Selecciona un Plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {planes.map((p) => (
-                    <SelectItem key={p.codigo} value={p.codigo}>
-                      {p.propuesta} ({p.codigo})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                onValueChange={setMateriaSeleccionada}
-                value={materiaSeleccionada}
-                disabled={!planSeleccionado || loadingMaterias}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      loadingMaterias
-                        ? "Cargando..."
-                        : "2. Selecciona una Materia"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {materias.map((m) => (
-                    <SelectItem key={m.codigo} value={m.codigo}>
-                      {m.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="grid grid-cols-2 gap-4">
-                <Select
-                  onValueChange={setFiltroCalificacion}
-                  value={filtroCalificacion}
-                  disabled={!materiaSeleccionada}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="3. Filtra por Nota" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Todas</SelectItem>
-                    <SelectItem value="4">4 o más</SelectItem>
-                    <SelectItem value="6">6 o más</SelectItem>
-                    <SelectItem value="8">8 o más</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  onValueChange={setFiltroTiempo}
-                  value={filtroTiempo}
-                  disabled={!materiaSeleccionada}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="4. Rango de tiempo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los tiempos</SelectItem>
-                    <SelectItem value="1year">Último año</SelectItem>
-                    <SelectItem value="2years">Últimos 2 años</SelectItem>
-                    <SelectItem value="5years">Últimos 5 años</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {materiaSeleccionada && filtroCalificacion && (
+          {!historiaAcademica && persona ? (
             <Card>
-              <CardHeader>
-                <CardTitle>
-                  Resultados de Búsqueda ({experiencias.length})
-                </CardTitle>
+              <CardHeader className="text-center">
+                <GraduationCap className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                <CardTitle>Carga tu Historia Académica</CardTitle>
+                <CardDescription>
+                  Para ver y compartir experiencias, primero ve a "Sugerencias"
+                  y sube tu historia.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                {loadingExperiencias ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-                  </div>
-                ) : experiencias.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No se encontraron experiencias con esos filtros.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {experiencias.map((exp) => (
-                      <ExperienciaCard key={exp.id} experiencia={exp} />
-                    ))}
-                  </div>
-                )}
+              <CardContent className="flex justify-center">
+                <Button
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("changeTab", { detail: "recomendacion" })
+                    )
+                  }
+                >
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Ir a Sugerencias
+                </Button>
               </CardContent>
             </Card>
-          )}
+          ) : (
+            <>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-3">
+                    <FileSearch className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    Buscar Experiencias
+                  </CardTitle>
+                  <Button
+                    onClick={cargarExperienciasPorMateria}
+                    disabled={
+                      !materiaSeleccionada ||
+                      !filtroCalificacion ||
+                      loadingExperiencias
+                    }
+                    className="bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
+                  >
+                    Actualizar
+                  </Button>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Select
+                    onValueChange={setPlanSeleccionado}
+                    value={planSeleccionado}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="1. Selecciona un Plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {planes.map((p) => (
+                        <SelectItem key={p.codigo} value={p.codigo}>
+                          {p.propuesta} ({p.codigo})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    onValueChange={setMateriaSeleccionada}
+                    value={materiaSeleccionada}
+                    disabled={!planSeleccionado || loadingMaterias}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          loadingMaterias
+                            ? "Cargando..."
+                            : "2. Selecciona una Materia"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {materias.map((m) => (
+                        <SelectItem key={m.codigo} value={m.codigo}>
+                          {m.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select
+                      onValueChange={setFiltroCalificacion}
+                      value={filtroCalificacion}
+                      disabled={!materiaSeleccionada}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="3. Filtra por Nota" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Todas</SelectItem>
+                        <SelectItem value="4">4 o más</SelectItem>
+                        <SelectItem value="6">6 o más</SelectItem>
+                        <SelectItem value="8">8 o más</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      onValueChange={setFiltroTiempo}
+                      value={filtroTiempo}
+                      disabled={!materiaSeleccionada}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="4. Rango de tiempo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los tiempos</SelectItem>
+                        <SelectItem value="1year">Último año</SelectItem>
+                        <SelectItem value="2years">Últimos 2 años</SelectItem>
+                        <SelectItem value="5years">Últimos 5 años</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <div>
-                <CardTitle className="flex items-center gap-3">
-                  <BookOpenCheck className="w-5 h-5 text-purple-600" />
-                  Mis Experiencias
-                </CardTitle>
-                <CardDescription>
-                  Aquí puedes ver y gestionar tus aportes.
-                </CardDescription>
-              </div>
-              <Button
-                onClick={() => {
-                  resetFormData();
-                  openCrearModal(null, "crear");
-                }}
-                disabled={examenesDisponibles.length === 0}
-                className="bg-blue-400 hover:bg-blue-500 text-white"
-              >
-                <PenSquare className="mr-2 h-4 w-4" />
-                Compartir Nueva Experiencia
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {loadingMisExperiencias ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-                </div>
-              ) : misExperiencias.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Aún no has compartido ninguna experiencia.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {misExperiencias.map((exp) => (
-                    <ExperienciaCard
-                      key={exp.id}
-                      experiencia={exp}
-                      isOwner={true}
-                      onEdit={handleEditarExperiencia}
-                      onDelete={handleEliminarExperiencia}
-                    />
-                  ))}
-                </div>
+              {materiaSeleccionada && filtroCalificacion && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Resultados de Búsqueda ({experiencias.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingExperiencias ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-purple-500 dark:text-purple-400" />
+                      </div>
+                    ) : experiencias.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        No se encontraron experiencias con esos filtros.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {experiencias.map((exp) => (
+                          <ExperienciaCard key={exp.id} experiencia={exp} />
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
 
-          <Modal
-            isOpen={showCrearModal}
-            onClose={closeCrearModal}
-            title={
-              experienciaEditando
-                ? "Editar Experiencia"
-                : "Compartir Experiencia"
-            }
-            maxWidth="48rem"
-          >
-            <FormularioExperiencia
-              form={formData}
-              setForm={setFormData}
-              onSubmit={handleCrearExperiencia}
-              onClose={closeCrearModal}
-              isEditing={!!experienciaEditando}
-              examenes={examenesDisponibles}
-              recursos={recursosDisponibles}
-              motivaciones={motivacionesDisponibles}
-            />
-          </Modal>
+              <Card>
+                <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <div>
+                    <CardTitle className="flex items-center gap-3">
+                      <BookOpenCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      Mis Experiencias
+                    </CardTitle>
+                    <CardDescription>
+                      Aquí puedes ver y gestionar tus aportes.
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      resetFormData();
+                      openCrearModal(null, "crear");
+                    }}
+                    disabled={examenesDisponibles.length === 0}
+                    className="bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
+                  >
+                    <PenSquare className="mr-2 h-4 w-4" />
+                    Compartir Nueva Experiencia
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {loadingMisExperiencias ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-purple-500 dark:text-purple-400" />
+                    </div>
+                  ) : misExperiencias.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Aún no has compartido ninguna experiencia.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {misExperiencias.map((exp) => (
+                        <ExperienciaCard
+                          key={exp.id}
+                          experiencia={exp}
+                          isOwner={true}
+                          onEdit={handleEditarExperiencia}
+                          onDelete={handleEliminarExperiencia}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Modal
+                isOpen={showCrearModal}
+                onClose={closeCrearModal}
+                title={
+                  experienciaEditando
+                    ? "Editar Experiencia"
+                    : "Compartir Experiencia"
+                }
+                maxWidth="48rem"
+              >
+                <FormularioExperiencia
+                  form={formData}
+                  setForm={setFormData}
+                  onSubmit={handleCrearExperiencia}
+                  onClose={closeCrearModal}
+                  isEditing={!!experienciaEditando}
+                  examenes={examenesDisponibles}
+                  recursos={recursosDisponibles}
+                  motivaciones={motivacionesDisponibles}
+                />
+              </Modal>
+            </>
+          )}
         </>
       )}
     </div>
@@ -612,23 +619,21 @@ export default function ExperienciasExamen({ user }) {
 
 // --- SUB-COMPONENTES PARA ORGANIZAR EL JSX ---
 
-function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
-  const getDificultadColor = (d) =>
+function ExperienciaCard({
+  experiencia,
+  isOwner = false,
+  onEdit,
+  onDelete,
+}: any) {
+  const getDificultadColor = (d: number) =>
     d >= 8
-      ? "bg-red-100 text-red-800"
+      ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
       : d >= 6
-        ? "bg-orange-100 text-orange-800"
+        ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300"
         : d >= 4
-          ? "bg-yellow-100 text-yellow-800"
-          : "bg-green-100 text-green-800";
-  const getCalificacionColor = (c) =>
-    c >= 8
-      ? "text-green-600"
-      : c >= 6
-        ? "text-blue-600"
-        : c >= 4
-          ? "text-orange-600"
-          : "text-red-600";
+          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+          : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-col sm:flex-row justify-between gap-2">
@@ -643,7 +648,9 @@ function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
         <div className="flex items-center gap-2">
           {!isOwner && (
             <span
-              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(experiencia.dificultad)}`}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getDificultadColor(
+                experiencia.dificultad
+              )}`}
             >
               Dificultad: {experiencia.dificultad}/10
             </span>
@@ -690,7 +697,7 @@ function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
             href={experiencia.linkResumen}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-sm text-purple-600 hover:underline"
+            className="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline"
           >
             <Link className="h-4 w-4 mr-2" />
             Ver Resumen
@@ -701,7 +708,7 @@ function ExperienciaCard({ experiencia, isOwner = false, onEdit, onDelete }) {
   );
 }
 
-function MetricItem({ label, value }) {
+function MetricItem({ label, value }: { label: string; value: any }) {
   return (
     <div className="bg-muted p-2 rounded-lg">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -710,7 +717,7 @@ function MetricItem({ label, value }) {
   );
 }
 
-function DetailItem({ icon: Icon, label, value }) {
+function DetailItem({ icon: Icon, label, value }: any) {
   return (
     <div>
       <h5 className="font-semibold text-foreground mb-1 text-sm flex items-center gap-2">
@@ -733,14 +740,15 @@ function FormularioExperiencia({
   examenes,
   recursos,
   motivaciones,
-}) {
-  const handleRecursoChange = (rec) =>
-    setForm((prev) => ({
+}: any) {
+  const handleRecursoChange = (rec: string) =>
+    setForm((prev: any) => ({
       ...prev,
       recursos: prev.recursos.includes(rec)
-        ? prev.recursos.filter((r) => r !== rec)
+        ? prev.recursos.filter((r: string) => r !== rec)
         : [...prev.recursos, rec],
     }));
+
   return (
     <form onSubmit={onSubmit} className="space-y-6 p-1">
       {!isEditing && (
@@ -754,7 +762,7 @@ function FormularioExperiencia({
               <SelectValue placeholder="Selecciona un examen" />
             </SelectTrigger>
             <SelectContent>
-              {examenes.map((ex) => (
+              {examenes.map((ex: any) => (
                 <SelectItem key={ex.id} value={ex.id.toString()}>
                   {ex.materiaNombre} • {ex.fecha} • Nota: {ex.nota}
                 </SelectItem>
@@ -796,19 +804,19 @@ function FormularioExperiencia({
         <FormNumericInput
           label="Días de Estudio"
           value={form.diasEstudio}
-          onChange={(v) => setForm({ ...form, diasEstudio: v })}
+          onChange={(v: any) => setForm({ ...form, diasEstudio: v })}
           min={1}
         />
         <FormNumericInput
           label="Horas por Día"
           value={form.horasDiarias}
-          onChange={(v) => setForm({ ...form, horasDiarias: v })}
+          onChange={(v: any) => setForm({ ...form, horasDiarias: v })}
           min={1}
         />
         <FormNumericInput
           label="Intentos Previos"
           value={form.intentosPrevios}
-          onChange={(v) => setForm({ ...form, intentosPrevios: v })}
+          onChange={(v: any) => setForm({ ...form, intentosPrevios: v })}
           min={0}
         />
         <div className="space-y-2">
@@ -822,7 +830,7 @@ function FormularioExperiencia({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {motivaciones.map((m) => (
+              {motivaciones.map((m: string) => (
                 <SelectItem key={m} value={m}>
                   {m}
                 </SelectItem>
@@ -834,7 +842,7 @@ function FormularioExperiencia({
       <div className="space-y-2">
         <Label>Recursos Utilizados</Label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {recursos.map((rec) => (
+          {recursos.map((rec: string) => (
             <div key={rec} className="flex items-center gap-2">
               <Checkbox
                 id={rec}
@@ -862,7 +870,7 @@ function FormularioExperiencia({
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <Button
           type="submit"
-          className="w-full bg-blue-400 hover:bg-blue-500 text-white"
+          className="w-full bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
         >
           {isEditing ? "Actualizar" : "Compartir"}
         </Button>
@@ -879,7 +887,7 @@ function FormularioExperiencia({
   );
 }
 
-function FormNumericInput({ label, value, onChange, min }) {
+function FormNumericInput({ label, value, onChange, min }: any) {
   return (
     <div className="space-y-2">
       <Label>{label}</Label>

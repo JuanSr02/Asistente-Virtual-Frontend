@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import planesEstudioService from "@/services/planesEstudioService";
 import { APP_CONFIG } from "@/lib/config";
 import { TableSkeleton } from "@/components/Skeleton";
@@ -25,24 +25,30 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
+// Interfaces
+interface Plan {
+  codigo: string;
+  propuesta: string;
+  cantidadMateriasCargadas: number;
+}
+
 const DATA_FRESHNESS_THRESHOLD = 5 * 60 * 1000;
 
 export default function PlanesEstudio() {
   const { planesState, setPlanesState } = useSessionPersistence();
 
-  const [planes, setPlanes] = useState(planesState.planes || []);
+  const [planes, setPlanes] = useState<Plan[]>(planesState.planes || []);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [selectedPlan, setSelectedPlan] = useState(
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(
     planesState.selectedPlan || null
   );
   const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [showMateriasModal, setShowMateriasModal] = useState(
     planesState.showMateriasModal || false
   );
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (planesState.planes) setPlanes(planesState.planes);
@@ -63,6 +69,7 @@ export default function PlanesEstudio() {
       }
     };
     loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarPlanes = async () => {
@@ -75,7 +82,9 @@ export default function PlanesEstudio() {
       setPlanesState("lastFetch", new Date().toISOString());
       if (
         planesState.selectedPlan &&
-        !data.some((plan) => plan.codigo === planesState.selectedPlan.codigo)
+        !data.some(
+          (plan: Plan) => plan.codigo === planesState.selectedPlan.codigo
+        )
       ) {
         setSelectedPlan(null);
         setPlanesState("selectedPlan", null);
@@ -88,14 +97,14 @@ export default function PlanesEstudio() {
     }
   };
 
-  const handleSelectPlan = (plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     const newSelectedPlan = plan.codigo === selectedPlan?.codigo ? null : plan;
     setSelectedPlan(newSelectedPlan);
     setPlanesState("selectedPlan", newSelectedPlan);
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
     const fileExtension = file.name
       .substring(file.name.lastIndexOf("."))
@@ -104,7 +113,7 @@ export default function PlanesEstudio() {
       setError(
         `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`
       );
-      fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     setUploading(true);
@@ -122,7 +131,7 @@ export default function PlanesEstudio() {
       setError("Error al cargar el plan. Verifique el formato del archivo.");
     } finally {
       setUploading(false);
-      fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -162,12 +171,11 @@ export default function PlanesEstudio() {
     setPlanesState("showMateriasModal", false);
   };
 
-  // --- JSX RESPONSIVE ---
   return (
-    <Card className="w-full shadow-lg border border-gray-200">
+    <Card className="w-full shadow-lg border border-gray-200 dark:border-gray-800">
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
-          <FileText className="w-6 h-6 text-blue-600" />
+          <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
           Planes de Estudio
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground mt-1">
@@ -176,7 +184,7 @@ export default function PlanesEstudio() {
       </CardHeader>
       <CardContent className="p-4 sm:p-6 space-y-6">
         {/* --- BARRA DE ACCIONES --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-muted border rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-muted border border-border rounded-lg">
           <div className="relative">
             <input
               type="file"
@@ -189,7 +197,7 @@ export default function PlanesEstudio() {
             />
             <Button
               asChild
-              className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700"
+              className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white"
               disabled={uploading}
             >
               <label htmlFor="file-upload" className="cursor-pointer">
@@ -209,7 +217,7 @@ export default function PlanesEstudio() {
             <Button
               variant="outline"
               onClick={cargarPlanes}
-              className="w-full sm:w-auto  bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white border-0"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Actualizar
@@ -237,7 +245,7 @@ export default function PlanesEstudio() {
 
         {/* --- MENSAJES DE ESTADO --- */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3">
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300 p-4 rounded-r-lg flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 mt-0.5" />
             <div>
               <strong className="font-semibold">Error</strong>
@@ -246,7 +254,7 @@ export default function PlanesEstudio() {
           </div>
         )}
         {uploadSuccess && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3">
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300 p-4 rounded-r-lg flex items-start gap-3">
             <CheckCircle className="h-5 w-5 mt-0.5" />
             <div>
               <strong className="font-semibold">Éxito</strong>
@@ -256,13 +264,13 @@ export default function PlanesEstudio() {
         )}
 
         {/* --- TABLA DE PLANES --- */}
-        <div className="w-full overflow-x-auto rounded-lg border">
+        <div className="w-full overflow-x-auto rounded-lg border border-border">
           {loading ? (
             <TableSkeleton rows={5} columns={3} />
           ) : planes.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
-              <FileText className="mx-auto text-6xl mb-4 text-gray-300" />
-              <h4 className="text-xl text-gray-700 mb-2 font-semibold">
+              <FileText className="mx-auto text-6xl mb-4 text-gray-300 dark:text-gray-600" />
+              <h4 className="text-xl text-gray-700 dark:text-gray-300 mb-2 font-semibold">
                 No hay planes de estudio
               </h4>
               <p className="text-sm text-muted-foreground">
@@ -284,14 +292,18 @@ export default function PlanesEstudio() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-background divide-y divide-gray-200">
+              <tbody className="bg-background divide-y divide-border">
                 {planes.map((plan) => (
                   <tr
                     key={plan.codigo}
                     onClick={() => handleSelectPlan(plan)}
-                    className={`cursor-pointer transition-colors duration-200 ${selectedPlan?.codigo === plan.codigo ? "bg-blue-50" : "hover:bg-muted"}`}
+                    className={`cursor-pointer transition-colors duration-200 ${
+                      selectedPlan?.codigo === plan.codigo
+                        ? "bg-blue-50 dark:bg-blue-900/20"
+                        : "hover:bg-muted/50"
+                    }`}
                   >
-                    <td className="px-4 py-3 font-mono text-gray-700">
+                    <td className="px-4 py-3 font-mono text-gray-700 dark:text-gray-300">
                       {plan.codigo}
                     </td>
                     <td className="px-4 py-3 font-medium text-foreground">
@@ -299,7 +311,11 @@ export default function PlanesEstudio() {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`px-2.5 py-1 rounded-full font-semibold ${selectedPlan?.codigo === plan.codigo ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                        className={`px-2.5 py-1 rounded-full font-semibold ${
+                          selectedPlan?.codigo === plan.codigo
+                            ? "bg-blue-600 dark:bg-blue-700 text-white"
+                            : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                        }`}
                       >
                         {plan.cantidadMateriasCargadas}
                       </span>

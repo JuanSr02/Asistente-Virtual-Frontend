@@ -5,17 +5,59 @@ import planesEstudioService from "@/services/planesEstudioService";
 import estadisticasService from "@/services/estadisticasService";
 import { RefreshCw } from "lucide-react";
 import BarChart from "@/components/charts/BarChart";
-import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
+import { MetricSkeleton } from "@/components/Skeleton";
 import { useEstadisticasPersistence } from "@/hooks/use-estadisticas-persistence";
 
+// Interfaces para TypeScript
+interface Plan {
+  codigo: string;
+  propuesta: string;
+}
+
+interface MateriaRanking {
+  codigoMateria: string;
+  nombre: string;
+  porcentaje: number;
+}
+
+interface EstadisticasCarrera {
+  estudiantesActivos: number;
+  totalMaterias: number;
+  totalExamenesRendidos: number;
+  porcentajeAprobadosGeneral: number;
+  promedioGeneral: number;
+  materiaMasRendida: {
+    nombre: string;
+    porcentaje: number;
+  };
+  cantidadMateriaMasRendida: number;
+  distribucionExamenesPorMateria: Record<string, number>;
+  top5Aprobadas: MateriaRanking[];
+  top5Reprobadas: MateriaRanking[];
+  promedioNotasPorMateria: Record<string, number>;
+}
+
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  color: "blue" | "gray" | "green" | "orange" | "teal";
+}
+
+interface RankingListItemProps {
+  rank: number;
+  name: string;
+  value: string | number;
+  color: "green" | "red";
+}
+
 // 🔹 Componente de métricas
-const MetricCard = ({ title, value, color }) => {
+const MetricCard = ({ title, value, color }: MetricCardProps) => {
   const borderColors = {
-    blue: "border-blue-500",
-    gray: "border-gray-500",
-    green: "border-green-500",
-    orange: "border-orange-500",
-    teal: "border-teal-500",
+    blue: "border-blue-500 dark:border-blue-600",
+    gray: "border-gray-500 dark:border-gray-600",
+    green: "border-green-500 dark:border-green-600",
+    orange: "border-orange-500 dark:border-orange-600",
+    teal: "border-teal-500 dark:border-teal-600",
   };
   return (
     <div
@@ -28,11 +70,22 @@ const MetricCard = ({ title, value, color }) => {
 };
 
 // 🔹 Componente para ítems de ranking
-const RankingListItem = ({ rank, name, value, color }) => {
+const RankingListItem = ({
+  rank,
+  name,
+  value,
+  color,
+}: RankingListItemProps) => {
   const bgColor =
     color === "green"
-      ? "bg-green-50 border-green-500"
-      : "bg-red-50 border-red-500";
+      ? "bg-green-50 border-green-500 dark:bg-green-900/20 dark:border-green-700"
+      : "bg-red-50 border-red-500 dark:bg-red-900/20 dark:border-red-700";
+
+  const textColor =
+    color === "green"
+      ? "text-green-700 dark:text-green-300"
+      : "text-red-700 dark:text-red-300";
+
   return (
     <div
       className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${bgColor}`}
@@ -43,7 +96,7 @@ const RankingListItem = ({ rank, name, value, color }) => {
       <div className="flex-1 font-semibold text-sm text-foreground truncate">
         {name}
       </div>
-      <div className="font-bold text-base text-foreground">{value}%</div>
+      <div className={`font-bold text-base ${textColor}`}>{value}%</div>
     </div>
   );
 };
@@ -56,11 +109,15 @@ const PERIODOS = [
 ];
 
 export default function EstadisticasPorCarrera() {
-  const [planes, setPlanes] = useState([]);
-  const [planSeleccionado, setPlanSeleccionado] = useState(null);
+  const [planes, setPlanes] = useState<Plan[]>([]);
+  const [planSeleccionado, setPlanSeleccionado] = useState<string | null>(null);
   const [periodo, setPeriodo] = useState("ULTIMO_ANIO");
-  const [estadisticas, setEstadisticas] = useState(null);
+  const [estadisticas, setEstadisticas] = useState<EstadisticasCarrera | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
+
+  // Hooks de persistencia
   useEstadisticasPersistence(
     "planSeleccionado",
     planSeleccionado,
@@ -74,9 +131,11 @@ export default function EstadisticasPorCarrera() {
 
   useEffect(() => {
     if (planSeleccionado) cargarEstadisticas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planSeleccionado, periodo]);
 
   const cargarEstadisticas = async () => {
+    if (!planSeleccionado) return;
     setLoading(true);
     try {
       const data = await estadisticasService.obtenerEstadisticasPorCarrera(
@@ -102,7 +161,7 @@ export default function EstadisticasPorCarrera() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Selector de carrera */}
         <select
-          className="w-full lg:w-[40%] border border-gray-300 px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full lg:w-[40%] border border-input bg-background text-foreground px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={planSeleccionado || ""}
           onChange={(e) => setPlanSeleccionado(e.target.value)}
         >
@@ -119,7 +178,7 @@ export default function EstadisticasPorCarrera() {
         {/* Selector de periodo + botón refrescar */}
         <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
           <select
-            className="flex-1 min-w-[150px] border border-gray-300 px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex-1 min-w-[150px] border border-input bg-background text-foreground px-4 py-2 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={periodo}
             onChange={(e) => setPeriodo(e.target.value)}
           >
@@ -131,10 +190,11 @@ export default function EstadisticasPorCarrera() {
           </select>
 
           <button
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-base transition-colors"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-base transition-colors"
             onClick={cargarEstadisticas}
+            disabled={loading}
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden xs:inline">Refrescar</span>
           </button>
         </div>
@@ -143,7 +203,7 @@ export default function EstadisticasPorCarrera() {
       {loading && <MetricSkeleton />}
 
       {!loading && estadisticas && (
-        <>
+        <div className="animate-fade-in space-y-6">
           {/* MÉTRICAS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <MetricCard
@@ -174,7 +234,7 @@ export default function EstadisticasPorCarrera() {
           </div>
 
           {/* MATERIA MÁS RENDIDA */}
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
+          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-700 dark:to-indigo-800 text-white rounded-xl p-6 shadow-lg text-center">
             <h4 className="text-base font-semibold mb-2 opacity-90">
               Materia Más Rendida
             </h4>
@@ -198,7 +258,7 @@ export default function EstadisticasPorCarrera() {
             <BarChart
               data={Object.fromEntries(
                 Object.entries(estadisticas.distribucionExamenesPorMateria)
-                  // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes (el valor, índice 1)
+                  // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes
                   .sort((a, b) => b[1] - a[1])
                   // 2. Tomar los primeros 10 elementos
                   .slice(0, 10)
@@ -215,8 +275,8 @@ export default function EstadisticasPorCarrera() {
 
           {/* RANKINGS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-              <h4 className="text-base font-semibold text-gray-700 mb-4">
+            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md border border-border">
+              <h4 className="text-base font-semibold text-foreground mb-4">
                 🏆 Top 5 Mayor Aprobación
               </h4>
               <div className="flex flex-col gap-3">
@@ -231,8 +291,8 @@ export default function EstadisticasPorCarrera() {
                 ))}
               </div>
             </div>
-            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-              <h4 className="text-base font-semibold text-gray-700 mb-4">
+            <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md border border-border">
+              <h4 className="text-base font-semibold text-foreground mb-4">
                 📉 Top 5 Menor Aprobación
               </h4>
               <div className="flex flex-col gap-3">
@@ -248,6 +308,7 @@ export default function EstadisticasPorCarrera() {
               </div>
             </div>
           </div>
+
           {/* PROMEDIOS DE NOTAS - MEJORES Y PEORES */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BarChart
@@ -276,7 +337,7 @@ export default function EstadisticasPorCarrera() {
               showNameBelow={true}
             />
           </div>
-        </>
+        </div>
       )}
     </div>
   );

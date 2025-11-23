@@ -23,39 +23,70 @@ const PERIODOS_ESTADISTICAS = [
   { value: "TODOS_LOS_TIEMPOS", label: "Todos los tiempos" },
 ];
 
+// Tipos básicos
+interface Plan {
+  codigo: string;
+  propuesta: string;
+}
+
+interface Materia {
+  codigo: string;
+  nombre: string;
+}
+
+interface Estadisticas {
+  nombreMateria: string;
+  codigoMateria: string;
+  totalRendidos: number;
+  aprobados: number;
+  reprobados: number;
+  porcentajeAprobados: number;
+  promedioNotas: number;
+  promedioDiasEstudio: number;
+  promedioHorasDiarias: number;
+  promedioDificultad: number;
+  distribucionModalidad: Record<string, number>;
+  distribucionRecursos: Record<string, number>;
+  distribucionDificultad: Record<string, number>;
+}
+
 export default function EstadisticasMateria() {
   const { estadisticasState, setEstadisticasState } = useSessionPersistence();
 
-  const [estadisticas, setEstadisticas] = useState(() => {
+  const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(() => {
+    if (typeof window === "undefined") return null;
     const savedData = localStorage.getItem("estadisticasMateria");
     return savedData ? JSON.parse(savedData) : null;
   });
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("");
 
-  const [planes, setPlanes] = useState([]);
-  const [materias, setMaterias] = useState([]);
-  const [planSeleccionado, setPlanSeleccionado] = useState(
-    estadisticasState.planSeleccionado
+  const [planes, setPlanes] = useState<Plan[]>([]);
+  const [materias, setMaterias] = useState<Materia[]>([]);
+  const [planSeleccionado, setPlanSeleccionado] = useState<string>(
+    estadisticasState.planSeleccionado || ""
   );
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState(
-    estadisticasState.materiaSeleccionada
+  const [materiaSeleccionada, setMateriaSeleccionada] = useState<string>(
+    estadisticasState.materiaSeleccionada || ""
   );
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState(
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState<string>(
     estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
   );
 
   const [loadingPlanes, setLoadingPlanes] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(() => {
+    if (typeof window === "undefined") return null;
     const savedTime = localStorage.getItem("estadisticasMateriaTime");
     return savedTime ? new Date(savedTime) : null;
   });
 
   useEffect(() => {
-    setPlanSeleccionado(estadisticasState.planSeleccionado);
-    setMateriaSeleccionada(estadisticasState.materiaSeleccionada);
+    setPlanSeleccionado(estadisticasState.planSeleccionado || "");
+    setMateriaSeleccionada(estadisticasState.materiaSeleccionada || "");
     setPeriodoSeleccionado(
       estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
     );
@@ -94,6 +125,7 @@ export default function EstadisticasMateria() {
       localStorage.removeItem("estadisticasMateriaTime");
       localStorage.removeItem("savedMateriaCode");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planSeleccionado]);
 
   useEffect(() => {
@@ -111,12 +143,14 @@ export default function EstadisticasMateria() {
       localStorage.removeItem("estadisticasMateriaTime");
       localStorage.removeItem("savedMateriaCode");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materiaSeleccionada]);
 
   useEffect(() => {
     if (materiaSeleccionada) {
       buscarEstadisticasRapido(materiaSeleccionada, periodoSeleccionado);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodoSeleccionado]);
 
   const cargarPlanes = async () => {
@@ -126,7 +160,9 @@ export default function EstadisticasMateria() {
       setPlanes(data);
       if (
         estadisticasState.planSeleccionado &&
-        !data.some((plan) => plan.codigo === estadisticasState.planSeleccionado)
+        !data.some(
+          (plan: Plan) => plan.codigo === estadisticasState.planSeleccionado
+        )
       ) {
         setPlanSeleccionado("");
         setEstadisticasState("planSeleccionado", "");
@@ -143,7 +179,7 @@ export default function EstadisticasMateria() {
     }
   };
 
-  const cargarMaterias = async (codigoPlan) => {
+  const cargarMaterias = async (codigoPlan: string) => {
     setLoadingMaterias(true);
     setError(null);
     try {
@@ -153,7 +189,8 @@ export default function EstadisticasMateria() {
       if (
         estadisticasState.materiaSeleccionada &&
         !data.some(
-          (materia) => materia.codigo === estadisticasState.materiaSeleccionada
+          (materia: Materia) =>
+            materia.codigo === estadisticasState.materiaSeleccionada
         )
       ) {
         setMateriaSeleccionada("");
@@ -171,7 +208,10 @@ export default function EstadisticasMateria() {
     }
   };
 
-  const buscarEstadisticasRapido = async (codigoMateria, periodo) => {
+  const buscarEstadisticasRapido = async (
+    codigoMateria: string,
+    periodo: string
+  ) => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
@@ -240,11 +280,6 @@ export default function EstadisticasMateria() {
     }
   };
 
-  const formatearFecha = (fechaStr) => {
-    const fecha = new Date(fechaStr);
-    return `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-  };
-
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* --- HEADER --- */}
@@ -254,14 +289,14 @@ export default function EstadisticasMateria() {
         </h3>
         <div className="flex items-center gap-4">
           {loadingMessage && (
-            <div className="flex items-center gap-2 text-blue-600">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm font-medium">{loadingMessage}</span>
             </div>
           )}
           <button
             onClick={refrescarDatos}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed text-sm font-semibold"
+            className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors disabled:bg-blue-300 dark:disabled:bg-blue-900 disabled:cursor-not-allowed text-sm font-semibold"
             disabled={!materiaSeleccionada || loading}
           >
             <RefreshCw className="w-4 h-4" />
@@ -271,12 +306,12 @@ export default function EstadisticasMateria() {
       </div>
 
       {/* --- FILTROS --- */}
-      <div className="bg-muted rounded-xl p-4 sm:p-6 border border-gray-200 mb-8">
+      <div className="bg-muted rounded-xl p-4 sm:p-6 border border-border mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <label
               htmlFor="plan-select"
-              className="text-sm font-semibold text-gray-700 block mb-2"
+              className="text-sm font-semibold text-foreground block mb-2"
             >
               Plan de Estudio
             </label>
@@ -285,7 +320,7 @@ export default function EstadisticasMateria() {
               value={planSeleccionado}
               onChange={(e) => setPlanSeleccionado(e.target.value)}
               disabled={loadingPlanes}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               <option value="">
                 {loadingPlanes ? "Cargando..." : "Seleccione un plan"}
@@ -300,7 +335,7 @@ export default function EstadisticasMateria() {
           <div>
             <label
               htmlFor="materia-select"
-              className="text-sm font-semibold text-gray-700 block mb-2"
+              className="text-sm font-semibold text-foreground block mb-2"
             >
               Materia
             </label>
@@ -311,7 +346,7 @@ export default function EstadisticasMateria() {
               disabled={
                 !planSeleccionado || loadingMaterias || materias.length === 0
               }
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               <option value="">
                 {!planSeleccionado
@@ -332,7 +367,7 @@ export default function EstadisticasMateria() {
           <div>
             <label
               htmlFor="periodo-select"
-              className="text-sm font-semibold text-gray-700 block mb-2"
+              className="text-sm font-semibold text-foreground block mb-2"
             >
               Período de tiempo
             </label>
@@ -341,7 +376,7 @@ export default function EstadisticasMateria() {
               value={periodoSeleccionado}
               onChange={(e) => setPeriodoSeleccionado(e.target.value)}
               disabled={!materiaSeleccionada}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
             >
               {PERIODOS_ESTADISTICAS.map((periodo) => (
                 <option key={periodo.value} value={periodo.value}>
@@ -355,8 +390,8 @@ export default function EstadisticasMateria() {
 
       {/* --- ESTADOS DE LA UI --- */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500" />
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500 dark:text-red-400" />
           <div>
             <strong className="font-semibold block">
               Error al cargar estadísticas
@@ -364,8 +399,13 @@ export default function EstadisticasMateria() {
             <p className="text-sm mt-1">{error}</p>
             {materiaSeleccionada && (
               <button
-                onClick={() => buscarEstadisticasRapido(materiaSeleccionada)}
-                className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+                onClick={() =>
+                  buscarEstadisticasRapido(
+                    materiaSeleccionada,
+                    periodoSeleccionado
+                  )
+                }
+                className="mt-3 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
               >
                 Reintentar
               </button>
@@ -392,7 +432,7 @@ export default function EstadisticasMateria() {
       {/* --- RESULTADOS --- */}
       {estadisticas && !loading && (
         <div className="animate-fade-in">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-700 dark:to-purple-800 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
             <h4 className="text-xl sm:text-2xl font-bold mb-1">
               {estadisticas.nombreMateria}
             </h4>
@@ -402,8 +442,8 @@ export default function EstadisticasMateria() {
           </div>
 
           {estadisticas.totalRendidos === 0 ? (
-            <div className="text-center py-12 px-4 bg-muted rounded-xl border-2 border-dashed border-gray-300">
-              <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
+            <div className="text-center py-12 px-4 bg-muted rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400 dark:text-gray-600" />
               <h4 className="text-xl sm:text-2xl text-foreground mb-2 font-semibold">
                 No hay estadísticas disponibles
               </h4>
@@ -411,7 +451,7 @@ export default function EstadisticasMateria() {
                 Esta materia aún no tiene exámenes rendidos registrados en el
                 sistema.
               </p>
-              <div className="bg-background p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 max-w-md mx-auto text-left space-y-2">
+              <div className="bg-background p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 dark:border-orange-600 max-w-md mx-auto text-left space-y-2">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Info className="h-4 w-4 text-orange-500" /> Total de exámenes
                   rendidos: <strong className="text-foreground">0</strong>
@@ -544,7 +584,7 @@ export default function EstadisticasMateria() {
       {/* --- ESTADO VACÍO INICIAL --- */}
       {!estadisticas && !loading && !error && (
         <div className="text-center py-16 px-4 text-muted-foreground">
-          <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400" />
+          <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400 dark:text-gray-600" />
           <h4 className="text-xl sm:text-2xl text-muted-foreground mb-2 font-semibold">
             Seleccione un plan y una materia
           </h4>
@@ -558,16 +598,23 @@ export default function EstadisticasMateria() {
   );
 }
 
+interface MetricCardProps {
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  color: "blue" | "green" | "red" | "orange" | "teal" | "gray" | "purple";
+}
+
 // Componente auxiliar para las tarjetas de métricas
-const MetricCard = ({ icon, title, value, color }) => {
-  const colorClasses = {
-    blue: "border-blue-500",
-    green: "border-green-500",
-    red: "border-red-500",
-    orange: "border-orange-500",
-    teal: "border-teal-500",
-    gray: "border-gray-500",
-    purple: "border-purple-500",
+const MetricCard = ({ icon, title, value, color }: MetricCardProps) => {
+  const colorClasses: Record<string, string> = {
+    blue: "border-blue-500 dark:border-blue-700",
+    green: "border-green-500 dark:border-green-700",
+    red: "border-red-500 dark:border-red-700",
+    orange: "border-orange-500 dark:border-orange-700",
+    teal: "border-teal-500 dark:border-teal-700",
+    gray: "border-gray-500 dark:border-gray-600",
+    purple: "border-purple-500 dark:border-purple-700",
   };
 
   return (

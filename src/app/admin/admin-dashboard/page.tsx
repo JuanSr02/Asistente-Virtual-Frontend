@@ -7,35 +7,48 @@ import Perfil from "@/app/perfil/page";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { BookOpen, BarChart3, UserCircle, LayoutDashboard } from "lucide-react";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
-export default function AdminDashboard({ user }) {
+// Interfaces
+interface User {
+  id: string;
+  email?: string;
+  [key: string]: any;
+}
+
+interface AdminDashboardProps {
+  user: User;
+}
+
+export default function AdminDashboard({ user }: AdminDashboardProps) {
   const { dashboardState, setDashboardState, updateLastVisited } =
     useSessionPersistence();
-  const [activeTab, setActiveTab] = useState(dashboardState.activeTab);
+  const [activeTab, setActiveTab] = useState<string>(dashboardState.activeTab);
 
   useEffect(() => {
     updateLastVisited();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setActiveTab(dashboardState.activeTab);
   }, [dashboardState.activeTab]);
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     setDashboardState("activeTab", tab);
     updateLastVisited();
   };
 
   useEffect(() => {
-    const handleChangeTab = (event) => {
-      const newTab = event.detail;
+    const handleChangeTab = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newTab = customEvent.detail;
       if (newTab && newTab !== activeTab) {
         handleTabChange(newTab);
       }
     };
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Array de pestañas para evitar repetición en el JSX
@@ -56,7 +69,7 @@ export default function AdminDashboard({ user }) {
       default:
         return (
           <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
-            <LayoutDashboard className="w-12 h-12 text-gray-300" />
+            <LayoutDashboard className="w-12 h-12 text-gray-300 dark:text-gray-600" />
             <p className="text-lg">
               Selecciona una opción del menú para comenzar.
             </p>
@@ -65,11 +78,10 @@ export default function AdminDashboard({ user }) {
     }
   };
 
-  // --- JSX RESPONSIVE ---
   return (
-    <div className="flex-1 flex flex-col bg-muted">
+    <div className="flex-1 flex flex-col bg-muted/30 dark:bg-background">
       {/* Barra de navegación de pestañas */}
-      <nav className="bg-background border-b border-gray-200 sticky top-16 z-30">
+      <nav className="bg-background border-b border-gray-200 dark:border-gray-800 sticky top-16 z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Pestañas de navegación */}
@@ -83,8 +95,8 @@ export default function AdminDashboard({ user }) {
                     text-sm font-medium border-b-2 transition-colors duration-200
                     ${
                       activeTab === tab.id
-                        ? "text-blue-600 border-blue-600"
-                        : "text-muted-foreground border-transparent hover:text-blue-600 hover:bg-muted"
+                        ? "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400"
+                        : "text-muted-foreground border-transparent hover:text-blue-600 hover:bg-muted dark:hover:text-blue-400"
                     }
                   `}
                   aria-current={activeTab === tab.id ? "page" : undefined}

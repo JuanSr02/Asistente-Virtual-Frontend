@@ -26,7 +26,7 @@ const recomendacionService = {
    */
   obtenerFinalesParaRendir: async (
     estudianteId: number,
-    orden: OrdenFinales = "CORRELATIVAS"
+    orden: string = "CORRELATIVAS"
   ): Promise<FinalDTO[]> => {
     try {
       const response = await api.get(`/api/shared/finales/${estudianteId}`, {

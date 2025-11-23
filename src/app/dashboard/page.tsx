@@ -9,8 +9,19 @@ import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Loader2, LogOut, ShieldAlert, UserCircle } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 
-export default function Dashboard({ user }) {
-  const { role, loading, error } = useUserRole(user);
+// Definimos la interfaz para el usuario
+interface User {
+  id: string;
+  email: string;
+  // Agrega otras propiedades si el objeto user las tiene
+}
+
+interface DashboardProps {
+  user: User;
+}
+
+export default function Dashboard({ user }: DashboardProps) {
+  const { role, loading, error } = useUserRole(user as any); // Casting si el hook espera un tipo específico de supabase
   const [signingOut, setSigningOut] = useState(false);
   const { clearAllSession } = useSessionPersistence();
 
@@ -23,7 +34,7 @@ export default function Dashboard({ user }) {
         console.error("Error al cerrar sesión:", error);
         alert("Error al cerrar sesión: " + error.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error:", error);
       alert("Error: " + error.message);
     } finally {
@@ -40,8 +51,8 @@ export default function Dashboard({ user }) {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background p-4 text-center">
-        {/* Usamos los colores de tu paleta `primary` para el spinner */}
-        <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        {/* Spinner con colores adaptables */}
+        <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 dark:border-blue-900 dark:border-t-blue-500 rounded-full animate-spin"></div>
         <p className="text-foreground font-semibold">
           Verificando permisos de usuario...
         </p>
@@ -53,10 +64,10 @@ export default function Dashboard({ user }) {
   // --- ESTADO DE ERROR RESPONSIVE Y CON TEMA DE COLOR ORIGINAL ---
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50 p-4">
-        <div className="w-full max-w-lg mx-auto text-center p-6 sm:p-8 bg-card rounded-xl shadow-strong border-l-4 border-error-500">
-          <ShieldAlert className="mx-auto h-12 w-12 text-error-500 mb-4" />
-          <h2 className="text-xl font-bold text-error-700 mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-background p-4">
+        <div className="w-full max-w-lg mx-auto text-center p-6 sm:p-8 bg-card rounded-xl shadow-strong border-l-4 border-red-500 dark:border-red-700">
+          <ShieldAlert className="mx-auto h-12 w-12 text-red-500 dark:text-red-400 mb-4" />
+          <h2 className="text-xl font-bold text-red-700 dark:text-red-300 mb-2">
             Error al Cargar el Dashboard
           </h2>
           <p className="mb-4 text-muted-foreground text-sm">
@@ -77,6 +88,7 @@ export default function Dashboard({ user }) {
               className="
                 w-full sm:w-auto h-11 px-6 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold
                 text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700
+                dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-500 dark:hover:to-indigo-600
                 transition-all transform hover:-translate-y-0.5 shadow-md hover:shadow-lg
               "
             >
@@ -88,6 +100,7 @@ export default function Dashboard({ user }) {
               className="
                 w-full sm:w-auto h-11 px-6 inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold
                 bg-gray-200 hover:bg-gray-300 text-gray-700
+                dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200
                 transition-colors disabled:opacity-50
               "
             >
@@ -106,7 +119,7 @@ export default function Dashboard({ user }) {
   // --- RENDERIZADO DEL DASHBOARD RESPONSIVE Y CON EL HEADER ORIGINAL ---
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg sticky top-0 z-40">
+      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900 text-white shadow-lg sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo/Título */}

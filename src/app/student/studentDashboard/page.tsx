@@ -16,17 +16,28 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
+// Tipos
+interface User {
+  id: string;
+  email: string;
+  // Agrega otras propiedades si el objeto user las tiene
+}
+
+interface StudentDashboardProps {
+  user: User;
+}
+
 // Función para detectar si es dispositivo móvil
-function esDispositivoMovil() {
+function esDispositivoMovil(): boolean {
   if (typeof window === "undefined") return false;
   return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-export default function StudentDashboard({ user }) {
+export default function StudentDashboard({ user }: StudentDashboardProps) {
   const { dashboardState, setDashboardState, updateLastVisited } =
     useSessionPersistence();
 
-  const [activeTab, setActiveTab] = useState(
+  const [activeTab, setActiveTab] = useState<string>(
     dashboardState?.activeTab === "planes"
       ? "recomendacion"
       : dashboardState?.activeTab || "recomendacion"
@@ -80,14 +91,14 @@ export default function StudentDashboard({ user }) {
   // NUEVO: Prevenir navegación durante operaciones críticas (solo en desktop)
   useEffect(() => {
     if (!esDispositivoMovil() && criticalOperationInProgress) {
-      const handleBeforeUnload = (e) => {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue =
           "Hay una operación en progreso. ¿Estás seguro de que quieres salir?";
         return e.returnValue;
       };
 
-      const handlePopState = (e) => {
+      const handlePopState = () => {
         if (criticalOperationInProgress) {
           const confirmLeave = window.confirm(
             "Hay una operación crítica en progreso. ¿Estás seguro de que quieres salir? Esto podría causar problemas con la persistencia de datos."
@@ -112,7 +123,7 @@ export default function StudentDashboard({ user }) {
     }
   }, [criticalOperationInProgress]);
 
-  const handleTabChange = (tab) => {
+  const handleTabChange = (tab: string) => {
     // NUEVO: Prevenir cambio de pestaña durante operaciones críticas (solo en desktop)
     if (!esDispositivoMovil() && criticalOperationInProgress) {
       const confirmChange = window.confirm(
@@ -129,8 +140,9 @@ export default function StudentDashboard({ user }) {
   };
 
   useEffect(() => {
-    const handleChangeTab = (event) => {
-      const newTab = event.detail;
+    const handleChangeTab = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newTab = customEvent.detail;
       if (newTab && newTab !== activeTab) {
         handleTabChange(newTab);
       }
@@ -164,7 +176,7 @@ export default function StudentDashboard({ user }) {
       default:
         return (
           <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
-            <LayoutDashboard className="w-12 h-12 text-gray-300" />
+            <LayoutDashboard className="w-12 h-12 text-gray-300 dark:text-gray-600" />
             <p className="text-lg">
               Selecciona una opción del menú para comenzar.
             </p>
@@ -174,21 +186,21 @@ export default function StudentDashboard({ user }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-muted">
+    <div className="flex-1 flex flex-col bg-muted/30 dark:bg-background">
       {/* NUEVO: Indicador de operación crítica en progreso */}
       {!esDispositivoMovil() && criticalOperationInProgress && (
-        <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium">
+        <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium dark:bg-yellow-600">
           ⚠️ Operación en progreso - No cierres esta ventana ni cambies de
           pestaña
         </div>
       )}
 
       {/* Barra de navegación de pestañas */}
-      <nav className="bg-background border-b border-gray-200 sticky top-16 z-30">
+      <nav className="bg-background border-b border-border sticky top-16 z-30">
         <div className="container mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Contenedor de pestañas con scroll horizontal en móvil */}
-            <div className="flex-1 overflow-x-auto whitespace-nowrap">
+            <div className="flex-1 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1 sm:pb-0">
               <div className="inline-flex items-center">
                 {tabs.map((tab) => (
                   <button
@@ -199,8 +211,8 @@ export default function StudentDashboard({ user }) {
                        text-sm font-medium border-b-2 transition-colors duration-200
                       ${
                         activeTab === tab.id
-                          ? "text-blue-600 border-blue-600"
-                          : "text-muted-foreground border-transparent hover:text-blue-600 hover:bg-muted"
+                          ? "text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400"
+                          : "text-muted-foreground border-transparent hover:text-blue-600 hover:bg-muted dark:hover:text-blue-400"
                       }
                       ${
                         !esDispositivoMovil() &&

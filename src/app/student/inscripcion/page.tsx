@@ -32,8 +32,37 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
-export default function Inscripcion({ user }) {
+// Tipos básicos para ayudar con el refactor a TS
+interface User {
+  id: string;
+  email: string;
+}
+
+interface Materia {
+  codigo: string;
+  nombre: string;
+  plan_de_estudio_codigo?: string;
+}
+
+interface InscripcionData {
+  id: number;
+  turno: string;
+  anio: number;
+  materiaNombre: string;
+  materiaCodigo: string;
+  materiaPlan: string;
+  estudianteNombre?: string;
+  estudianteId: number;
+}
+
+interface Inscripto {
+  id: number;
+  estudianteNombre: string;
+  estudianteId: number;
+  email?: string;
+}
+
+export default function Inscripcion({ user }: { user: User }) {
   const {
     state,
     updateState,
@@ -43,6 +72,7 @@ export default function Inscripcion({ user }) {
     markDataAsFresh,
     isInitialized,
   } = useInscripcionPersistence();
+
   const {
     isOpen: showInscriptos,
     data: inscripcionConsultada,
@@ -50,15 +80,19 @@ export default function Inscripcion({ user }) {
     closeModal: closeInscriptosModal,
     isInitialized: isModalInitialized,
   } = useModalPersistence("inscriptos-modal");
+
   const [showConfirmacion, setShowConfirmacion] = useConfirmacionPersistence();
-  const [inscriptosConsulta, setInscriptosConsulta] = useState([]);
+  const [inscriptosConsulta, setInscriptosConsulta] = useState<Inscripto[]>([]);
   const [loadingInscriptos, setLoadingInscriptos] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingInscripcion, setLoadingInscripcion] = useState(false);
-  const [loadingEliminacion, setLoadingEliminacion] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [loadingEliminacion, setLoadingEliminacion] = useState<number | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const hasLoadedInitialData = useRef(false);
+
   const mesas = [
     "FEBRERO",
     "MARZO",
@@ -138,7 +172,7 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const cargarMateriasDisponibles = async (estudianteId) => {
+  const cargarMateriasDisponibles = async (estudianteId: number) => {
     try {
       const materias =
         await inscripcionService.obtenerMateriasParaInscripcion(estudianteId);
@@ -148,7 +182,7 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const cargarInscripcionesEstudiante = async (estudianteId) => {
+  const cargarInscripcionesEstudiante = async (estudianteId: number) => {
     try {
       const inscripciones =
         await inscripcionService.obtenerInscripcionesEstudiante(estudianteId);
@@ -161,7 +195,9 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const enriquecerInscripcionesConNombres = async (inscripciones) => {
+  const enriquecerInscripcionesConNombres = async (
+    inscripciones: any[]
+  ): Promise<any[]> => {
     if (!inscripciones || inscripciones.length === 0) return [];
     try {
       const materiasParaBuscar = inscripciones
@@ -175,7 +211,7 @@ export default function Inscripcion({ user }) {
       if (materiasUnicas.length === 0) return inscripciones;
       const materiasInfo =
         await materiaService.obtenerMateriasPorCodigos(materiasUnicas);
-      const mapaNombres = {};
+      const mapaNombres: Record<string, string> = {};
       materiasInfo.forEach((m) => {
         mapaNombres[`${m.codigo}-${m.plan_de_estudio_codigo}`] = m.nombre;
       });
@@ -197,7 +233,7 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const cargarInscriptosParaModal = async (inscripcion) => {
+  const cargarInscriptosParaModal = async (inscripcion: InscripcionData) => {
     setLoadingInscriptos(true);
     setError(null);
     try {
@@ -214,12 +250,12 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const consultarInscriptos = async (inscripcion) => {
+  const consultarInscriptos = async (inscripcion: InscripcionData) => {
     openInscriptosModal(inscripcion, "inscriptos");
     await cargarInscriptosParaModal(inscripcion);
   };
 
-  const copiarEmail = async (email) => {
+  const copiarEmail = async (email: string) => {
     try {
       await navigator.clipboard.writeText(email);
       setSuccess(`Email ${email} copiado`);
@@ -254,11 +290,11 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const calcularAnioMesa = (mesa) => {
+  const calcularAnioMesa = (mesa: string) => {
     const ahora = new Date();
     const anioActual = ahora.getFullYear();
     const mesActual = ahora.getMonth() + 1;
-    const mesesNumeros = {
+    const mesesNumeros: Record<string, number> = {
       FEBRERO: 2,
       MARZO: 3,
       JULIO: 7,
@@ -266,13 +302,13 @@ export default function Inscripcion({ user }) {
       NOVIEMBRE: 11,
       DICIEMBRE: 12,
     };
-    const mesMesa = mesesNumeros[mesa];
+    const mesMesa = mesesNumeros[mesa] || 0;
     if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 10))
       return anioActual + 1;
     return anioActual;
   };
 
-  const handleSeleccionarMateria = (materia) => {
+  const handleSeleccionarMateria = (materia: Materia) => {
     updateState({
       materiaSeleccionada: materia,
       mesaSeleccionada: "",
@@ -283,7 +319,7 @@ export default function Inscripcion({ user }) {
     setShowConfirmacion(false);
   };
 
-  const handleSeleccionarMesa = (mesa) => {
+  const handleSeleccionarMesa = (mesa: string) => {
     const anio = calcularAnioMesa(mesa);
     updateState({ mesaSeleccionada: mesa, anioSeleccionado: anio });
     setShowConfirmacion(true);
@@ -304,7 +340,7 @@ export default function Inscripcion({ user }) {
     try {
       const dto = {
         turno: state.mesaSeleccionada,
-        anio: state.anioSeleccionado,
+        anio: state.anioSeleccionado as number,
         materiaCodigo: state.materiaSeleccionada.codigo,
         materiaPlan: state.historiaAcademica.plan_de_estudio_codigo,
         estudianteId: state.persona.id,
@@ -312,7 +348,7 @@ export default function Inscripcion({ user }) {
       const inscripcionCreada = await inscripcionService.crearInscripcion(dto);
       const companeros = await inscripcionService.obtenerInscriptosConEmails(
         state.materiaSeleccionada.codigo,
-        state.anioSeleccionado,
+        state.anioSeleccionado as number,
         state.mesaSeleccionada
       );
       const companerosFiltered = companeros.filter(
@@ -345,7 +381,7 @@ export default function Inscripcion({ user }) {
         );
       }
       setTimeout(() => clearSelections(), 5000);
-    } catch (err) {
+    } catch (err: any) {
       let errorMessage = "Error al crear la inscripción.";
       if (err.response?.status === 409)
         errorMessage = "Ya estás inscripto a esta materia en este período.";
@@ -357,7 +393,7 @@ export default function Inscripcion({ user }) {
     }
   };
 
-  const handleEliminarInscripcion = async (inscripcion) => {
+  const handleEliminarInscripcion = async (inscripcion: InscripcionData) => {
     if (
       !window.confirm(
         `¿Seguro que deseas eliminar tu inscripción a ${inscripcion.materiaNombre}?`
@@ -410,10 +446,10 @@ export default function Inscripcion({ user }) {
   }, [success, error]);
 
   const materiasCodigosInscriptos = state.inscripcionesEstudiante.map(
-    (i) => i.materiaCodigo
+    (i: any) => i.materiaCodigo
   );
   const materiasDisponiblesFiltradas = state.materiasDisponibles.filter(
-    (m) => !materiasCodigosInscriptos.includes(m.codigo)
+    (m: any) => !materiasCodigosInscriptos.includes(m.codigo)
   );
 
   if (!isInitialized || (loading && !state.persona)) {
@@ -441,16 +477,16 @@ export default function Inscripcion({ user }) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-green-50 via-white to-blue-50">
+      <Card className="bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/30 dark:via-background dark:to-blue-950/30">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
-            <Pencil className="w-6 h-6 text-blue-600" />
+            <Pencil className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Inscripción a Mesas de Examen
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             Inscríbete para ponerte en contacto con compañeros y estudiar en
             conjunto.{" "}
-            <strong className="text-yellow-800">
+            <strong className="text-yellow-800 dark:text-yellow-400">
               Recuerda que esta inscripción es independiente del SIU Guaraní.
             </strong>
           </CardDescription>
@@ -461,7 +497,7 @@ export default function Inscripcion({ user }) {
               size="sm"
               onClick={forzarRecargaDatos}
               disabled={loading}
-              className="bg-blue-400 hover:bg-blue-500 text-white"
+              className="bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
             >
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
@@ -473,13 +509,13 @@ export default function Inscripcion({ user }) {
       </Card>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <AlertTriangle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{error}</p>
         </div>
       )}
       {success && (
-        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
           <CheckCircle className="h-5 w-5 mt-0.5" />
           <p className="text-sm">{success}</p>
         </div>
@@ -488,7 +524,7 @@ export default function Inscripcion({ user }) {
       {!state.historiaAcademica ? (
         <Card>
           <CardHeader className="text-center">
-            <GraduationCap className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <GraduationCap className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
             <CardTitle>Carga tu Historia Académica Primero</CardTitle>
             <CardDescription>
               Para inscribirte a mesas de examen, ve a la pestaña "Sugerencias"
@@ -511,7 +547,7 @@ export default function Inscripcion({ user }) {
       ) : (
         <>
           {state.inscripcionExitosa && (
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
               <CardHeader>
                 <CardTitle>🎉 ¡Inscripción exitosa!</CardTitle>
               </CardHeader>
@@ -526,7 +562,7 @@ export default function Inscripcion({ user }) {
                       ):
                     </h4>
                     <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                      {state.companerosInscriptos.map((c) => (
+                      {state.companerosInscriptos.map((c: any) => (
                         <div
                           key={c.id}
                           className="bg-background p-2 rounded border text-sm"
@@ -555,11 +591,15 @@ export default function Inscripcion({ user }) {
                   </p>
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                    {materiasDisponiblesFiltradas.map((m) => (
+                    {materiasDisponiblesFiltradas.map((m: any) => (
                       <div
                         key={m.codigo}
                         onClick={() => handleSeleccionarMateria(m)}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${state.materiaSeleccionada?.codigo === m.codigo ? "border-blue-500 bg-blue-50" : "hover:bg-muted"}`}
+                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                          state.materiaSeleccionada?.codigo === m.codigo
+                            ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/50"
+                            : "hover:bg-muted"
+                        }`}
                       >
                         <p className="font-semibold">{m.nombre}</p>
                         <p className="text-xs text-muted-foreground">
@@ -582,8 +622,8 @@ export default function Inscripcion({ user }) {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    <div className="bg-blue-50 p-3 rounded-lg mb-4 text-sm">
-                      <p className="font-semibold text-blue-800">
+                    <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg mb-4 text-sm">
+                      <p className="font-semibold text-blue-800 dark:text-blue-300">
                         Materia: {state.materiaSeleccionada.nombre}
                       </p>
                     </div>
@@ -596,7 +636,7 @@ export default function Inscripcion({ user }) {
                         <span className="font-medium">
                           {mesa} {calcularAnioMesa(mesa)}
                         </span>
-                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       </button>
                     ))}
                   </div>
@@ -616,10 +656,10 @@ export default function Inscripcion({ user }) {
                 </p>
               ) : (
                 <div className="space-y-3">
-                  {state.inscripcionesEstudiante.map((i) => (
+                  {state.inscripcionesEstudiante.map((i: any) => (
                     <div
                       key={i.id}
-                      className="p-3 border bg-green-50 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3"
+                      className="p-3 border bg-green-50 dark:bg-green-950/20 dark:border-green-900 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3"
                     >
                       <div>
                         <p className="font-semibold">{i.materiaNombre}</p>
@@ -633,7 +673,7 @@ export default function Inscripcion({ user }) {
                           variant="outline"
                           onClick={() => consultarInscriptos(i)}
                           disabled={loadingInscriptos}
-                          className="flex-1 sm:flex-none bg-blue-400 hover:bg-blue-500 text-white"
+                          className="flex-1 sm:flex-none bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                         >
                           <Users className="mr-2 h-4 w-4" />
                           Ver
@@ -676,7 +716,7 @@ export default function Inscripcion({ user }) {
                     {state.mesaSeleccionada} {state.anioSeleccionado}
                   </p>
                 </div>
-                <div className="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800">
+                <div className="bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
                   Se notificará a otros estudiantes inscriptos.
                 </div>
               </div>
@@ -684,7 +724,7 @@ export default function Inscripcion({ user }) {
                 <Button
                   onClick={handleConfirmarInscripcion}
                   disabled={loadingInscripcion}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
                   {loadingInscripcion ? (
                     <>
@@ -710,17 +750,19 @@ export default function Inscripcion({ user }) {
           <Modal
             isOpen={showInscriptos}
             onClose={closeInscriptosModal}
-            title={`Inscriptos a ${inscripcionConsultada?.materiaNombre || "la materia"}`}
+            title={`Inscriptos a ${
+              inscripcionConsultada?.materiaNombre || "la materia"
+            }`}
           >
             {inscripcionConsultada && (
-              <p className="bg-blue-50 p-2 rounded-md mb-4 text-sm">
+              <p className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-md mb-4 text-sm">
                 Mesa: {inscripcionConsultada.turno} {inscripcionConsultada.anio}
               </p>
             )}
             <div className="max-h-96 overflow-y-auto pr-2">
               {loadingInscriptos ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                  <Loader2 className="h-6 w-6 animate-spin text-blue-500 dark:text-blue-400" />
                 </div>
               ) : inscriptosConsulta.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
@@ -736,7 +778,7 @@ export default function Inscripcion({ user }) {
                       <p className="font-medium">
                         {i.estudianteNombre}{" "}
                         {i.estudianteId === state.persona?.id && (
-                          <span className="text-xs font-normal text-blue-600">
+                          <span className="text-xs font-normal text-blue-600 dark:text-blue-400">
                             (Tú)
                           </span>
                         )}
@@ -745,7 +787,7 @@ export default function Inscripcion({ user }) {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => copiarEmail(i.email)}
+                          onClick={() => i.email && copiarEmail(i.email)}
                         >
                           <ClipboardCopy className="h-4 w-4 mr-2" />
                           Copiar Email

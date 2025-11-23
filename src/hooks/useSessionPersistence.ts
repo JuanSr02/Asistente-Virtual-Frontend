@@ -2,6 +2,28 @@
 
 import { usePersistentStateGroup } from "./usePersistentState";
 
+// Definición de interfaces para los estados
+interface DashboardState {
+  activeTab: string;
+  lastVisited: string;
+}
+
+interface EstadisticasState {
+  activeTab: string;
+  planSeleccionado: string;
+  materiaSeleccionada: string;
+  periodoSeleccionado: string; // Nueva propiedad
+  lastUpdate: string | null;
+}
+
+interface PlanesState {
+  planes: any[];
+  selectedPlan: any | null;
+  showMateriasModal: boolean;
+  lastUpdate: string | null;
+  lastFetch: string | null;
+}
+
 /**
  * Hook principal para manejar toda la persistencia de la sesión del usuario
  */
@@ -13,23 +35,24 @@ export function useSessionPersistence() {
 
   // Dashboard
   const [dashboardState, setDashboardState, clearDashboardState] =
-    usePersistentStateGroup(DASHBOARD_NS, {
+    usePersistentStateGroup<DashboardState>(DASHBOARD_NS, {
       activeTab: "planes",
       lastVisited: new Date().toISOString(),
     });
 
   // Estadísticas
   const [estadisticasState, setEstadisticasState, clearEstadisticasState] =
-    usePersistentStateGroup(ESTADISTICAS_NS, {
+    usePersistentStateGroup<EstadisticasState>(ESTADISTICAS_NS, {
       activeTab: "generales",
       planSeleccionado: "",
       materiaSeleccionada: "",
+      periodoSeleccionado: "TODOS_LOS_TIEMPOS", // Valor por defecto añadido
       lastUpdate: null,
     });
 
   // Planes de estudio
   const [planesState, setPlanesState, clearPlanesState] =
-    usePersistentStateGroup(PLANES_NS, {
+    usePersistentStateGroup<PlanesState>(PLANES_NS, {
       planes: [],
       selectedPlan: null,
       showMateriasModal: false,
