@@ -23,8 +23,8 @@ import {
   Loader2,
   PartyPopper,
 } from "lucide-react";
-// Usamos el toast de shadcn/ui que ya está configurado en el proyecto
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState("");
@@ -34,38 +34,42 @@ export default function ResetPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const { toast } = useToast(); // Hook de shadcn/ui
+  const { toast } = useToast();
 
   const [errors, setErrors] = useState({
     newPassword: "",
     confirmPassword: "",
   });
 
-  // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
   const showToast = ({
     title,
     description,
     variant = "default",
     duration = 5000,
+  }: {
+    title: string;
+    description: string;
+    variant?: "default" | "destructive";
+    duration?: number;
   }) => {
     toast({ title, description, variant, duration });
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = (password: string) => {
     if (password.trim() && password.length < 8) {
       return "La contraseña debe tener al menos 8 caracteres";
     }
     return "";
   };
 
-  const validateConfirmPassword = (password, confirmPassword) => {
-    if (confirmPassword.trim() && password !== confirmPassword) {
+  const validateConfirmPassword = (password: string, confirm: string) => {
+    if (confirm.trim() && password !== confirm) {
       return "Las contraseñas no coinciden";
     }
     return "";
   };
 
-  const handleNewPasswordChange = (value) => {
+  const handleNewPasswordChange = (value: string) => {
     setNewPassword(value);
     const passwordError = validatePassword(value);
     setErrors((prev) => ({ ...prev, newPassword: passwordError }));
@@ -75,7 +79,7 @@ export default function ResetPassword() {
     }
   };
 
-  const handleConfirmPasswordChange = (value) => {
+  const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
     const confirmError = validateConfirmPassword(newPassword, value);
     setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
@@ -83,18 +87,19 @@ export default function ResetPassword() {
 
   const hasValidPasswords = () => {
     return (
-      newPassword.trim() &&
-      confirmPassword.trim() &&
+      newPassword.trim() !== "" &&
+      confirmPassword.trim() !== "" &&
       !errors.newPassword &&
       !errors.confirmPassword &&
       newPassword === confirmPassword
     );
   };
 
-  const handleReset = async (e) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     const passwordError = validatePassword(newPassword);
     const confirmError = validateConfirmPassword(newPassword, confirmPassword);
+    
     if (passwordError || confirmError) {
       setErrors({ newPassword: passwordError, confirmPassword: confirmError });
       showToast({
@@ -104,6 +109,7 @@ export default function ResetPassword() {
       });
       return;
     }
+
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
@@ -125,7 +131,7 @@ export default function ResetPassword() {
         });
         setTimeout(() => {
           router.push("/auth");
-        }, 3000); // Redirigir a la página de login
+        }, 3000);
       }
     } catch (error) {
       showToast({
@@ -139,19 +145,28 @@ export default function ResetPassword() {
     }
   };
 
-  // Función para clases de input, similar al componente de Perfil
-  const inputClasses = (hasError, hasContent) =>
-    `h-10 border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-0
-     pr-20
-     ${hasError ? "border-red-500 focus-visible:ring-red-400" : ""}
-     ${!hasError && hasContent ? "border-green-500 focus-visible:ring-green-400" : ""}`;
+  // Lógica de clases dinámica optimizada para dark mode
+  const getInputClasses = (hasError: boolean, hasContent: boolean) => {
+    return cn(
+      "h-10 pr-10 transition-all",
+      // Base y Focus
+      "border-input focus-visible:ring-2 focus-visible:ring-offset-0",
+      // Estados
+      hasError
+        ? "border-red-500 focus-visible:ring-red-400 dark:border-red-700 dark:focus-visible:ring-red-900"
+        : hasContent
+        ? "border-green-500 focus-visible:ring-green-400 dark:border-green-700 dark:focus-visible:ring-green-900"
+        : "focus-visible:ring-blue-400 dark:focus-visible:ring-blue-800"
+    );
+  };
 
-  // --- JSX RESPONSIVE ---
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md mx-auto bg-background shadow-lg border border-gray-200 rounded-xl">
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4 dark:bg-background">
+      <Card className="w-full max-w-md mx-auto shadow-lg border-border rounded-xl">
         <CardHeader className="p-6 text-center">
-          <Lock className="mx-auto h-10 w-10 text-blue-600 mb-3" />
+          <div className="mx-auto h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-3">
+            <Lock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          </div>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
             Restablecer Contraseña
           </CardTitle>
@@ -160,10 +175,10 @@ export default function ResetPassword() {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="p-6">
+        <CardContent className="p-6 pt-0">
           {success ? (
             <div className="text-center space-y-4 py-8 animate-fade-in">
-              <PartyPopper className="mx-auto h-16 w-16 text-green-500" />
+              <PartyPopper className="mx-auto h-16 w-16 text-green-500 dark:text-green-400" />
               <h3 className="text-xl font-semibold text-foreground">
                 ¡Contraseña Actualizada!
               </h3>
@@ -171,7 +186,7 @@ export default function ResetPassword() {
                 Serás redirigido a la página de inicio de sesión en unos
                 segundos.
               </p>
-              <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
             <form onSubmit={handleReset} className="space-y-6">
@@ -179,7 +194,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <Label
                   htmlFor="newPassword"
-                  className="font-semibold text-gray-700"
+                  className="font-semibold text-foreground"
                 >
                   Nueva Contraseña
                 </Label>
@@ -190,23 +205,23 @@ export default function ResetPassword() {
                     placeholder="Mínimo 8 caracteres"
                     value={newPassword}
                     onChange={(e) => handleNewPasswordChange(e.target.value)}
-                    className={inputClasses(
+                    className={getInputClasses(
                       !!errors.newPassword,
                       !!newPassword
                     )}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
                     {errors.newPassword ? (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
                     ) : (
                       newPassword && (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
                       )
                     )}
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="text-muted-foreground hover:text-gray-700"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
                         showNewPassword
                           ? "Ocultar contraseña"
@@ -222,7 +237,7 @@ export default function ResetPassword() {
                   </div>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.newPassword}
                   </p>
                 )}
@@ -232,7 +247,7 @@ export default function ResetPassword() {
               <div className="space-y-2">
                 <Label
                   htmlFor="confirmPassword"
-                  className="font-semibold text-gray-700"
+                  className="font-semibold text-foreground"
                 >
                   Confirmar Contraseña
                 </Label>
@@ -245,7 +260,7 @@ export default function ResetPassword() {
                     onChange={(e) =>
                       handleConfirmPasswordChange(e.target.value)
                     }
-                    className={inputClasses(
+                    className={getInputClasses(
                       !!errors.confirmPassword,
                       !!confirmPassword &&
                         !errors.confirmPassword &&
@@ -254,11 +269,11 @@ export default function ResetPassword() {
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
                     {errors.confirmPassword ? (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
                     ) : (
                       confirmPassword &&
                       newPassword === confirmPassword && (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
                       )
                     )}
                     <button
@@ -266,7 +281,7 @@ export default function ResetPassword() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="text-muted-foreground hover:text-gray-700"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
                       aria-label={
                         showConfirmPassword
                           ? "Ocultar contraseña"
@@ -282,7 +297,7 @@ export default function ResetPassword() {
                   </div>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -291,12 +306,12 @@ export default function ResetPassword() {
           )}
         </CardContent>
         {!success && (
-          <CardFooter className="p-6">
+          <CardFooter className="p-6 pt-0">
             <Button
               type="submit"
-              onClick={handleReset} // El botón está fuera del form, necesita su propio onClick
+              onClick={handleReset}
               disabled={loading || !hasValidPasswords()}
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-muted-foreground"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50"
             >
               {loading ? (
                 <>

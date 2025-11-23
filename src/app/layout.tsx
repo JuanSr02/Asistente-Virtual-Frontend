@@ -7,22 +7,16 @@ import Auth from "@/app/auth/page";
 import Dashboard from "@/app/dashboard/page";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider"
-import Link  from "next/link";
+import { ThemeProvider } from "@/components/theme-provider";
+import Link from "next/link";
 
-
-const publicRoutes = ["/reset-password", "/auth", "/subida-mobile","/terminos-condiciones","/politica-privacidad"];
-
-// Componente separado para el loading (sin cambios, ya es responsive)
-const LoadingScreen = () => (
-  <html lang="es">
-    <body>
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
-        <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
-      </div>
-    </body>
-  </html>
-);
+const publicRoutes = [
+  "/reset-password",
+  "/auth",
+  "/subida-mobile",
+  "/terminos-condiciones",
+  "/politica-privacidad",
+];
 
 export default function RootLayout({
   children,
@@ -103,10 +97,6 @@ export default function RootLayout({
     }
   }, [session, pathname, loading, router, isInitialized]);
 
-  if (!isInitialized || loading) {
-    return <LoadingScreen />;
-  }
-
   const isPublicRoute = publicRoutes.includes(pathname || "");
 
   return (
@@ -134,10 +124,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/favicon.ico" />
         {/* --- Fin Configuración PWA --- */}
       </head>
-      {/* La estructura de flex-col con min-h-screen en el body y flex-1 en main
-        es una excelente base para un "sticky footer" y ya es inherentemente responsive.
-        No se necesita cambiar.
-      */}
+
       <body className="min-h-screen flex flex-col bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -145,59 +132,73 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="flex-1">
-            {
-              /* El contenido principal crece para empujar el footer hacia abajo */
-              !isPublicRoute && !session ? (
-                <Auth />
-              ) : session && !isPublicRoute ? (
-                <Dashboard user={session.user} />
-              ) : (
-                children
-              )
-            }
-          </main>
-
-          <Toaster />
-
-          {/* --- FOOTER RESPONSIVE --- */}
-          <footer
-            className="
-            bg-muted text-muted-foreground border-t border-border
-            py-4 px-4 sm:px-6 lg:px-8
-          "
-          >
-            <div
-              className="
-              container mx-auto flex flex-col sm:flex-row items-center justify-between
-              text-center sm:text-left gap-2
-            "
-            >
-              <span className="text-sm">
-                Asistente Virtual - UNSL · Dept. de Informática · © 2025
-              </span>
-
-              <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm">
-                <Link
-                  href="/terminos-condiciones"
-                  className="hover:text-blue-600 transition-colors hover:underline"
-                >
-                  Términos y Condiciones
-                </Link>
-                <span className="hidden sm:inline text-gray-300">|</span>
-                <Link
-                  href="/politica-privacidad"
-                  className="hover:text-blue-600 transition-colors hover:underline"
-                >
-                  Política de Privacidad
-                </Link>
-              </div>
-
-              <span className="text-xs text-muted-foreground/80">
-                Desarrollado por Juan Sánchez (juanma2002123@gmail.com)
-              </span>
+          {/* MOVIDO DENTRO DEL BODY Y THEMEPROVIDER:
+             Al renderizar el loading aquí, se beneficia de las clases de tema (dark/light)
+             y evitamos duplicar las etiquetas <html> y <body>.
+          */}
+          {!isInitialized || loading ? (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
+              <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
             </div>
-          </footer>
+          ) : (
+            <>
+              <main className="flex-1">
+                {
+                  /* El contenido principal crece para empujar el footer hacia abajo */
+                  !isPublicRoute && !session ? (
+                    <Auth />
+                  ) : session && !isPublicRoute ? (
+                    <Dashboard user={session.user} />
+                  ) : (
+                    children
+                  )
+                }
+              </main>
+
+              <Toaster />
+
+              {/* --- FOOTER RESPONSIVE --- */}
+              <footer
+                className="
+                  bg-muted text-muted-foreground border-t border-border
+                  py-4 px-4 sm:px-6 lg:px-8
+                "
+              >
+                <div
+                  className="
+                    container mx-auto flex flex-col sm:flex-row items-center justify-between
+                    text-center sm:text-left gap-2
+                  "
+                >
+                  <span className="text-sm">
+                    Asistente Virtual - UNSL · Dept. de Informática · © 2025
+                  </span>
+
+                  <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm">
+                    <Link
+                      href="/terminos-condiciones"
+                      className="hover:text-primary transition-colors hover:underline"
+                    >
+                      Términos y Condiciones
+                    </Link>
+                    <span className="hidden sm:inline text-muted-foreground/50">
+                      |
+                    </span>
+                    <Link
+                      href="/politica-privacidad"
+                      className="hover:text-primary transition-colors hover:underline"
+                    >
+                      Política de Privacidad
+                    </Link>
+                  </div>
+
+                  <span className="text-xs text-muted-foreground/80">
+                    Desarrollado por Juan Sánchez (juanma2002123@gmail.com)
+                  </span>
+                </div>
+              </footer>
+            </>
+          )}
           <div id="modal-root"></div>
         </ThemeProvider>
       </body>

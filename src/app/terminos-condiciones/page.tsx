@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button"; 
-import { ScrollText, ArrowLeft } from "lucide-react"; 
+import { Button } from "@/components/ui/button";
+import { ScrollText, ArrowLeft } from "lucide-react";
 
 export default function TerminosCondiciones() {
   return (
@@ -11,7 +11,7 @@ export default function TerminosCondiciones() {
         <Button
           variant="ghost"
           asChild
-          className="gap-2 pl-0 hover:bg-transparent hover:text-blue-600"
+          className="gap-2 pl-0 hover:bg-transparent hover:text-blue-600 dark:hover:text-blue-400" // Ajuste para Dark Mode
         >
           <Link href="/">
             <ArrowLeft className="h-4 w-4" />
@@ -20,10 +20,12 @@ export default function TerminosCondiciones() {
         </Button>
       </div>
 
-      <Card className="shadow-lg border-t-4 border-t-blue-600">
+      {/* Borde superior ajustado para dark mode */}
+      <Card className="shadow-lg border-t-4 border-t-blue-600 dark:border-t-blue-500">
         <CardHeader className="pb-4 border-b mb-6">
           <div className="flex items-center gap-3">
-            <ScrollText className="h-8 w-8 text-blue-600" />
+            {/* Icono ajustado para dark mode */}
+            <ScrollText className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             <CardTitle className="text-3xl font-bold text-foreground">
               Términos y Condiciones de Uso
             </CardTitle>
@@ -39,8 +41,10 @@ export default function TerminosCondiciones() {
             </h3>
             <p className="text-muted-foreground">
               Bienvenido al{" "}
-              <strong>Asistente Virtual de Soporte Académico</strong> (en
-              adelante, "el Sistema"), desarrollado como Proyecto Integrador
+              <strong className="text-foreground">
+                Asistente Virtual de Soporte Académico
+              </strong>{" "}
+              (en adelante, "el Sistema"), desarrollado como Proyecto Integrador
               para la carrera de Ingeniería en Informática de la Universidad
               Nacional de San Luis (UNSL). Al acceder y utilizar este sistema,
               usted acepta cumplir con los presentes Términos y Condiciones.
@@ -53,22 +57,26 @@ export default function TerminosCondiciones() {
             </h3>
             <p className="text-muted-foreground mb-2">
               El Sistema es una herramienta de{" "}
-              <strong>apoyo y orientación</strong>. Su función principal es
-              sugerir exámenes finales y generar estadísticas basadas en la
-              información proporcionada por los estudiantes.
+              <strong className="text-foreground">apoyo y orientación</strong>.
+              Su función principal es sugerir exámenes finales y generar
+              estadísticas basadas en la información proporcionada por los
+              estudiantes.
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>
-                <strong>2.1 No Oficialidad:</strong> Este sistema NO reemplaza
-                al sistema oficial de gestión académica (SIU Guaraní) ni a las
-                resoluciones oficiales de la UNSL.
+                <strong className="text-foreground">2.1 No Oficialidad:</strong>{" "}
+                Este sistema NO reemplaza al sistema oficial de gestión
+                académica (SIU Guaraní) ni a las resoluciones oficiales de la
+                UNSL.
               </li>
               <li>
-                <strong>2.2 Carácter Informativo:</strong> Las sugerencias de
-                inscripción, cálculos de vencimientos y correlatividades son
-                estimaciones basadas en los datos cargados. Es responsabilidad
-                del usuario verificar dicha información en el Departamento de
-                Alumnos correspondiente.
+                <strong className="text-foreground">
+                  2.2 Carácter Informativo:
+                </strong>{" "}
+                Las sugerencias de inscripción, cálculos de vencimientos y
+                correlatividades son estimaciones basadas en los datos cargados.
+                Es responsabilidad del usuario verificar dicha información en el
+                Departamento de Alumnos correspondiente.
               </li>
             </ul>
           </section>
@@ -92,15 +100,16 @@ export default function TerminosCondiciones() {
             </h3>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>
-                <strong>4.1 Veracidad:</strong> El usuario se compromete a
-                cargar archivos (PDF o Excel) de historia académica verídicos y
-                pertenecientes a su propia trayectoria en la UNSL.
+                <strong className="text-foreground">4.1 Veracidad:</strong> El
+                usuario se compromete a cargar archivos (PDF o Excel) de
+                historia académica verídicos y pertenecientes a su propia
+                trayectoria en la UNSL.
               </li>
               <li>
-                <strong>4.2 Uso de Datos:</strong> Al subir su historia
-                académica, el usuario autoriza al Sistema a procesar dicha
-                información para generar sugerencias personalizadas y
-                estadísticas anónimas.
+                <strong className="text-foreground">4.2 Uso de Datos:</strong>{" "}
+                Al subir su historia académica, el usuario autoriza al Sistema a
+                procesar dicha información para generar sugerencias
+                personalizadas y estadísticas anónimas.
               </li>
             </ul>
           </section>

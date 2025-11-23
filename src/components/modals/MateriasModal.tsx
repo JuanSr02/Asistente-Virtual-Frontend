@@ -1,16 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Modal from "./Modal"; // Asumo que el Modal base ya es responsive
+import Modal from "./Modal";
 import planesEstudioService from "@/services/planesEstudioService";
 import { MateriaListSkeleton } from "../Skeleton";
 import { AlertTriangle, Book, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function MateriasModal({ isOpen, onClose, plan }) {
-  const [materias, setMaterias] = useState([]);
+// Definimos las interfaces para los tipos de datos
+interface Plan {
+  codigo: string;
+  propuesta: string;
+}
+
+interface Materia {
+  codigo: string;
+  nombre: string;
+}
+
+interface MateriasModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  plan: Plan | null; // El plan puede ser null si no hay selección
+}
+
+export default function MateriasModal({
+  isOpen,
+  onClose,
+  plan,
+}: MateriasModalProps) {
+  const [materias, setMaterias] = useState<Materia[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   useEffect(() => {
@@ -19,18 +40,22 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
       const saved = sessionStorage.getItem(cacheKey);
 
       if (saved) {
-        setMaterias(JSON.parse(saved));
-        setLoading(false);
-        setError(null);
-        setHasFetchedOnce(true);
-        return;
+        try {
+          setMaterias(JSON.parse(saved));
+          setLoading(false);
+          setError(null);
+          setHasFetchedOnce(true);
+          return;
+        } catch (e) {
+          console.warn("Error parsing cached materias", e);
+        }
       }
 
       cargarMaterias(plan.codigo);
     }
   }, [isOpen, plan]);
 
-  const cargarMaterias = async (codigo) => {
+  const cargarMaterias = async (codigo: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -39,13 +64,13 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
       sessionStorage.setItem(`materias_${codigo}`, JSON.stringify(data));
       setHasFetchedOnce(true);
     } catch (err) {
+      console.error(err);
       setError("No se pudieron cargar las materias del plan.");
     } finally {
       setLoading(false);
     }
   };
 
-  // El título del modal se puede simplificar para móvil
   const modalTitle = (
     <>
       <span className="hidden sm:inline">Materias del Plan: </span>
@@ -61,25 +86,26 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
       isOpen={isOpen}
       onClose={onClose}
       title={modalTitle}
-      maxWidth="48rem" // Un poco más compacto que 50rem
+      maxWidth="48rem"
     >
-      {/* Contenedor con scroll vertical interno */}
-      <div className="max-h-[70vh] min-h-[18rem] overflow-y-auto p-1 pr-2 sm:pr-4">
+      {/* Contenedor con scroll vertical */}
+      <div className="max-h-[70vh] min-h-[18rem] overflow-y-auto p-1 pr-2 sm:pr-4 custom-scrollbar">
         {loading && !hasFetchedOnce ? (
           <MateriaListSkeleton count={10} />
         ) : error ? (
           <div className="flex flex-col items-center justify-center text-center h-full py-12">
-            <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+            <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => cargarMaterias(plan.codigo)}>
+            <Button onClick={() => plan && cargarMaterias(plan.codigo)}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Reintentar
             </Button>
           </div>
         ) : materias.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center h-full py-12 text-muted-foreground">
-            <Book className="w-12 h-12 text-gray-300 mb-4" />
-            <h4 className="text-lg font-semibold text-gray-700">
+            {/* Icono con color adaptativo */}
+            <Book className="w-12 h-12 text-muted-foreground/20 mb-4" />
+            <h4 className="text-lg font-semibold text-foreground">
               No hay materias registradas
             </h4>
             <p className="text-sm text-muted-foreground mt-1">
@@ -92,17 +118,19 @@ export default function MateriasModal({ isOpen, onClose, plan }) {
               {materias.length} materia{materias.length !== 1 && "s"} encontrada
               {materias.length !== 1 && "s"}
             </div>
-            {/* 
-              Usamos una rejilla para la lista. En pantallas pequeñas se verá como una lista
-              y en más grandes podría adaptarse si fuera necesario (ej. md:grid-cols-2)
-            */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {materias.map((materia, index) => (
                 <div
                   key={materia.codigo}
-                  className="flex items-center gap-4 p-3 bg-muted rounded-lg border-l-4 border-gray-200 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200"
+                  // CAMBIOS DARK MODE:
+                  // - bg-muted/30 en lugar de bg-white o bg-gray-50
+                  // - border-border en lugar de border-gray-200
+                  // - hover:bg-accent en lugar de hover:bg-blue-50
+                  // - hover:border-primary en lugar de hover:border-blue-500
+                  className="flex items-center gap-4 p-3 bg-card border rounded-lg border-l-4 border-l-muted hover:border-l-primary hover:bg-accent transition-all duration-200"
                 >
-                  <div className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
                     {index + 1}
                   </div>
                   <div className="flex-1 overflow-hidden">

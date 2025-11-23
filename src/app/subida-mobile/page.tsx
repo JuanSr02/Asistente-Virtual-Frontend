@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import historiaAcademicaService from "@/services/historiaAcademicaService";
 
@@ -11,8 +12,8 @@ export default function SubidaMobile() {
   const plan = searchParams.get("plan");
   const isUpdate = searchParams.get("actualizar") === "true";
 
-  const [mensaje, setMensaje] = useState(null);
-  const [error, setError] = useState(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [subiendo, setSubiendo] = useState(false);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function SubidaMobile() {
     }
   }, [personaId, plan]);
 
-  const handleChange = async (e) => {
+  const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
       setError("No se seleccionó ningún archivo.");
@@ -37,7 +38,10 @@ export default function SubidaMobile() {
         ? historiaAcademicaService.actualizarHistoriaAcademica
         : historiaAcademicaService.cargarHistoriaAcademica;
 
-      const resultado = await method(file, personaId, plan);
+      // Aseguramos que personaId y plan existen antes de llamar (aunque el useEffect ya valida)
+      if (!personaId || !plan) throw new Error("Datos faltantes");
+
+      const resultado = await method(file, parseInt(personaId), plan);
 
       let texto =
         resultado?.mensaje ||
@@ -62,15 +66,15 @@ export default function SubidaMobile() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-6 flex flex-col justify-center items-center text-center space-y-4">
-      <h1 className="text-2xl font-bold text-blue-800">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-white dark:from-background dark:to-muted/20 p-6 flex flex-col justify-center items-center text-center space-y-4">
+      <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-400">
         {isUpdate
           ? "Actualizar Historia Académica"
           : "Cargar Historia Académica"}
       </h1>
 
       {!personaId || !plan ? (
-        <p className="text-red-600 text-sm">Faltan datos en la URL.</p>
+        <p className="text-destructive text-sm">Faltan datos en la URL.</p>
       ) : (
         <>
           <input
@@ -78,20 +82,32 @@ export default function SubidaMobile() {
             accept=".pdf,.xls,.xlsx"
             onChange={handleChange}
             disabled={subiendo}
-            className="block w-full max-w-xs border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 bg-background shadow-sm"
+            className="
+              block w-full max-w-xs 
+              border border-input rounded px-3 py-2 text-sm 
+              text-foreground bg-background shadow-sm
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100
+              dark:file:bg-blue-900/30 dark:file:text-blue-300
+            "
           />
           {subiendo && (
-            <p className="text-blue-500 text-sm animate-pulse">
+            <p className="text-blue-500 dark:text-blue-400 text-sm animate-pulse">
               Subiendo archivo...
             </p>
           )}
           {mensaje && (
-            <p className="text-green-600 text-sm whitespace-pre-wrap">
+            <p className="text-green-600 dark:text-green-400 text-sm whitespace-pre-wrap">
               {mensaje}
             </p>
           )}
           {error && (
-            <p className="text-red-600 text-sm whitespace-pre-wrap">{error}</p>
+            <p className="text-destructive text-sm whitespace-pre-wrap">
+              {error}
+            </p>
           )}
           <p className="text-xs text-muted-foreground mt-6">
             Serás redirigido automáticamente luego de subir el archivo.

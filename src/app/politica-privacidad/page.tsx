@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button"; 
-import { ShieldCheck, ArrowLeft } from "lucide-react"; 
+import { Button } from "@/components/ui/button";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
 
 export default function PoliticaPrivacidad() {
   return (
@@ -11,7 +11,7 @@ export default function PoliticaPrivacidad() {
         <Button
           variant="ghost"
           asChild
-          className="gap-2 pl-0 hover:bg-transparent hover:text-green-600"
+          className="gap-2 pl-0 hover:bg-transparent hover:text-green-600 dark:hover:text-green-400"
         >
           <Link href="/">
             <ArrowLeft className="h-4 w-4" />
@@ -20,10 +20,10 @@ export default function PoliticaPrivacidad() {
         </Button>
       </div>
 
-      <Card className="shadow-lg border-t-4 border-t-blue-600">
+      <Card className="shadow-lg border-t-4 border-t-blue-600 dark:border-t-blue-500">
         <CardHeader className="pb-4 border-b mb-6">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="h-8 w-8 text-blue-600" />
+            <ShieldCheck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             <CardTitle className="text-3xl font-bold text-foreground">
               Política de Privacidad
             </CardTitle>
@@ -43,19 +43,22 @@ export default function PoliticaPrivacidad() {
             </p>
             <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
               <li>
-                <strong>Datos de Identificación:</strong> Nombre, apellido,
-                correo electrónico (y opcionalmente teléfono) obtenidos a través
-                del registro o autenticación con Google.
+                <strong className="text-foreground">
+                  Datos de Identificación:
+                </strong>{" "}
+                Nombre, apellido, correo electrónico (y opcionalmente teléfono)
+                obtenidos a través del registro o autenticación con Google.
               </li>
               <li>
-                <strong>Datos Académicos:</strong> Información contenida en los
-                archivos (PDF/Excel) de historia académica subidos por el
-                usuario (materias aprobadas, notas, fechas, regularidades).
+                <strong className="text-foreground">Datos Académicos:</strong>{" "}
+                Información contenida en los archivos (PDF/Excel) de historia
+                académica subidos por el usuario (materias aprobadas, notas,
+                fechas, regularidades).
               </li>
               <li>
-                <strong>Datos de Uso:</strong> Experiencias de exámenes
-                compartidas (dificultad, tiempo de estudio) e inscripciones a
-                mesas.
+                <strong className="text-foreground">Datos de Uso:</strong>{" "}
+                Experiencias de exámenes compartidas (dificultad, tiempo de
+                estudio) e inscripciones a mesas.
               </li>
             </ul>
           </section>
@@ -71,8 +74,11 @@ export default function PoliticaPrivacidad() {
               <li>Generar sugerencias personalizadas de exámenes a rendir.</li>
               <li>
                 Calcular estadísticas generales y por materia (ej. tasa de
-                aprobación). <strong>Estas estadísticas son anónimas</strong> y
-                no revelan la identidad de ningún estudiante individual.
+                aprobación).{" "}
+                <strong className="text-foreground">
+                  Estas estadísticas son anónimas
+                </strong>{" "}
+                y no revelan la identidad de ningún estudiante individual.
               </li>
               <li>
                 Facilitar la funcionalidad de "Inscripción Social", permitiendo
@@ -117,9 +123,10 @@ export default function PoliticaPrivacidad() {
               Como titular de los datos, usted tiene derecho a acceder,
               rectificar, actualizar y suprimir su información. Puede eliminar
               su historia académica o su cuenta completa en cualquier momento
-              desde la sección <strong>Perfil</strong> de la aplicación. Al
-              eliminar su cuenta, se borran todos sus datos personales
-              asociados.
+              desde la sección{" "}
+              <strong className="text-foreground">Perfil</strong> de la
+              aplicación. Al eliminar su cuenta, se borran todos sus datos
+              personales asociados.
             </p>
           </section>
 
