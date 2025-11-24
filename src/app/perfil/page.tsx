@@ -9,7 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter, // Usaremos CardFooter para las acciones
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -35,14 +35,13 @@ import {
   EyeOff,
   CheckCircle,
   XCircle,
-  KeyRound, // Icono para contraseña
+  KeyRound,
 } from "lucide-react";
 import { supabase } from "@/supabaseClient";
 import personaService, { type Persona } from "@/services/personaService";
 import perfilService from "@/services/perfilService";
 import type { ActualizarPerfilDTO } from "@/types/perfil";
 
-// --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
 export default function PerfilPage() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Persona | null>(null);
@@ -284,38 +283,37 @@ export default function PerfilPage() {
     hasContent: boolean,
     hasIcon: boolean = false
   ) =>
-    `h-10 border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-0
+    `h-10 border-blue-300 dark:border-blue-800 focus-visible:ring-2 focus-visible:ring-blue-400 dark:focus-visible:ring-blue-500 focus-visible:ring-offset-0 bg-background
      ${hasIcon ? "pl-10" : ""} pr-10
-     ${hasError ? "border-red-500 focus-visible:ring-red-400" : ""}
-     ${!hasError && hasContent ? "border-green-500 focus-visible:ring-green-400" : ""}`;
+     ${hasError ? "border-red-500 dark:border-red-700 focus-visible:ring-red-400 dark:focus-visible:ring-red-500" : ""}
+     ${!hasError && hasContent ? "border-green-500 dark:border-green-700 focus-visible:ring-green-400 dark:focus-visible:ring-green-500" : ""}`;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     );
   }
   if (!usuario) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500">
+        <p className="text-red-500 dark:text-red-400">
           No se pudo cargar la información del usuario.
         </p>
       </div>
     );
   }
 
-  // --- JSX RESPONSIVE ---
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <Card className="w-full max-w-2xl mx-auto bg-white shadow-lg border border-gray-200 rounded-xl">
-        <CardHeader className="p-6 border-b">
-          <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-3">
-            <User className="w-6 h-6 text-blue-600" />
+    <div className="min-h-screen bg-muted/30 dark:bg-background p-4 sm:p-6 lg:p-8">
+      <Card className="w-full max-w-2xl mx-auto bg-background shadow-lg border border-border rounded-xl">
+        <CardHeader className="p-6 border-b border-border">
+          <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
+            <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Mi Perfil
           </CardTitle>
-          <CardDescription className="text-sm text-gray-500 mt-1">
+          <CardDescription className="text-sm text-muted-foreground mt-1">
             Actualiza tus datos personales y de acceso.
           </CardDescription>
         </CardHeader>
@@ -325,15 +323,15 @@ export default function PerfilPage() {
           <div className="space-y-2">
             <Label
               htmlFor="nombreApellido"
-              className="font-semibold text-gray-700"
+              className="font-semibold text-foreground"
             >
               Nombre y Apellido
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border">
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border border-border">
               {usuario.nombre_apellido}
             </div>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="nombreApellido"
                 placeholder="Ingresa tu nuevo nombre y apellido"
@@ -350,16 +348,16 @@ export default function PerfilPage() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4">
                 {errors.nombreApellido ? (
-                  <XCircle className="text-red-500" />
+                  <XCircle className="text-red-500 dark:text-red-400" />
                 ) : (
                   formData.nombreApellido && (
-                    <CheckCircle className="text-green-500" />
+                    <CheckCircle className="text-green-500 dark:text-green-400" />
                   )
                 )}
               </div>
             </div>
             {errors.nombreApellido && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
                 {errors.nombreApellido}
               </p>
             )}
@@ -367,15 +365,15 @@ export default function PerfilPage() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="mail" className="font-semibold text-gray-700">
+            <Label htmlFor="mail" className="font-semibold text-foreground">
               Email
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border flex items-center gap-2">
-              <Mail className="h-4 w-4 text-gray-500" />
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border border-border flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
               {usuario.mail}
             </div>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="mail"
                 type="email"
@@ -386,28 +384,32 @@ export default function PerfilPage() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4">
                 {errors.mail ? (
-                  <XCircle className="text-red-500" />
+                  <XCircle className="text-red-500 dark:text-red-400" />
                 ) : (
-                  formData.mail && <CheckCircle className="text-green-500" />
+                  formData.mail && (
+                    <CheckCircle className="text-green-500 dark:text-green-400" />
+                  )
                 )}
               </div>
             </div>
             {errors.mail && (
-              <p className="text-red-500 text-xs mt-1">{errors.mail}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                {errors.mail}
+              </p>
             )}
           </div>
 
           {/* Teléfono */}
           <div className="space-y-2">
-            <Label htmlFor="telefono" className="font-semibold text-gray-700">
+            <Label htmlFor="telefono" className="font-semibold text-foreground">
               Teléfono (Opcional)
             </Label>
-            <div className="text-sm text-gray-800 bg-gray-100 px-4 py-2.5 rounded-md border flex items-center gap-2">
-              <Phone className="h-4 w-4 text-gray-500" />{" "}
+            <div className="text-sm text-foreground bg-muted px-4 py-2.5 rounded-md border border-border flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />{" "}
               {usuario.telefono || "No especificado"}
             </div>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="telefono"
                 placeholder="Ingresa tu nuevo teléfono"
@@ -422,16 +424,18 @@ export default function PerfilPage() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4">
                 {errors.telefono ? (
-                  <XCircle className="text-red-500" />
+                  <XCircle className="text-red-500 dark:text-red-400" />
                 ) : (
                   formData.telefono && (
-                    <CheckCircle className="text-green-500" />
+                    <CheckCircle className="text-green-500 dark:text-green-400" />
                   )
                 )}
               </div>
             </div>
             {errors.telefono && (
-              <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                {errors.telefono}
+              </p>
             )}
           </div>
 
@@ -439,15 +443,15 @@ export default function PerfilPage() {
           <div className="space-y-2">
             <Label
               htmlFor="contrasenia"
-              className="font-semibold text-gray-700"
+              className="font-semibold text-foreground"
             >
               Nueva Contraseña
             </Label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Si la cambias, deberás volver a iniciar sesión.
             </p>
             <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="contrasenia"
                 type={showPassword ? "text" : "password"}
@@ -464,16 +468,16 @@ export default function PerfilPage() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
                 {errors.contrasenia ? (
-                  <XCircle className="h-4 w-4 text-red-500" />
+                  <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
                 ) : (
                   formData.contrasenia && (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
                   )
                 )}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground"
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
@@ -487,16 +491,18 @@ export default function PerfilPage() {
               </div>
             </div>
             {errors.contrasenia && (
-              <p className="text-red-500 text-xs mt-1">{errors.contrasenia}</p>
+              <p className="text-red-500 dark:text-red-400 text-xs mt-1">
+                {errors.contrasenia}
+              </p>
             )}
           </div>
         </CardContent>
 
-        <CardFooter className="p-6 bg-gray-50 border-t flex flex-col sm:flex-row gap-3">
+        <CardFooter className="p-6 bg-muted/50 border-t border-border flex flex-col sm:flex-row gap-3">
           <Button
             onClick={handleActualizar}
             disabled={updating || !hasValidChanges}
-            className="w-full sm:w-auto flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-300 disabled:text-gray-500"
+            className="w-full sm:w-auto flex-1 h-10 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-muted-foreground"
           >
             {updating ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -508,7 +514,7 @@ export default function PerfilPage() {
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full sm:w-auto flex-1 h-10 border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="w-full sm:w-auto flex-1 h-10 border-red-500 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300"
                 disabled={deleting}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -517,7 +523,7 @@ export default function PerfilPage() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-700">
+                <AlertDialogTitle className="text-red-700 dark:text-red-400">
                   ¿Estás absolutamente seguro?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
@@ -529,7 +535,7 @@ export default function PerfilPage() {
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleEliminarCuenta}
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500"
                   disabled={deleting}
                 >
                   {deleting && (

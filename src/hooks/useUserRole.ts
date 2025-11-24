@@ -5,7 +5,7 @@ import { supabase } from "../supabaseClient";
 import { jwtDecode } from "jwt-decode";
 import type { User } from "@supabase/supabase-js";
 
-type UserRole = "ADMIN" | "ESTUDIANTE" | null;
+type UserRole = "ADMINISTRADOR" | "ESTUDIANTE" | null;
 type JwtPayload = {
   rol_usuario?: UserRole;
   [key: string]: any;

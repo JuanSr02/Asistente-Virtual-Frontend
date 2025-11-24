@@ -9,7 +9,6 @@ import {
   type HTMLAttributes,
   type ReactNode,
 } from "react";
-// 1. IMPORTAR createPortal
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
