@@ -6,6 +6,7 @@ import historiaAcademicaService from "@/services/historiaAcademicaService";
 import recomendacionService from "@/services/recomendacionService";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useEnhancedSessionPersistence } from "@/hooks/useEnhancedSessionPersistence";
+import { useSessionPersistence } from "@/hooks/useSessionPersistence"; // PASO 1: Importar useSessionPersistence
 import { APP_CONFIG } from "@/lib/config";
 import {
   Loader2,
@@ -27,6 +28,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter, // PASO 2: Importar CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -242,7 +244,9 @@ export default function Recomendacion({ user }: { user: User }) {
       !APP_CONFIG.FILES.ALLOWED_TYPES.includes(fileMimeType)
     ) {
       updateState({
-        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(", ")}`,
+        error: `Tipo de archivo no permitido. Use: ${APP_CONFIG.FILES.ALLOWED_EXTENSIONS.join(
+          ", "
+        )}`,
       });
       if (isUpdate && updateFileInputRef.current)
         updateFileInputRef.current.value = "";
@@ -737,7 +741,9 @@ export default function Recomendacion({ user }: { user: User }) {
                   className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
                 >
                   <RefreshCw
-                    className={`mr-2 h-4 w-4 ${state.loadingRecomendaciones ? "animate-spin" : ""}`}
+                    className={`mr-2 h-4 w-4 ${
+                      state.loadingRecomendaciones ? "animate-spin" : ""
+                    }`}
                   />
                   Refrescar
                 </Button>
