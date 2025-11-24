@@ -1,14 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import estadisticasService from "@/services/estadisticasService";
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
 import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
 import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 
-// Componente auxiliar para las tarjetas de métricas
-const MetricCard = ({ icon, title, value, color }) => {
+// --- INTERFACES TS ---
+
+interface MateriaEstadistica {
+  nombre: string;
+  porcentaje: number;
+  codigoMateria?: string; // Opcional porque a veces viene, a veces no
+}
+
+interface EstadisticasData {
+  estudiantesActivos: number;
+  totalMaterias: number;
+  totalExamenesRendidos: number;
+  porcentajeAprobadosGeneral: number;
+  promedioGeneral: number;
+  materiaMasRendida: {
+    nombre: string;
+    porcentaje: number;
+  };
+  cantidadMateriaMasRendida: number;
+  // Asumimos que es un objeto clave-valor para los gráficos
+  distribucionEstudiantesPorCarrera: Record<string, number>;
+  distribucionExamenesPorMateria: Record<string, number>;
+  promedioNotasPorMateria: Record<string, number>;
+  top5Aprobadas: MateriaEstadistica[];
+  top5Reprobadas: MateriaEstadistica[];
+}
+
+interface MetricCardProps {
+  icon: ReactNode;
+  title: string;
+  value: string | number;
+  color: "blue" | "gray" | "green" | "orange" | "teal";
+}
+
+interface RankingListItemProps {
+  rank: number;
+  name: string;
+  value: string | number;
+  color: "green" | "red";
+}
+
+// --- SUB-COMPONENTES ---
+
+const MetricCard = ({ icon, title, value, color }: MetricCardProps) => {
   const colorClasses = {
     blue: "border-blue-500",
     gray: "border-gray-500",
@@ -16,7 +58,9 @@ const MetricCard = ({ icon, title, value, color }) => {
     orange: "border-orange-500",
     teal: "border-teal-500",
   };
+
   return (
+    // Se mantiene bg-background para adaptarse al tema
     <div
       className={`bg-background rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
     >
@@ -33,12 +77,19 @@ const MetricCard = ({ icon, title, value, color }) => {
   );
 };
 
-// Componente auxiliar para las listas de ranking
-const RankingListItem = ({ rank, name, value, color }) => {
+const RankingListItem = ({
+  rank,
+  name,
+  value,
+  color,
+}: RankingListItemProps) => {
+  // AJUSTE MODO OSCURO: Usamos dark:bg-opacity o colores específicos con alpha
   const colorClasses = {
-    green: "bg-green-50 border-green-500",
-    red: "bg-red-50 border-red-500",
+    green:
+      "bg-green-50 border-green-500 dark:bg-green-900/20 dark:border-green-600",
+    red: "bg-red-50 border-red-500 dark:bg-red-900/20 dark:border-red-600",
   };
+
   return (
     <div
       className={`flex items-center gap-4 p-3 rounded-lg border-l-4 transition-all hover:-translate-y-0.5 hover:shadow-md ${colorClasses[color]}`}
@@ -56,24 +107,41 @@ const RankingListItem = ({ rank, name, value, color }) => {
   );
 };
 
+// --- COMPONENTE PRINCIPAL ---
+
 export default function EstadisticasGenerales() {
-  const [estadisticas, setEstadisticas] = useState(() => {
-    const savedData = localStorage.getItem("estadisticasGenerales");
-    return savedData ? JSON.parse(savedData) : null;
-  });
+  const [estadisticas, setEstadisticas] = useState<EstadisticasData | null>(
+    () => {
+      // Verificación segura de window/localStorage para Next.js (SSR) aunque tenga "use client"
+      if (typeof window !== "undefined") {
+        const savedData = localStorage.getItem("estadisticasGenerales");
+        try {
+          return savedData ? JSON.parse(savedData) : null;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+  );
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("");
-  const [lastUpdate, setLastUpdate] = useState(() => {
-    const savedTime = localStorage.getItem("estadisticasGeneralesTime");
-    return savedTime ? new Date(savedTime) : null;
+  // Estado usado para forzar re-renders o mostrar fecha, aunque no se renderiza explícitamente en el return original
+  const [, setLastUpdate] = useState<Date | null>(() => {
+    if (typeof window !== "undefined") {
+      const savedTime = localStorage.getItem("estadisticasGeneralesTime");
+      return savedTime ? new Date(savedTime) : null;
+    }
+    return null;
   });
 
-  // --- LÓGICA DEL COMPONENTE SIN CAMBIOS ---
   useEffect(() => {
     if (!estadisticas) {
       cargarEstadisticasGeneralesRapido();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarEstadisticasGeneralesRapido = async () => {
@@ -117,13 +185,12 @@ export default function EstadisticasGenerales() {
     }
   };
 
-  // --- RENDERIZADO ---
   if (loading) {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex justify-end items-center mb-6">
           {loadingMessage && (
-            <div className="flex items-center gap-2 text-blue-600">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm font-medium">{loadingMessage}</span>
             </div>
@@ -146,8 +213,9 @@ export default function EstadisticasGenerales() {
   if (error) {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500" />
+        {/* AJUSTE MODO OSCURO: Fondo rojo oscuro transparente y borde ajustado */}
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500 dark:text-red-400" />
           <div>
             <strong className="font-semibold block">
               Error al cargar estadísticas
@@ -173,7 +241,6 @@ export default function EstadisticasGenerales() {
     );
   }
 
-  // --- JSX RESPONSIVE ---
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -182,7 +249,7 @@ export default function EstadisticasGenerales() {
         </h3>
         <button
           onClick={refrescarDatos}
-          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 w-full sm:w-auto text-sm font-semibold"
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 dark:disabled:bg-blue-900 w-full sm:w-auto text-sm font-semibold"
           disabled={loading}
         >
           <RefreshCw className="w-4 h-4" />
@@ -233,6 +300,7 @@ export default function EstadisticasGenerales() {
             showHover={false}
           />
         </div>
+        {/* Card Materia más Rendida: Gradient se ve bien en ambos modos, texto blanco fijo */}
         <div className="lg:col-span-2 flex flex-col justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
           <h4 className="text-base font-semibold mb-2 opacity-90">
             Materia Más Rendida
@@ -257,11 +325,11 @@ export default function EstadisticasGenerales() {
       <BarChart
         data={Object.fromEntries(
           Object.entries(estadisticas.distribucionExamenesPorMateria)
-            // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes (el valor, índice 1)
+            // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes
             .sort((a, b) => b[1] - a[1])
             // 2. Tomar los primeros 10 elementos
             .slice(0, 10)
-            // 3. Reordenar de menor a mayor (ascendente) por la cantidad de exámenes
+            // 3. Reordenar de menor a mayor (ascendente) para visualización
             .sort((a, b) => a[1] - b[1])
         )}
         title="Top 10 - Materias más Rendidas"
@@ -273,14 +341,16 @@ export default function EstadisticasGenerales() {
 
       {/* --- RANKINGS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* AJUSTE MODO OSCURO: dark:bg-card o usar bg-background ya cubre esto si está bien configurado */}
         <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-          <h4 className="text-base font-semibold text-gray-700 mb-4">
+          {/* AJUSTE MODO OSCURO: text-gray-700 -> dark:text-gray-300 */}
+          <h4 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">
             🏆 Top 5 Materias con Mayor Aprobación
           </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Aprobadas.map((materia, index) => (
               <RankingListItem
-                key={materia.codigoMateria}
+                key={materia.codigoMateria || index}
                 rank={index + 1}
                 name={materia.nombre}
                 value={materia.porcentaje.toFixed(1)}
@@ -290,13 +360,13 @@ export default function EstadisticasGenerales() {
           </div>
         </div>
         <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-          <h4 className="text-base font-semibold text-gray-700 mb-4">
+          <h4 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">
             📉 Top 5 Materias con Menor Aprobación
           </h4>
           <div className="flex flex-col gap-3">
             {estadisticas.top5Reprobadas.map((materia, index) => (
               <RankingListItem
-                key={materia.codigoMateria}
+                key={materia.codigoMateria || index}
                 rank={index + 1}
                 name={materia.nombre}
                 value={materia.porcentaje.toFixed(1)}
@@ -315,7 +385,7 @@ export default function EstadisticasGenerales() {
             .slice(0, 10)
             .reverse()
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Promedios mas altos por Materia"
+          title="Top 10 - Promedios más altos por Materia"
           colors={["#38b2ac"]}
           maxBars={10}
           useIntegers={false}
@@ -326,7 +396,7 @@ export default function EstadisticasGenerales() {
             .sort((a, b) => a[1] - b[1])
             .slice(0, 10)
             .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Promedios mas bajos por Materia"
+          title="Top 10 - Promedios más bajos por Materia"
           colors={["#f56565"]}
           maxBars={10}
           useIntegers={false}

@@ -5,18 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
 import { useTheme } from "next-themes";
 
-// --- HELPER SIN CAMBIOS ---
-const shadeColor = (color: string, percent: number): string => {
-  let R = parseInt(color.substring(1, 3), 16);
-  let G = parseInt(color.substring(3, 5), 16);
-  let B = parseInt(color.substring(5, 7), 16);
-  R = Math.min(255, Math.floor((R * (100 + percent)) / 100));
-  G = Math.min(255, Math.floor((G * (100 + percent)) / 100));
-  B = Math.min(255, Math.floor((B * (100 + percent)) / 100));
-  return `#${R.toString(16).padStart(2, "0")}${G.toString(16).padStart(2, "0")}${B.toString(16).padStart(2, "0")}`;
-};
-
-// --- TIPADO DE PROPS (SIN CAMBIOS) ---
+// --- INTERFACES ---
 interface BarChartProps {
   data: Record<string, number>;
   title: string;
@@ -27,6 +16,16 @@ interface BarChartProps {
   showBaseLabels?: boolean;
   baseLabels?: string[];
   showHover?: boolean;
+}
+
+interface BarData {
+  x: number;
+  y: number;
+  width: number;
+  barHeight: number;
+  label: string;
+  value: number;
+  color: string;
 }
 
 const BarChart: FC<BarChartProps> = memo(function BarChart({
@@ -42,42 +41,40 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const barDataRef = useRef<any[]>([]);
+  const barDataRef = useRef<BarData[]>([]);
   const [hoveredLabel, setHoveredLabel] = useState("");
   const [dimensions, setDimensions] = useState({ width: 0, height: 300 });
 
   const { theme } = useTheme();
 
-  // Colores originales (para modo claro)
+  // Colores para modo claro
   const lightColors = [
-    "#4299e1", // Azul
-    "#48bb78", // Verde
-    "#ed8936", // Naranja
-    "#9f7aea", // Morado
-    "#38b2ac", // Verde azulado
-    "#f56565", // Rojo
-    "#ecc94b", // Amarillo
-    "#667eea", // Indigo
-    "#f093fb", // Rosa
-    "#4fd1c7", // Cian
+    "#3b82f6", // blue-500
+    "#10b981", // emerald-500
+    "#f59e0b", // amber-500
+    "#8b5cf6", // violet-500
+    "#06b6d4", // cyan-500
+    "#ef4444", // red-500
+    "#eab308", // yellow-500
+    "#6366f1", // indigo-500
+    "#ec4899", // pink-500
+    "#14b8a6", // teal-500
   ];
 
-  // Colores optimizados para modo oscuro (más brillantes/pasteles)
+  // Colores para modo oscuro (más pasteles/brillantes para resaltar sobre fondo negro)
   const darkColors = [
-    "#63b3ed", // Azul claro
-    "#68d391", // Verde claro
-    "#f6ad55", // Naranja claro
-    "#b794f4", // Morado claro
-    "#4fd1c5", // Verde azulado claro
-    "#fc8181", // Rojo claro
-    "#f6e05e", // Amarillo claro
-    "#7f9cf5", // Indigo claro
-    "#f687b3", // Rosa claro
-    "#81e6d9", // Cian claro
+    "#60a5fa", // blue-400
+    "#34d399", // emerald-400
+    "#fbbf24", // amber-400
+    "#a78bfa", // violet-400
+    "#22d3ee", // cyan-400
+    "#f87171", // red-400
+    "#facc15", // yellow-400
+    "#818cf8", // indigo-400
+    "#f472b6", // pink-400
+    "#2dd4bf", // teal-400
   ];
 
-  // Selección automática basada en el tema
-  // Si se pasan 'colors' por props, se usan esos. Si no, se usa la lógica de temas.
   const defaultColors = theme === "dark" ? darkColors : lightColors;
 
   useEffect(() => {
@@ -107,15 +104,16 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     )
       return;
 
-    // Tu lógica para obtener los colores del tema ya es correcta
+    // Obtenemos estilos computados para usar las variables CSS del tema
     const computedStyles = getComputedStyle(document.documentElement);
+    // Asumiendo que --foreground devuelve valores tipo "222.2 84% 4.9%" o similar
     const foregroundColor = `hsl(${computedStyles.getPropertyValue("--foreground")})`;
     const mutedColor = `hsl(${computedStyles.getPropertyValue("--muted-foreground")})`;
     const fontFamily = computedStyles.getPropertyValue("font-family");
 
     const isSmall = dimensions.width < 480;
     const padding = isSmall ? 25 : 40;
-    const topLabelFontSize = isSmall ? 10 : 12;
+    const topLabelFontSize = isSmall ? 11 : 13; // Un poco más grande
     const baseLabelFontSize = isSmall ? 11 : 14;
 
     const chartWidth = dimensions.width - padding * 2;
@@ -123,18 +121,16 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     const entries = Object.entries(data).slice(0, maxBars);
     const values = entries.map(([, value]) => value);
     const maxValue = Math.max(...values);
-    if (maxValue === 0) return;
 
-    const barWidth = chartWidth / entries.length;
-    const barSpacing = barWidth * 0.1;
-
-    const barColors = colors.length > 0 ? colors : defaultColors;
-    if (barColors.length === 0) {
-      console.error(
-        "BarChart: No colors provided and no default colors available."
-      );
+    if (maxValue === 0) {
+      ctx.clearRect(0, 0, dimensions.width, dimensions.height);
       return;
     }
+
+    const barWidth = chartWidth / entries.length;
+    const barSpacing = barWidth * 0.15; // Un poco más de espacio
+
+    const barColors = colors.length > 0 ? colors : defaultColors;
 
     const dpr = window.devicePixelRatio || 1;
     canvas.width = dimensions.width * dpr;
@@ -152,27 +148,37 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       const y = dimensions.height - padding - barHeight;
       const width = barWidth - barSpacing;
 
-      const color = barColors[i % barColors.length];
+      // 1. DIBUJAR BARRA
+      const color = barColors[i % barColors.length] || "";
       if (color) {
         ctx.fillStyle = color;
+        // Pequeño border radius simulado (opcional)
         ctx.fillRect(x, y, width, barHeight);
       }
 
-      ctx.fillStyle = "#718096";
-      ctx.font = `${topLabelFontSize}px ${fontFamily}`;
+      // 2. DIBUJAR VALOR ENCIMA (Aquí estaba el cambio solicitado)
+      // Usamos foregroundColor para que sea Blanco en Dark Mode y Negro en Light Mode.
+      // Si falla la variable CSS, usamos un fallback manual según el tema.
+      ctx.fillStyle = foregroundColor.includes("undefined")
+        ? theme === "dark"
+          ? "#ffffff"
+          : "#000000"
+        : foregroundColor;
+
+      ctx.font = `bold ${topLabelFontSize}px ${fontFamily}`; // Agregué 'bold' para más peso
       ctx.textAlign = "center";
+
       const text =
         typeof value === "number"
           ? useIntegers
             ? Math.round(value).toString()
             : value.toFixed(2)
           : value;
-      ctx.fillText(text, x + width / 2, y - 5);
 
-      // 👇 REEMPLAZÁ ESTO:
-      barDataRef.current.push({ x, y, width, barHeight, label, color });
+      // Dibujar texto un poco más arriba (y - 8)
+      ctx.fillText(text, x + width / 2, y - 8);
 
-      // 👇 POR ESTO:
+      // Guardar datos para hover
       barDataRef.current.push({
         x,
         y,
@@ -184,6 +190,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       });
     });
 
+    // 3. ETIQUETAS INFERIORES (EJE X)
     if (showBaseLabels) {
       ctx.fillStyle = mutedColor;
       ctx.font = `${baseLabelFontSize}px ${fontFamily}`;
@@ -194,7 +201,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
         ctx.fillText(
           displayLabel,
           x + (barWidth - barSpacing) / 2,
-          dimensions.height - padding + baseLabelFontSize * 1.2
+          dimensions.height - padding + baseLabelFontSize * 1.5
         );
       });
     }
@@ -212,7 +219,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
           mouseX >= bar.x &&
           mouseX <= bar.x + bar.width &&
           mouseY >= bar.y &&
-          mouseY <= bar.y + bar.barHeight // Cambia bar.height por bar.barHeight
+          mouseY <= bar.y + bar.barHeight
       );
 
       canvas.style.cursor = hoveredBar ? "pointer" : "default";
@@ -231,7 +238,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     return () => {
       if (canvas) {
         canvas.removeEventListener("mousemove", handleMouseMove);
-        // Pequeña corrección aquí para evitar errores si el canvas ya no existe
+        // Clean up seguro
         canvas.removeEventListener("mouseleave", () => {});
       }
     };
@@ -245,12 +252,12 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
     baseLabels,
     showNameBelow,
     showHover,
-    theme, // <-- 3. AÑADIR `theme` A LAS DEPENDENCIAS
+    theme, // Importante: re-renderizar si cambia el tema
+    defaultColors,
   ]);
 
-  // El resto del JSX del componente no necesita cambios
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-base sm:text-lg text-center font-semibold text-card-foreground">
           {title}
@@ -259,7 +266,7 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
       <CardContent>
         {!data || Object.keys(data).length === 0 ? (
           <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-4">
-            <BarChart3 className="w-10 h-10 text-gray-300 dark:text-muted-foreground" />
+            <BarChart3 className="w-10 h-10 text-gray-300 dark:text-gray-600" />
             <p>No hay datos disponibles</p>
           </div>
         ) : (
@@ -267,7 +274,9 @@ const BarChart: FC<BarChartProps> = memo(function BarChart({
             <canvas ref={canvasRef} />
             {showNameBelow && (
               <div
-                className={`text-center mt-2 min-h-[1.75rem] p-2 bg-muted rounded text-sm font-medium text-muted-foreground transition-opacity ${hoveredLabel ? "opacity-100" : "opacity-0"}`}
+                className={`text-center mt-2 min-h-[1.75rem] p-2 bg-muted rounded text-sm font-medium text-foreground transition-opacity ${
+                  hoveredLabel ? "opacity-100" : "opacity-0"
+                }`}
               >
                 {hoveredLabel || "Pasa el cursor sobre una barra"}
               </div>
