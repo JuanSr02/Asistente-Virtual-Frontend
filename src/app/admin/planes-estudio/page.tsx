@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 interface Plan {
   codigo: string;
   propuesta: string;
-  cantidadMateriasCargadas: number;
+  cantidadMaterias: number;
 }
 
 const DATA_FRESHNESS_THRESHOLD = 5 * 60 * 1000;
@@ -69,7 +69,6 @@ export default function PlanesEstudio() {
       }
     };
     loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarPlanes = async () => {
@@ -317,7 +316,7 @@ export default function PlanesEstudio() {
                             : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                         }`}
                       >
-                        {plan.cantidadMateriasCargadas}
+                        {plan.cantidadMaterias}
                       </span>
                     </td>
                   </tr>

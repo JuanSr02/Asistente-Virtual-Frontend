@@ -492,19 +492,7 @@ export default function Inscripcion({ user }: { user: User }) {
           </CardDescription>
         </CardHeader>
         {state.historiaAcademica && (
-          <CardFooter className="bg-transparent justify-end">
-            <Button
-              size="sm"
-              onClick={forzarRecargaDatos}
-              disabled={loading}
-              className="bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
-              Actualizar Datos
-            </Button>
-          </CardFooter>
+          <CardFooter className="bg-transparent justify-end"></CardFooter>
         )}
       </Card>
 

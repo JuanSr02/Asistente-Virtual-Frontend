@@ -428,17 +428,7 @@ export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
                     <FileSearch className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     Buscar Experiencias
                   </CardTitle>
-                  <Button
-                    onClick={cargarExperienciasPorMateria}
-                    disabled={
-                      !materiaSeleccionada ||
-                      !filtroCalificacion ||
-                      loadingExperiencias
-                    }
-                    className="bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
-                  >
-                    Actualizar
-                  </Button>
+                  
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Select

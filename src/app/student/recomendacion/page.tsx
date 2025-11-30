@@ -732,22 +732,7 @@ export default function Recomendacion({ user }: { user: User }) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  onClick={handleRefrescarRecomendaciones}
-                  disabled={
-                    state.loadingRecomendaciones ||
-                    state.criticalOperationInProgress
-                  }
-                  className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
-                >
-                  <RefreshCw
-                    className={`mr-2 h-4 w-4 ${
-                      state.loadingRecomendaciones ? "animate-spin" : ""
-                    }`}
-                  />
-                  Refrescar
-                </Button>
-              </div>
+                </div>
             </CardHeader>
             <CardContent>
               {state.loadingRecomendaciones ? (

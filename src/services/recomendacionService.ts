@@ -31,7 +31,7 @@ const recomendacionService = {
   ): Promise<FinalDTO[]> => {
     try {
       const response = await api.get(
-        API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR + estudianteId,
+        API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR + "/" + estudianteId,
         {
           params: { orden },
         }
