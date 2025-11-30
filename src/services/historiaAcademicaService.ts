@@ -1,3 +1,4 @@
+import { API_ROUTES } from "@/lib/config";
 import api from "./api";
 import { supabase } from "@/supabaseClient";
 
@@ -64,7 +65,7 @@ const historiaAcademicaService = {
       };
 
       const response = await api.post(
-        `/api/shared/historia-academica/${estudianteId}/carga`,
+        API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA + estudianteId + "/carga",
         formData,
         config
       );
@@ -94,7 +95,9 @@ const historiaAcademicaService = {
       };
 
       const response = await api.patch(
-        `/api/shared/historia-academica/${estudianteId}/actualizacion`,
+        API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA +
+          estudianteId +
+          "/actualizacion",
         formData,
         config
       );
@@ -110,7 +113,7 @@ const historiaAcademicaService = {
    */
   eliminarHistoriaAcademica: async (estudianteId: number): Promise<void> => {
     try {
-      await api.delete(`/api/shared/historia-academica/${estudianteId}`);
+      await api.delete(API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA + estudianteId);
     } catch (error) {
       console.error("Error al eliminar historia académica:", error);
       throw error;

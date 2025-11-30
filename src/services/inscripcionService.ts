@@ -1,3 +1,4 @@
+import { API_ROUTES } from "@/lib/config";
 import api from "./api";
 import { supabase } from "@/supabaseClient";
 
@@ -46,7 +47,7 @@ const inscripcionService = {
   ): Promise<MateriaParaInscripcion[]> => {
     try {
       const response = await api.get(
-        `/api/shared/finales/${estudianteId}/inscripciones`
+       API_ROUTES.ESTUDIANTE.OBTENER_INSCRIPCIONES_POSIBLES + estudianteId + "/inscripciones"
       );
       return response.data;
     } catch (error) {
@@ -62,7 +63,7 @@ const inscripcionService = {
     dto: RegistroInscripcionDTO
   ): Promise<InscripcionResponseDTO> => {
     try {
-      const response = await api.post("/api/shared/inscripciones", dto);
+      const response = await api.post(API_ROUTES.SHARED.INSCRIPCIONES, dto);
       return response.data;
     } catch (error) {
       console.error("Error al crear inscripción:", error);
@@ -75,7 +76,7 @@ const inscripcionService = {
    */
   eliminarInscripcion: async (id: number): Promise<void> => {
     try {
-      await api.delete(`/api/shared/inscripciones/${id}`);
+      await api.delete(API_ROUTES.SHARED.INSCRIPCIONES + "/" + id);
     } catch (error) {
       console.error("Error al eliminar inscripción:", error);
       throw error;
@@ -91,7 +92,7 @@ const inscripcionService = {
     turno: string
   ): Promise<InscripcionResponseDTO[]> => {
     try {
-      const response = await api.get("/api/shared/inscripciones", {
+      const response = await api.get(API_ROUTES.SHARED.INSCRIPCIONES, {
         params: { codigoMateria, anio, turno },
       });
       return response.data;
