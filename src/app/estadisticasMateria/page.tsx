@@ -77,7 +77,6 @@ export default function EstadisticasMateria() {
 
   const [loadingPlanes, setLoadingPlanes] = useState(true);
   const [loadingMaterias, setLoadingMaterias] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [lastUpdate, setLastUpdate] = useState<Date | null>(() => {
     if (typeof window === "undefined") return null;
     const savedTime = localStorage.getItem("estadisticasMateriaTime");
@@ -134,7 +133,7 @@ export default function EstadisticasMateria() {
       const savedData = localStorage.getItem("estadisticasMateria");
       const savedMateria = localStorage.getItem("savedMateriaCode");
       if (!savedData || savedMateria !== materiaSeleccionada) {
-        buscarEstadisticasRapido(materiaSeleccionada, periodoSeleccionado);
+        buscarEstadisticas(materiaSeleccionada, periodoSeleccionado);
       }
     } else {
       setEstadisticasState("materiaSeleccionada", "");
@@ -148,7 +147,7 @@ export default function EstadisticasMateria() {
 
   useEffect(() => {
     if (materiaSeleccionada) {
-      buscarEstadisticasRapido(materiaSeleccionada, periodoSeleccionado);
+      buscarEstadisticas(materiaSeleccionada, periodoSeleccionado);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodoSeleccionado]);
@@ -208,26 +207,16 @@ export default function EstadisticasMateria() {
     }
   };
 
-  const buscarEstadisticasRapido = async (
-    codigoMateria: string,
-    periodo: string
-  ) => {
+  const buscarEstadisticas = async (codigoMateria: string, periodo: string) => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
     try {
       let data;
-      if (periodo === "TODOS_LOS_TIEMPOS") {
-        data =
-          await estadisticasService.obtenerEstadisticasMateriaRapido(
-            codigoMateria
-          );
-      } else {
-        data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
-          codigoMateria,
-          periodo
-        );
-      }
+      data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
+        codigoMateria,
+        periodo
+      );
       setEstadisticas(data);
       const now = new Date();
       setLastUpdate(now);
@@ -239,41 +228,6 @@ export default function EstadisticasMateria() {
       console.error("Error al cargar estadísticas de materia:", err);
       setError("No se encontraron estadísticas para la materia seleccionada.");
       setEstadisticas(null);
-    } finally {
-      setLoading(false);
-      setLoadingMessage("");
-    }
-  };
-
-  const refrescarDatos = async () => {
-    if (!materiaSeleccionada) return;
-    setLoading(true);
-    setError(null);
-    setLoadingMessage("Actualizando estadísticas...");
-    try {
-      let data;
-      if (periodoSeleccionado === "TODOS_LOS_TIEMPOS") {
-        data =
-          await estadisticasService.obtenerEstadisticasMateria(
-            materiaSeleccionada
-          );
-      } else {
-        data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
-          materiaSeleccionada,
-          periodoSeleccionado
-        );
-      }
-      setEstadisticas(data);
-      const now = new Date();
-      setLastUpdate(now);
-      localStorage.setItem("estadisticasMateria", JSON.stringify(data));
-      localStorage.setItem("estadisticasMateriaTime", now.toISOString());
-      localStorage.setItem("savedMateriaCode", materiaSeleccionada);
-    } catch (err) {
-      console.error("Error al refrescar estadísticas de materia:", err);
-      setError(
-        "No se pudieron actualizar las estadísticas para la materia seleccionada."
-      );
     } finally {
       setLoading(false);
       setLoadingMessage("");
@@ -294,14 +248,6 @@ export default function EstadisticasMateria() {
               <span className="text-sm font-medium">{loadingMessage}</span>
             </div>
           )}
-          <button
-            onClick={refrescarDatos}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-lg transition-colors disabled:bg-blue-300 dark:disabled:bg-blue-900 disabled:cursor-not-allowed text-sm font-semibold"
-            disabled={!materiaSeleccionada || loading}
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">Refrescar</span>
-          </button>
         </div>
       </div>
 
@@ -400,10 +346,7 @@ export default function EstadisticasMateria() {
             {materiaSeleccionada && (
               <button
                 onClick={() =>
-                  buscarEstadisticasRapido(
-                    materiaSeleccionada,
-                    periodoSeleccionado
-                  )
+                  buscarEstadisticas(materiaSeleccionada, periodoSeleccionado)
                 }
                 className="mt-3 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
               >

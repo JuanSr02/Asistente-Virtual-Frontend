@@ -1,3 +1,4 @@
+import { API_ROUTES } from "@/lib/config";
 import api from "./api";
 
 export type OrdenFinales = "CORRELATIVAS" | "VENCIMIENTO" | "ESTADISTICAS";
@@ -29,9 +30,12 @@ const recomendacionService = {
     orden: string = "CORRELATIVAS"
   ): Promise<FinalDTO[]> => {
     try {
-      const response = await api.get(`/api/shared/finales/${estudianteId}`, {
-        params: { orden },
-      });
+      const response = await api.get(
+        API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR + estudianteId,
+        {
+          params: { orden },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error al obtener finales para rendir:", error);

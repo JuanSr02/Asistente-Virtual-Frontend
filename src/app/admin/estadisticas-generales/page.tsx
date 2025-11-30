@@ -139,36 +139,14 @@ export default function EstadisticasGenerales() {
 
   useEffect(() => {
     if (!estadisticas) {
-      cargarEstadisticasGeneralesRapido();
+      cargarEstadisticasGenerales();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const cargarEstadisticasGeneralesRapido = async () => {
+  const cargarEstadisticasGenerales = async () => {
     setLoading(true);
     setError(null);
     setLoadingMessage("Cargando estadísticas...");
-    try {
-      const data =
-        await estadisticasService.obtenerEstadisticasGeneralesRapido();
-      setEstadisticas(data);
-      const now = new Date();
-      setLastUpdate(now);
-      localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
-      localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
-    } catch (err) {
-      console.error("Error al cargar estadísticas generales:", err);
-      setError("No se pudieron cargar las estadísticas generales.");
-    } finally {
-      setLoading(false);
-      setLoadingMessage("");
-    }
-  };
-
-  const refrescarDatos = async () => {
-    setLoading(true);
-    setError(null);
-    setLoadingMessage("Actualizando estadísticas...");
     try {
       const data = await estadisticasService.obtenerEstadisticasGenerales();
       setEstadisticas(data);
@@ -177,8 +155,8 @@ export default function EstadisticasGenerales() {
       localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
       localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
     } catch (err) {
-      console.error("Error al refrescar estadísticas generales:", err);
-      setError("No se pudieron actualizar las estadísticas generales.");
+      console.error("Error al cargar estadísticas generales:", err);
+      setError("No se pudieron cargar las estadísticas generales.");
     } finally {
       setLoading(false);
       setLoadingMessage("");
@@ -222,7 +200,7 @@ export default function EstadisticasGenerales() {
             </strong>
             <p className="text-sm mt-1">{error}</p>
             <button
-              onClick={cargarEstadisticasGeneralesRapido}
+              onClick={cargarEstadisticasGenerales}
               className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
             >
               Reintentar
@@ -247,14 +225,6 @@ export default function EstadisticasGenerales() {
         <h3 className="text-lg sm:text-xl font-semibold text-foreground">
           Vista General del Sistema
         </h3>
-        <button
-          onClick={refrescarDatos}
-          className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-blue-300 dark:disabled:bg-blue-900 w-full sm:w-auto text-sm font-semibold"
-          disabled={loading}
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>Refrescar</span>
-        </button>
       </div>
 
       {/* --- MÉTRICAS PRINCIPALES --- */}

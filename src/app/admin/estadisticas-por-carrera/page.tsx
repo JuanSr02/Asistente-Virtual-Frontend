@@ -131,7 +131,6 @@ export default function EstadisticasPorCarrera() {
 
   useEffect(() => {
     if (planSeleccionado) cargarEstadisticas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planSeleccionado, periodo]);
 
   const cargarEstadisticas = async () => {
@@ -188,15 +187,6 @@ export default function EstadisticasPorCarrera() {
               </option>
             ))}
           </select>
-
-          <button
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-base transition-colors"
-            onClick={cargarEstadisticas}
-            disabled={loading}
-          >
-            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden xs:inline">Refrescar</span>
-          </button>
         </div>
       </div>
 
