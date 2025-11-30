@@ -76,37 +76,7 @@ const historiaAcademicaService = {
     }
   },
 
-  /**
-   * Actualiza la historia académica con nuevos datos
-   */
-  actualizarHistoriaAcademica: async (
-    file: File,
-    estudianteId: number,
-    codigoPlan: string
-  ): Promise<HistoriaAcademicaResponseDTO> => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const config = {
-        headers: { "Content-Type": "multipart/form-data" },
-        params: { codigoPlan },
-        timeout: 20000, // 20 segundos
-      };
-
-      const response = await api.patch(
-        API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA +
-          estudianteId +
-          "/actualizacion",
-        formData,
-        config
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error al actualizar historia académica:", error);
-      throw error;
-    }
-  },
+ 
 
   /**
    * Elimina la historia académica de un estudiante

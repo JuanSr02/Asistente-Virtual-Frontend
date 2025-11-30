@@ -271,7 +271,7 @@ export default function Recomendacion({ user }: { user: User }) {
       let resultado;
 
       if (isUpdate)
-        resultado = await historiaAcademicaService.actualizarHistoriaAcademica(
+        resultado = await historiaAcademicaService.cargarHistoriaAcademica(
           file,
           state.persona.id,
           planAUsar
