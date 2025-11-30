@@ -35,7 +35,7 @@ export default function SubidaMobile() {
 
     try {
       const method = isUpdate
-        ? historiaAcademicaService.actualizarHistoriaAcademica
+        ? historiaAcademicaService.cargarHistoriaAcademica
         : historiaAcademicaService.cargarHistoriaAcademica;
 
       // Aseguramos que personaId y plan existen antes de llamar (aunque el useEffect ya valida)
