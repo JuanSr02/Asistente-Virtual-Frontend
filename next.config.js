@@ -44,6 +44,8 @@ const nextConfig = {
     return config;
   },
 
+  turbopack: {},
+
   // Configuración experimental que puede ayudar
   experimental: {
     optimizePackageImports: ["@supabase/supabase-js"],
