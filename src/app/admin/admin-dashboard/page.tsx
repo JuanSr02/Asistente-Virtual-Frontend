@@ -6,14 +6,7 @@ import Estadisticas from "../estadisticas/page";
 import Perfil from "@/app/perfil/page";
 import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { BookOpen, BarChart3, UserCircle, LayoutDashboard } from "lucide-react";
-
-// Interfaces
-interface User {
-  id: string;
-  email?: string;
-  [key: string]: any;
-}
-
+import { type User } from "@supabase/supabase-js";
 interface AdminDashboardProps {
   user: User;
 }
@@ -25,7 +18,6 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   useEffect(() => {
     updateLastVisited();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -48,7 +40,6 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     };
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   // Array de pestañas para evitar repetición en el JSX

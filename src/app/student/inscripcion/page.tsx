@@ -31,12 +31,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Tipos básicos para ayudar con el refactor a TS
-interface User {
-  id: string;
-  email: string;
-}
+import { type User } from "@supabase/supabase-js";
 
 interface Materia {
   codigo: string;
@@ -134,7 +129,9 @@ export default function Inscripcion({ user }: { user: User }) {
       if (!personaData) {
         personaData = await personaService.obtenerPersonaPorSupabaseId(user.id);
         if (!personaData)
-          personaData = await personaService.obtenerPersonaPorEmail(user.email);
+          personaData = await personaService.obtenerPersonaPorEmail(
+            user.email || ""
+          );
         if (!personaData) {
           setError("No se encontró tu perfil en el sistema.");
           return;

@@ -42,6 +42,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { type User } from "@supabase/supabase-js";
 
 // Definición de interfaces básicas para TypeScript
 interface Experiencia {
@@ -60,7 +61,7 @@ interface Experiencia {
 }
 
 interface ExperienciasExamenProps {
-  user: any; // Se puede refinar con el tipo User de Supabase si está disponible
+  user: User; // Se puede refinar con el tipo User de Supabase si está disponible
 }
 
 export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
@@ -79,8 +80,10 @@ export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
     "plan-seleccionado",
     ""
   );
-  const [materiaSeleccionada, setMateriaSeleccionada] =
-    usePersistedState("materia-seleccionada", "");
+  const [materiaSeleccionada, setMateriaSeleccionada] = usePersistedState(
+    "materia-seleccionada",
+    ""
+  );
   const [filtroCalificacion, setFiltroCalificacion] = usePersistedState(
     "filtro-calificacion",
     ""
@@ -205,7 +208,7 @@ export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
     try {
       const personaData =
         (await personaService.obtenerPersonaPorSupabaseId(user.id)) ||
-        (await personaService.obtenerPersonaPorEmail(user.email));
+        (await personaService.obtenerPersonaPorEmail(user.email || ""));
       if (!personaData) {
         setError("No se encontró tu perfil.");
         return;
@@ -428,7 +431,6 @@ export default function ExperienciasExamen({ user }: ExperienciasExamenProps) {
                     <FileSearch className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     Buscar Experiencias
                   </CardTitle>
-                  
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Select

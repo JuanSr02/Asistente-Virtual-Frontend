@@ -1,146 +1,134 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { supabase } from "@/supabaseClient";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import {
+  loginSchema,
+  registerSchema,
+} from "@/lib/schemas/auth";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
     nombre: "",
     apellido: "",
   });
 
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-    nombre: "",
-    apellido: "",
-  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateField = (field: string, value: string) => {
-    let error = "";
-    switch (field) {
-      case "email":
-        if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = "Ingresa un email válido";
-        }
-        break;
-      case "password":
-        if (value.trim() && value.length < 8) {
-          error = "La contraseña debe tener al menos 8 caracteres";
-        }
-        break;
-      case "nombre":
-        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
-          error = "El nombre solo puede contener letras y espacios";
-        }
-        break;
-      case "apellido":
-        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
-          error = "El apellido solo puede contener letras y espacios";
-        }
-        break;
-    }
-    setErrors((prev) => ({ ...prev, [field]: error }));
-    return error === "";
-  };
-
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    validateField(field, value);
+    // Limpiar error al escribir
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newV = { ...prev };
+        delete newV[field];
+        return newV;
+      });
+    }
   };
 
-  const hasValidForm = useMemo(() => {
-    if (showForgotPassword) {
-      return formData.email.trim() && !errors.email;
-    } else if (isSignUp) {
-      return (
-        formData.email.trim() &&
-        !errors.email &&
-        formData.password.trim() &&
-        !errors.password &&
-        formData.nombre.trim() &&
-        !errors.nombre &&
-        formData.apellido.trim() &&
-        !errors.apellido
-      );
-    } else {
-      return (
-        formData.email.trim() &&
-        !errors.email &&
-        formData.password.trim() &&
-        !errors.password
-      );
-    }
-  }, [formData, errors, isSignUp, showForgotPassword]);
-
-  const handleEmailAuth = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const fieldsToValidate = Object.keys(formData) as Array<
-      keyof typeof formData
-    >;
-    let hasErrors = false;
-    for (const field of fieldsToValidate) {
-      if (
-        (isSignUp || (field !== "nombre" && field !== "apellido")) &&
-        !showForgotPassword
-      ) {
-        const isValid = validateField(field, formData[field]);
-        if (!isValid) hasErrors = true;
+  const validateForm = () => {
+    try {
+      if (showForgotPassword) {
+        loginSchema.pick({ email: true }).parse({ email: formData.email });
+      } else if (isSignUp) {
+        registerSchema.parse(formData);
+      } else {
+        loginSchema.parse({
+          email: formData.email,
+          password: formData.password,
+        });
       }
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      }
+      return false;
     }
-    if (hasErrors) return;
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
-      let result;
-      if (isSignUp) {
+      if (showForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          formData.email,
+          { redirectTo: `${window.location.origin}/reset-password` }
+        );
+        if (error) throw error;
+        toast.success("¡Revisa tu email para restablecer tu contraseña!");
+        setShowForgotPassword(false);
+      } else if (isSignUp) {
+        // Verificar existencia previa (opcional pero buena UX)
         const { data: userExists } = await supabase
           .from("users")
           .select("email")
           .eq("email", formData.email)
           .single();
+
         if (userExists) {
-          alert("Este email ya está registrado. Por favor inicia sesión.");
+          toast.warning(
+            "Este email ya está registrado. Por favor inicia sesión."
+          );
           setLoading(false);
           return;
         }
-        result = await supabase.auth.signUp({
+
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
             data: { full_name: `${formData.nombre} ${formData.apellido}` },
-            emailRedirectTo: `${window.location.origin}`,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
-        if (result.data.user && result.data.user.identities?.length === 0) {
-          alert("Este email ya está registrado. Por favor inicia sesión.");
-          setLoading(false);
-          return;
+
+        if (error) throw error;
+
+        if (data.user && data.user.identities?.length === 0) {
+          toast.warning(
+            "Este email ya está registrado. Por favor inicia sesión."
+          );
+        } else {
+          toast.success("¡Cuenta creada! Revisa tu email para confirmar.");
+          setIsSignUp(false);
         }
       } else {
-        result = await supabase.auth.signInWithPassword({
+        // Login
+        const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
-      }
-      if (result.error) {
-        alert("Credenciales de inicio de sesión no válidas");
-      } else {
-        if (isSignUp) {
-          alert("¡Revisa tu email para confirmar tu cuenta!");
-          setIsSignUp(false);
-        }
+        if (error) throw error;
+        
+        toast.success("¡Bienvenido!");
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (error: any) {
-      alert("Error: " + error.message);
+      toast.error(error.message || "Ocurrió un error inesperado");
     } finally {
       setLoading(false);
     }
@@ -152,37 +140,13 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: { access_type: "offline", prompt: "consent" },
         },
       });
-      if (error) alert("Error con Google: " + error.message);
+      if (error) throw error;
     } catch (error: any) {
-      alert("Error: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.email.trim() || errors.email) return;
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        formData.email,
-        { redirectTo: `${window.location.origin}/reset-password` }
-      );
-      if (error) {
-        alert(error.message);
-      } else {
-        setResetEmailSent(true);
-        alert("¡Revisa tu email para resetear tu contraseña!");
-        setShowForgotPassword(false);
-      }
-    } catch (error: any) {
-      alert("Error: " + error.message);
-    } finally {
+      toast.error("Error con Google: " + error.message);
       setLoading(false);
     }
   };
@@ -191,17 +155,22 @@ export default function Auth() {
     <Loader2 className="h-5 w-5 animate-spin" />
   );
 
-  const inputClasses = (hasError: boolean, hasContent: boolean) =>
-    `w-full h-11 px-4 border-2 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 text-foreground text-sm 
+  const inputClasses = (fieldName: string) => {
+    const hasError = !!errors[fieldName];
+    // @ts-ignore
+    const hasContent = !!formData[fieldName];
+
+    return `w-full h-11 px-4 border-2 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 text-foreground text-sm 
      transition-all focus:bg-background dark:focus:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600
      ${hasError ? "border-red-500 dark:border-red-700" : ""}
      ${!hasError && hasContent ? "border-green-500 dark:border-green-600" : "border-blue-200 dark:border-blue-800"}`;
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900 p-4">
       <div className="w-full max-w-4xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-5 bg-background text-foreground rounded-2xl shadow-2xl overflow-hidden border border-border">
-          {/* --- Panel izquierdo - Información con gradiente --- */}
+          {/* --- Panel Izquierdo --- */}
           <div className="col-span-1 lg:col-span-2 p-8 flex flex-col justify-between bg-gradient-to-b from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900 text-white">
             <div>
               <div className="text-center lg:text-left mb-8">
@@ -235,10 +204,10 @@ export default function Auth() {
               <button
                 onClick={handleGoogleAuth}
                 disabled={loading}
-                className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all
+                className="w-full h-11 inline-flex items-center justify-center gap-3 rounded-lg text-sm font-semibold transition-all
                            border-2 border-gray-200 dark:border-gray-700 bg-background text-gray-700 dark:text-gray-200
                            hover:bg-muted hover:shadow-md
-                           disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:cursor-not-allowed disabled:text-gray-400"
+                           disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   renderLoadingSpinner()
@@ -246,8 +215,8 @@ export default function Auth() {
                   <>
                     <img
                       src="/logoGoogle.png"
-                      alt="Google Logo"
-                      className="h-10"
+                      alt="Google"
+                      className="h-5 w-5"
                     />
                     Continuar con Google
                   </>
@@ -256,340 +225,203 @@ export default function Auth() {
             </div>
           </div>
 
-          {/* --- Panel derecho - Formularios --- */}
+          {/* --- Panel Derecho --- */}
           <div className="col-span-1 lg:col-span-3 p-8 flex flex-col justify-center bg-background">
-            {showForgotPassword ? (
-              <form onSubmit={handlePasswordReset} className="w-full space-y-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                    Recuperar Contraseña
-                  </h2>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Ingresa tu email para recibir un enlace.
-                  </p>
-                </div>
-                <div>
-                  <label
-                    htmlFor="reset-email"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Email
-                  </label>
-                  <div className="relative mt-2">
-                    <input
-                      id="reset-email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
-                      required
-                      placeholder="tu@email.com"
-                      className={inputClasses(!!errors.email, !!formData.email)}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                      {errors.email ? (
-                        <XCircle className="text-red-500 dark:text-red-400" />
-                      ) : (
-                        formData.email && (
-                          <CheckCircle className="text-green-500 dark:text-green-400" />
-                        )
-                      )}
-                    </div>
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || !hasValidForm}
-                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-500 dark:hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-500 dark:disabled:from-gray-700 dark:disabled:to-gray-800 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {loading ? renderLoadingSpinner() : "Enviar enlace"}
-                </button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(false)}
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Volver a Iniciar Sesión
-                  </button>
-                </div>
-              </form>
-            ) : isSignUp ? (
-              <form onSubmit={handleEmailAuth} className="w-full space-y-4">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-blue-500 dark:from-green-400 dark:to-blue-400">
-                    Crear Cuenta
-                  </h2>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Completa los datos para empezar.
-                  </p>
-                </div>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                {showForgotPassword
+                  ? "Recuperar Contraseña"
+                  : isSignUp
+                    ? "Crear Cuenta"
+                    : "Iniciar Sesión"}
+              </h2>
+              <p className="text-muted-foreground text-sm mt-1">
+                {showForgotPassword
+                  ? "Te enviaremos un enlace de recuperación"
+                  : isSignUp
+                    ? "Completa tus datos para comenzar"
+                    : "Bienvenido de nuevo"}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="w-full space-y-4">
+              {isSignUp && !showForgotPassword && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Nombre
                     </label>
-                    <div className="relative mt-2">
+                    <div className="relative mt-1">
                       <input
                         type="text"
                         value={formData.nombre}
                         onChange={(e) =>
                           handleInputChange("nombre", e.target.value)
                         }
-                        required
+                        className={inputClasses("nombre")}
                         placeholder="Juan"
-                        className={inputClasses(
-                          !!errors.nombre,
-                          !!formData.nombre
-                        )}
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                        {errors.nombre ? (
-                          <XCircle className="text-red-500 dark:text-red-400" />
-                        ) : (
-                          formData.nombre && (
-                            <CheckCircle className="text-green-500 dark:text-green-400" />
-                          )
-                        )}
-                      </div>
+                      {errors.nombre && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.nombre}
+                        </p>
+                      )}
                     </div>
-                    {errors.nombre && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.nombre}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Apellido
                     </label>
-                    <div className="relative mt-2">
+                    <div className="relative mt-1">
                       <input
                         type="text"
                         value={formData.apellido}
                         onChange={(e) =>
                           handleInputChange("apellido", e.target.value)
                         }
-                        required
+                        className={inputClasses("apellido")}
                         placeholder="Pérez"
-                        className={inputClasses(
-                          !!errors.apellido,
-                          !!formData.apellido
-                        )}
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                        {errors.apellido ? (
-                          <XCircle className="text-red-500 dark:text-red-400" />
-                        ) : (
-                          formData.apellido && (
-                            <CheckCircle className="text-green-500 dark:text-green-400" />
-                          )
-                        )}
-                      </div>
+                      {errors.apellido && (
+                        <p className="text-red-500 text-xs mt-1">
+                          {errors.apellido}
+                        </p>
+                      )}
                     </div>
-                    {errors.apellido && (
-                      <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                        {errors.apellido}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email
+                </label>
+                <div className="relative mt-1">
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className={inputClasses("email")}
+                    placeholder="tu@email.com"
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
+                </div>
+              </div>
+
+              {!showForgotPassword && (
+                <div>
+                  <div className="flex justify-between">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Contraseña
+                    </label>
+                    {!isSignUp && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForgotPassword(true);
+                          setErrors({});
+                        }}
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative mt-1">
+                    <input
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      className={inputClasses("password")}
+                      placeholder="••••••••"
+                    />
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password}
                       </p>
                     )}
                   </div>
                 </div>
+              )}
+
+              {isSignUp && !showForgotPassword && (
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email
+                    Confirmar Contraseña
                   </label>
-                  <div className="relative mt-2">
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
-                      required
-                      placeholder="tu@email.com"
-                      className={inputClasses(!!errors.email, !!formData.email)}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                      {errors.email ? (
-                        <XCircle className="text-red-500 dark:text-red-400" />
-                      ) : (
-                        formData.email && (
-                          <CheckCircle className="text-green-500 dark:text-green-400" />
-                        )
-                      )}
-                    </div>
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Contraseña
-                  </label>
-                  <div className="relative mt-2">
+                  <div className="relative mt-1">
                     <input
                       type="password"
-                      value={formData.password}
+                      value={formData.confirmPassword}
                       onChange={(e) =>
-                        handleInputChange("password", e.target.value)
+                        handleInputChange("confirmPassword", e.target.value)
                       }
-                      required
+                      className={inputClasses("confirmPassword")}
                       placeholder="••••••••"
-                      className={inputClasses(
-                        !!errors.password,
-                        !!formData.password
-                      )}
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                      {errors.password ? (
-                        <XCircle className="text-red-500 dark:text-red-400" />
-                      ) : (
-                        formData.password && (
-                          <CheckCircle className="text-green-500 dark:text-green-400" />
-                        )
-                      )}
-                    </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.confirmPassword}
+                      </p>
+                    )}
                   </div>
-                  {errors.password && (
-                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                      {errors.password}
-                    </p>
-                  )}
                 </div>
-                <button
-                  type="submit"
-                  disabled={loading || !hasValidForm}
-                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-blue-600 hover:shadow-lg hover:from-green-600 hover:to-blue-700 dark:from-green-600 dark:to-blue-700 dark:hover:from-green-500 dark:hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-500 dark:disabled:from-gray-700 dark:disabled:to-gray-800 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {loading ? renderLoadingSpinner() : "Registrarse"}
-                </button>
-                <div className="text-center">
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 mt-2 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white 
+                           bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 
+                           dark:from-blue-600 dark:to-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading
+                  ? renderLoadingSpinner()
+                  : showForgotPassword
+                    ? "Enviar enlace"
+                    : isSignUp
+                      ? "Registrarse"
+                      : "Iniciar Sesión"}
+              </button>
+
+              <div className="text-center pt-2">
+                {showForgotPassword ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setErrors({});
+                    }}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Volver a Iniciar Sesión
+                  </button>
+                ) : (
                   <p className="text-sm text-muted-foreground">
-                    ¿Ya tienes cuenta?{" "}
+                    {isSignUp ? "¿Ya tienes cuenta? " : "¿No tienes cuenta? "}
                     <button
                       type="button"
-                      onClick={() => setIsSignUp(false)}
+                      onClick={() => {
+                        setIsSignUp(!isSignUp);
+                        setErrors({});
+                        setFormData((prev) => ({
+                          ...prev,
+                          password: "",
+                          confirmPassword: "",
+                        }));
+                      }}
                       className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                      Inicia Sesión
+                      {isSignUp ? "Inicia Sesión" : "Regístrate"}
                     </button>
                   </p>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleEmailAuth} className="w-full space-y-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-                    Iniciar Sesión
-                  </h2>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    Bienvenido de nuevo.
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Email
-                  </label>
-                  <div className="relative mt-2">
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
-                      required
-                      placeholder="tu@email.com"
-                      className={inputClasses(!!errors.email, !!formData.email)}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                      {errors.email ? (
-                        <XCircle className="text-red-500 dark:text-red-400" />
-                      ) : (
-                        formData.email && (
-                          <CheckCircle className="text-green-500 dark:text-green-400" />
-                        )
-                      )}
-                    </div>
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Contraseña
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotPassword(true)}
-                      className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                  <div className="relative mt-2">
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) =>
-                        handleInputChange("password", e.target.value)
-                      }
-                      required
-                      placeholder="••••••••"
-                      className={inputClasses(
-                        !!errors.password,
-                        !!formData.password
-                      )}
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5">
-                      {errors.password ? (
-                        <XCircle className="text-red-500 dark:text-red-400" />
-                      ) : (
-                        formData.password && (
-                          <CheckCircle className="text-green-500 dark:text-green-400" />
-                        )
-                      )}
-                    </div>
-                  </div>
-                  {errors.password && (
-                    <p className="text-red-500 dark:text-red-400 text-xs mt-1">
-                      {errors.password}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || !hasValidForm}
-                  className="w-full h-11 inline-flex items-center justify-center rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-500 dark:hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-500 dark:disabled:from-gray-700 dark:disabled:to-gray-800 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {loading ? renderLoadingSpinner() : "Iniciar Sesión"}
-                </button>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    ¿No tienes cuenta?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setIsSignUp(true)}
-                      className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Regístrate
-                    </button>
-                  </p>
-                </div>
-              </form>
-            )}
+                )}
+              </div>
+            </form>
           </div>
         </div>
       </div>
