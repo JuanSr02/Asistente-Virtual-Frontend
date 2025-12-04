@@ -1,93 +1,75 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import inscripcionService from "@/services/inscripcionService";
-import historiaAcademicaService from "@/services/historiaAcademicaService";
-import personaService from "@/services/personaService";
-import materiaService from "@/services/materiaService";
-import { useInscripcionPersistence } from "@/hooks/useInscripcionPersistence";
-import { useModalPersistence } from "@/hooks/useModalPersistence";
-import Modal from "@/components/modals/Modal";
-import { useConfirmacionPersistence } from "@/hooks/useConfirmacionPersistence";
+import { useState } from "react";
+import { type User } from "@supabase/supabase-js";
+import { usePersona } from "@/hooks/domain/usePersona";
+import { useInscripciones } from "@/hooks/domain/useInscripciones";
+import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
+import { useModalPersistence } from "@/hooks/useModalPersistence"; // Recuperado
+import inscripcionService from "@/services/inscripcionService"; // Necesario para consultar inscriptos
+import { MateriasDisponibles } from "@/components/student/inscripcion/MateriasDisponibles";
+import { MisInscripciones } from "@/components/student/inscripcion/MisInscripciones";
+import Modal from "@/components/modals/Modal"; // Recuperado
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
   AlertTriangle,
   CheckCircle,
   Pencil,
-  RefreshCw,
-  Users,
-  Trash2,
-  GraduationCap,
   ClipboardCopy,
-  ChevronRight,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { type User } from "@supabase/supabase-js";
-
-interface Materia {
-  codigo: string;
-  nombre: string;
-  plan_de_estudio_codigo?: string;
-}
-
-interface InscripcionData {
-  id: number;
-  turno: string;
-  anio: number;
-  materiaNombre: string;
-  materiaCodigo: string;
-  materiaPlan: string;
-  estudianteNombre?: string;
-  estudianteId: number;
-}
-
-interface Inscripto {
-  id: number;
-  estudianteNombre: string;
-  estudianteId: number;
-  email?: string;
-}
+import { toast } from "sonner";
 
 export default function Inscripcion({ user }: { user: User }) {
+  // 1. Datos del usuario y dominio
+  const { data: persona, isLoading: isLoadingPersona } = usePersona(
+    user.id,
+    user.email
+  );
+  const { historia, isLoadingHistoria } = useHistoriaAcademica(persona?.id);
   const {
-    state,
-    updateState,
-    clearSelections,
-    shouldRefreshData,
-    invalidateCache,
-    markDataAsFresh,
-    isInitialized,
-  } = useInscripcionPersistence();
+    materiasDisponibles,
+    misInscripciones,
+    isLoadingData,
+    inscribirse,
+    isInscribiendo,
+    darseDeBaja,
+    isDandoseDeBaja,
+  } = useInscripciones(persona?.id, !!historia);
 
+  // 2. Estado local de selección
+  const [materiaSeleccionada, setMateriaSeleccionada] = useState<any | null>(
+    null
+  );
+  const [mesaSeleccionada, setMesaSeleccionada] = useState<string>("");
+
+  // 3. Lógica del Modal de Inscriptos (RECUPERADA)
   const {
     isOpen: showInscriptos,
     data: inscripcionConsultada,
     openModal: openInscriptosModal,
     closeModal: closeInscriptosModal,
-    isInitialized: isModalInitialized,
   } = useModalPersistence("inscriptos-modal");
 
-  const [showConfirmacion, setShowConfirmacion] = useConfirmacionPersistence();
-  const [inscriptosConsulta, setInscriptosConsulta] = useState<Inscripto[]>([]);
+  const [inscriptosConsulta, setInscriptosConsulta] = useState<any[]>([]);
   const [loadingInscriptos, setLoadingInscriptos] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingInscripcion, setLoadingInscripcion] = useState(false);
-  const [loadingEliminacion, setLoadingEliminacion] = useState<number | null>(
-    null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const hasLoadedInitialData = useRef(false);
 
+  // Helpers
   const mesas = [
     "FEBRERO",
     "MARZO",
@@ -97,142 +79,27 @@ export default function Inscripcion({ user }: { user: User }) {
     "DICIEMBRE",
   ];
 
-  useEffect(() => {
-    if (user && isInitialized && !hasLoadedInitialData.current) {
-      hasLoadedInitialData.current = true;
-      if (shouldRefreshData()) cargarDatosIniciales();
-      else setLoading(false);
-    }
-  }, [user, isInitialized, shouldRefreshData]);
-
-  useEffect(() => {
-    if (
-      showInscriptos &&
-      inscripcionConsultada &&
-      isModalInitialized &&
-      state.persona
-    ) {
-      cargarInscriptosParaModal(inscripcionConsultada);
-    }
-  }, [
-    showInscriptos,
-    inscripcionConsultada,
-    isModalInitialized,
-    state.persona,
-  ]);
-
-  const cargarDatosIniciales = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      let personaData = state.persona;
-      if (!personaData) {
-        personaData = await personaService.obtenerPersonaPorSupabaseId(user.id);
-        if (!personaData)
-          personaData = await personaService.obtenerPersonaPorEmail(
-            user.email || ""
-          );
-        if (!personaData) {
-          setError("No se encontró tu perfil en el sistema.");
-          return;
-        }
-        updateState({ persona: personaData });
-      }
-      let historia = await historiaAcademicaService.verificarHistoriaAcademica(
-        personaData.id
-      );
-      if (!historia) {
-        updateState({ historiaAcademica: undefined });
-        return;
-      }
-      updateState({ historiaAcademica: historia });
-      if (historia) {
-        await Promise.all([
-          cargarMateriasDisponibles(personaData.id),
-          cargarInscripcionesEstudiante(personaData.id),
-        ]);
-      } else {
-        updateState({
-          materiasDisponibles: [],
-          inscripcionesEstudiante: [],
-          materiaSeleccionada: null,
-          mesaSeleccionada: "",
-          anioSeleccionado: "",
-          inscripcionExitosa: null,
-          companerosInscriptos: [],
-        });
-      }
-    } catch (err) {
-      setError("Error al cargar tus datos.");
-    } finally {
-      setLoading(false);
-    }
+  const calcularAnio = (mesa: string) => {
+    const hoy = new Date();
+    const mesActual = hoy.getMonth() + 1;
+    const mesMesa =
+      {
+        FEBRERO: 2,
+        MARZO: 3,
+        JULIO: 7,
+        AGOSTO: 8,
+        NOVIEMBRE: 11,
+        DICIEMBRE: 12,
+      }[mesa] || 12;
+    return mesMesa < mesActual ? hoy.getFullYear() + 1 : hoy.getFullYear();
   };
 
-  const cargarMateriasDisponibles = async (estudianteId: number) => {
-    try {
-      const materias =
-        await inscripcionService.obtenerMateriasParaInscripcion(estudianteId);
-      updateState({ materiasDisponibles: materias || [] });
-    } catch (err) {
-      updateState({ materiasDisponibles: [] });
-    }
-  };
+  // --- FUNCIONES FALTANTES ---
 
-  const cargarInscripcionesEstudiante = async (estudianteId: number) => {
-    try {
-      const inscripciones =
-        await inscripcionService.obtenerInscripcionesEstudiante(estudianteId);
-      const inscripcionesConNombres = await enriquecerInscripcionesConNombres(
-        inscripciones || []
-      );
-      updateState({ inscripcionesEstudiante: inscripcionesConNombres });
-    } catch (err) {
-      updateState({ inscripcionesEstudiante: [] });
-    }
-  };
-
-  const enriquecerInscripcionesConNombres = async (
-    inscripciones: any[]
-  ): Promise<any[]> => {
-    if (!inscripciones || inscripciones.length === 0) return [];
-    try {
-      const materiasParaBuscar = inscripciones
-        .filter((i) => !i.materiaNombre)
-        .map((i) => ({ codigo: i.materiaCodigo, plan: i.materiaPlan }));
-      const materiasUnicas = materiasParaBuscar.filter(
-        (m, i, self) =>
-          i ===
-          self.findIndex((s) => s.codigo === m.codigo && s.plan === m.plan)
-      );
-      if (materiasUnicas.length === 0) return inscripciones;
-      const materiasInfo =
-        await materiaService.obtenerMateriasPorCodigos(materiasUnicas);
-      const mapaNombres: Record<string, string> = {};
-      materiasInfo.forEach((m) => {
-        mapaNombres[`${m.codigo}-${m.plan_de_estudio_codigo}`] = m.nombre;
-      });
-      return inscripciones.map((i) =>
-        i.materiaNombre
-          ? i
-          : {
-              ...i,
-              materiaNombre:
-                mapaNombres[`${i.materiaCodigo}-${i.materiaPlan}`] ||
-                `Materia ${i.materiaCodigo}`,
-            }
-      );
-    } catch (error) {
-      return inscripciones.map((i) => ({
-        ...i,
-        materiaNombre: i.materiaNombre || `Materia ${i.materiaCodigo}`,
-      }));
-    }
-  };
-
-  const cargarInscriptosParaModal = async (inscripcion: InscripcionData) => {
+  const consultarInscriptos = async (inscripcion: any) => {
+    openInscriptosModal(inscripcion);
     setLoadingInscriptos(true);
-    setError(null);
+    setInscriptosConsulta([]); // Limpiar anteriores
     try {
       const inscriptos = await inscripcionService.obtenerInscriptosConEmails(
         inscripcion.materiaCodigo,
@@ -241,551 +108,201 @@ export default function Inscripcion({ user }: { user: User }) {
       );
       setInscriptosConsulta(inscriptos || []);
     } catch (err) {
-      setError("Error al consultar los inscriptos.");
+      toast.error("Error al cargar inscriptos.");
     } finally {
       setLoadingInscriptos(false);
     }
   };
 
-  const consultarInscriptos = async (inscripcion: InscripcionData) => {
-    openInscriptosModal(inscripcion, "inscriptos");
-    await cargarInscriptosParaModal(inscripcion);
-  };
-
   const copiarEmail = async (email: string) => {
     try {
       await navigator.clipboard.writeText(email);
-      setSuccess(`Email ${email} copiado`);
+      toast.success(`Email copiado: ${email}`);
     } catch (err) {
-      setSuccess(`Email ${email} copiado`);
+      toast.error("No se pudo copiar el email.");
     }
   };
 
-  const forzarRecargaDatos = async () => {
-    if (!state.persona || !state.historiaAcademica) return;
-    invalidateCache();
-    setLoading(true);
-    setError(null);
-    try {
-      const [materias, inscripciones] = await Promise.all([
-        inscripcionService.obtenerMateriasParaInscripcion(state.persona.id),
-        inscripcionService.obtenerInscripcionesEstudiante(state.persona.id),
-      ]);
-      const inscripcionesConNombres = await enriquecerInscripcionesConNombres(
-        inscripciones || []
-      );
-      updateState({
-        materiasDisponibles: materias || [],
-        inscripcionesEstudiante: inscripcionesConNombres,
-      });
-      markDataAsFresh();
-      setSuccess("Datos actualizados.");
-    } catch (err) {
-      setError("Error al actualizar los datos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const calcularAnioMesa = (mesa: string) => {
-    const ahora = new Date();
-    const anioActual = ahora.getFullYear();
-    const mesActual = ahora.getMonth() + 1;
-    const mesesNumeros: Record<string, number> = {
-      FEBRERO: 2,
-      MARZO: 3,
-      JULIO: 7,
-      AGOSTO: 8,
-      NOVIEMBRE: 11,
-      DICIEMBRE: 12,
-    };
-    const mesMesa = mesesNumeros[mesa] || 0;
-    if (mesMesa < mesActual || (mesMesa === mesActual && ahora.getDate() > 10))
-      return anioActual + 1;
-    return anioActual;
-  };
-
-  const handleSeleccionarMateria = (materia: Materia) => {
-    updateState({
-      materiaSeleccionada: materia,
-      mesaSeleccionada: "",
-      anioSeleccionado: "",
-      inscripcionExitosa: null,
-      companerosInscriptos: [],
-    });
-    setShowConfirmacion(false);
-  };
-
-  const handleSeleccionarMesa = (mesa: string) => {
-    const anio = calcularAnioMesa(mesa);
-    updateState({ mesaSeleccionada: mesa, anioSeleccionado: anio });
-    setShowConfirmacion(true);
-  };
-
-  const handleConfirmarInscripcion = async () => {
-    if (
-      !state.materiaSeleccionada ||
-      !state.mesaSeleccionada ||
-      !state.anioSeleccionado ||
-      !state.historiaAcademica
-    ) {
-      setError("Faltan datos para la inscripción.");
+  const handleInscribirse = async () => {
+    if (!materiaSeleccionada || !mesaSeleccionada || !historia || !persona)
       return;
-    }
-    setLoadingInscripcion(true);
-    setError(null);
+
     try {
-      const dto = {
-        turno: state.mesaSeleccionada,
-        anio: state.anioSeleccionado as number,
-        materiaCodigo: state.materiaSeleccionada.codigo,
-        materiaPlan: state.historiaAcademica.plan_de_estudio_codigo,
-        estudianteId: state.persona.id,
-      };
-      const inscripcionCreada = await inscripcionService.crearInscripcion(dto);
-      const companeros = await inscripcionService.obtenerInscriptosConEmails(
-        state.materiaSeleccionada.codigo,
-        state.anioSeleccionado as number,
-        state.mesaSeleccionada
-      );
-      const companerosFiltered = companeros.filter(
-        (c) => c.estudianteId !== state.persona.id
-      );
-      updateState({
-        inscripcionExitosa: inscripcionCreada,
-        companerosInscriptos: companerosFiltered,
+      await inscribirse({
+        turno: mesaSeleccionada,
+        anio: calcularAnio(mesaSeleccionada),
+        materiaCodigo: materiaSeleccionada.codigo,
+        materiaPlan: historia.plan_de_estudio_codigo,
+        estudianteId: persona.id,
       });
-      setShowConfirmacion(false);
-      setSuccess("¡Inscripción realizada!");
-      try {
-        const [nuevasMaterias, nuevasInscripciones] = await Promise.all([
-          inscripcionService.obtenerMateriasParaInscripcion(state.persona.id),
-          inscripcionService.obtenerInscripcionesEstudiante(state.persona.id),
-        ]);
-        const nuevasInscripcionesConNombres =
-          await enriquecerInscripcionesConNombres(nuevasInscripciones || []);
-        updateState({
-          materiasDisponibles: nuevasMaterias || [],
-          inscripcionesEstudiante: nuevasInscripcionesConNombres,
-          lastUpdate: new Date().toISOString(),
-          materiaSeleccionada: null,
-          mesaSeleccionada: "",
-          anioSeleccionado: "",
-        });
-      } catch (reloadError) {
-        setError(
-          "Inscripción exitosa, pero hubo un problema al actualizar la lista."
-        );
-      }
-      setTimeout(() => clearSelections(), 5000);
-    } catch (err: any) {
-      let errorMessage = "Error al crear la inscripción.";
-      if (err.response?.status === 409)
-        errorMessage = "Ya estás inscripto a esta materia en este período.";
-      else if (err.response?.data?.message)
-        errorMessage = err.response.data.message;
-      setError(errorMessage);
-    } finally {
-      setLoadingInscripcion(false);
+      setMateriaSeleccionada(null);
+      setMesaSeleccionada("");
+    } catch (error) {
+      // Error manejado en hook
     }
   };
 
-  const handleEliminarInscripcion = async (inscripcion: InscripcionData) => {
-    if (
-      !window.confirm(
-        `¿Seguro que deseas eliminar tu inscripción a ${inscripcion.materiaNombre}?`
-      )
-    )
-      return;
-    setLoadingEliminacion(inscripcion.id);
-    setError(null);
-    try {
-      await inscripcionService.eliminarInscripcion(inscripcion.id);
-      setSuccess("Inscripción eliminada.");
-      try {
-        const [nuevasMaterias, nuevasInscripciones] = await Promise.all([
-          inscripcionService.obtenerMateriasParaInscripcion(state.persona.id),
-          inscripcionService.obtenerInscripcionesEstudiante(state.persona.id),
-        ]);
-        const nuevasInscripcionesConNombres =
-          await enriquecerInscripcionesConNombres(nuevasInscripciones || []);
-        updateState({
-          materiasDisponibles: nuevasMaterias || [],
-          inscripcionesEstudiante: nuevasInscripcionesConNombres,
-          lastUpdate: new Date().toISOString(),
-        });
-      } catch (reloadError) {
-        setError(
-          "Inscripción eliminada, pero hubo un problema al actualizar la lista."
-        );
-      }
-      if (
-        state.inscripcionExitosa &&
-        state.inscripcionExitosa.materiaCodigo === inscripcion.materiaCodigo
-      ) {
-        updateState({ inscripcionExitosa: null, companerosInscriptos: [] });
-      }
-    } catch (err) {
-      setError("Error al eliminar la inscripción.");
-    } finally {
-      setLoadingEliminacion(null);
-    }
-  };
+  // --- RENDERS ---
 
-  useEffect(() => {
-    if (success || error) {
-      const timer = setTimeout(() => {
-        setSuccess(null);
-        setError(null);
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [success, error]);
+  if (isLoadingPersona || isLoadingHistoria || (historia && isLoadingData)) {
+    return <Skeleton className="h-96 w-full rounded-xl" />;
+  }
 
-  const materiasCodigosInscriptos = state.inscripcionesEstudiante.map(
-    (i: any) => i.materiaCodigo
-  );
-  const materiasDisponiblesFiltradas = state.materiasDisponibles.filter(
-    (m: any) => !materiasCodigosInscriptos.includes(m.codigo)
-  );
-
-  if (!isInitialized || (loading && !state.persona)) {
+  if (!historia) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-40 w-full" />
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </div>
-        <Skeleton className="h-48 w-full" />
+      <div className="text-center py-12">
+        <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
+        <h3 className="text-lg font-semibold">Falta Historia Académica</h3>
+        <p className="text-muted-foreground mb-4">
+          Debes cargar tu historia académica en la sección "Sugerencias" para
+          poder inscribirte.
+        </p>
+        <Button
+          onClick={() =>
+            window.dispatchEvent(
+              new CustomEvent("changeTab", { detail: "recomendacion" })
+            )
+          }
+        >
+          Ir a Cargar Historia
+        </Button>
       </div>
     );
   }
 
-  if (!state.persona) {
-    return (
-      <Card className="text-center p-8">
-        <AlertTriangle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-        <CardTitle>Perfil no encontrado</CardTitle>
-        <CardDescription>No se pudo encontrar tu perfil.</CardDescription>
-      </Card>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/30 dark:via-background dark:to-blue-950/30">
+    <div className="space-y-6 animate-in fade-in">
+      <Card className="bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/30 dark:via-background dark:to-blue-950/30 border-none shadow-md">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
             <Pencil className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             Inscripción a Mesas de Examen
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Inscríbete para ponerte en contacto con compañeros y estudiar en
-            conjunto.{" "}
-            <strong className="text-yellow-800 dark:text-yellow-400">
-              Recuerda que esta inscripción es independiente del SIU Guaraní.
-            </strong>
+            Inscríbete para contactar con compañeros. Esta inscripción es
+            independiente del SIU Guaraní.
           </CardDescription>
         </CardHeader>
-        {state.historiaAcademica && (
-          <CardFooter className="bg-transparent justify-end"></CardFooter>
-        )}
       </Card>
 
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-600 text-red-800 dark:text-red-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
-          <AlertTriangle className="h-5 w-5 mt-0.5" />
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
-      {success && (
-        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 dark:border-green-600 text-green-800 dark:text-green-300 p-4 rounded-r-lg flex items-start gap-3 animate-fade-in">
-          <CheckCircle className="h-5 w-5 mt-0.5" />
-          <p className="text-sm">{success}</p>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+        <MateriasDisponibles
+          materias={materiasDisponibles}
+          onSelect={setMateriaSeleccionada}
+          seleccionada={materiaSeleccionada}
+        />
 
-      {!state.historiaAcademica ? (
-        <Card>
-          <CardHeader className="text-center">
-            <GraduationCap className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600 mb-4" />
-            <CardTitle>Carga tu Historia Académica Primero</CardTitle>
-            <CardDescription>
-              Para inscribirte a mesas de examen, ve a la pestaña "Sugerencias"
-              y sube tu historia académica.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent("changeTab", { detail: "recomendacion" })
-                )
-              }
-            >
-              <GraduationCap className="mr-2 h-4 w-4" />
-              Ir a Sugerencias
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {state.inscripcionExitosa && (
-            <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
-              <CardHeader>
-                <CardTitle>🎉 ¡Inscripción exitosa!</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">
-                  Se notificó a tus compañeros. ¡Mucha suerte en el examen!
-                </p>
-                {state.companerosInscriptos.length > 0 ? (
-                  <>
-                    <h4 className="font-semibold mb-2">
-                      Compañeros inscriptos ({state.companerosInscriptos.length}
-                      ):
-                    </h4>
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
-                      {state.companerosInscriptos.map((c: any) => (
-                        <div
-                          key={c.id}
-                          className="bg-background p-2 rounded border text-sm"
-                        >
-                          {c.estudianteNombre}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <p>Eres el/la primero/a en inscribirte.</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>1. Materias Disponibles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {materiasDisponiblesFiltradas.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No tienes materias disponibles para inscribirte.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                    {materiasDisponiblesFiltradas.map((m: any) => (
-                      <div
-                        key={m.codigo}
-                        onClick={() => handleSeleccionarMateria(m)}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                          state.materiaSeleccionada?.codigo === m.codigo
-                            ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/50"
-                            : "hover:bg-muted"
-                        }`}
-                      >
-                        <p className="font-semibold">{m.nombre}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Código: {m.codigo}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>2. Mesas de Examen</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!state.materiaSeleccionada ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Selecciona una materia para ver las mesas.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg mb-4 text-sm">
-                      <p className="font-semibold text-blue-800 dark:text-blue-300">
-                        Materia: {state.materiaSeleccionada.nombre}
-                      </p>
-                    </div>
-                    {mesas.map((mesa) => (
-                      <button
-                        key={mesa}
-                        onClick={() => handleSeleccionarMesa(mesa)}
-                        className="w-full p-3 border rounded-lg hover:bg-muted transition-colors flex justify-between items-center text-left"
-                      >
-                        <span className="font-medium">
-                          {mesa} {calcularAnioMesa(mesa)}
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
+        <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Mis Inscripciones</CardTitle>
+              <CardTitle>2. Confirmar Mesa</CardTitle>
+              <CardDescription>
+                {materiaSeleccionada ? (
+                  <span className="font-semibold text-primary">
+                    Para: {materiaSeleccionada.nombre}
+                  </span>
+                ) : (
+                  "Selecciona una materia de la lista primero"
+                )}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {state.inscripcionesEstudiante.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No tienes inscripciones activas.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {state.inscripcionesEstudiante.map((i: any) => (
-                    <div
-                      key={i.id}
-                      className="p-3 border bg-green-50 dark:bg-green-950/20 dark:border-green-900 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3"
-                    >
-                      <div>
-                        <p className="font-semibold">{i.materiaNombre}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {i.turno} {i.anio}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => consultarInscriptos(i)}
-                          disabled={loadingInscriptos}
-                          className="flex-1 sm:flex-none bg-blue-400 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700 text-white"
-                        >
-                          <Users className="mr-2 h-4 w-4" />
-                          Ver
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleEliminarInscripcion(i)}
-                          disabled={loadingEliminacion === i.id}
-                          className="flex-1 sm:flex-none"
-                        >
-                          {loadingEliminacion === i.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+            <CardContent className="space-y-4">
+              <Select
+                value={mesaSeleccionada}
+                onValueChange={setMesaSeleccionada}
+                disabled={!materiaSeleccionada}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un turno" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mesas.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m} {calcularAnio(m)}
+                    </SelectItem>
                   ))}
-                </div>
-              )}
+                </SelectContent>
+              </Select>
+
+              <Button
+                className="w-full"
+                disabled={
+                  !materiaSeleccionada || !mesaSeleccionada || isInscribiendo
+                }
+                onClick={handleInscribirse}
+              >
+                {isInscribiendo ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                )}
+                Confirmar Inscripción
+              </Button>
             </CardContent>
           </Card>
 
-          {showConfirmacion && (
-            <Modal
-              isOpen={showConfirmacion}
-              onClose={() => setShowConfirmacion(false)}
-              title="Confirmar Inscripción"
-            >
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium">Materia:</p>
-                  <p>{state.materiaSeleccionada?.nombre}</p>
-                </div>
-                <div>
-                  <p className="font-medium">Mesa:</p>
-                  <p>
-                    {state.mesaSeleccionada} {state.anioSeleccionado}
-                  </p>
-                </div>
-                <div className="bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
-                  Se notificará a otros estudiantes inscriptos.
-                </div>
-              </div>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleConfirmarInscripcion}
-                  disabled={loadingInscripcion}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                >
-                  {loadingInscripcion ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Inscribiendo...
-                    </>
-                  ) : (
-                    "Confirmar"
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirmacion(false)}
-                  disabled={loadingInscripcion}
-                  className="w-full"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </Modal>
-          )}
+          <MisInscripciones
+            inscripciones={misInscripciones}
+            onBaja={darseDeBaja}
+            onVer={consultarInscriptos} // ¡Ahora sí existe!
+            isProcessing={isDandoseDeBaja}
+          />
+        </div>
+      </div>
 
-          <Modal
-            isOpen={showInscriptos}
-            onClose={closeInscriptosModal}
-            title={`Inscriptos a ${
-              inscripcionConsultada?.materiaNombre || "la materia"
-            }`}
-          >
-            {inscripcionConsultada && (
-              <p className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-md mb-4 text-sm">
-                Mesa: {inscripcionConsultada.turno} {inscripcionConsultada.anio}
-              </p>
-            )}
-            <div className="max-h-96 overflow-y-auto pr-2">
-              {loadingInscriptos ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-500 dark:text-blue-400" />
-                </div>
-              ) : inscriptosConsulta.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  No hay otros inscriptos.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {inscriptosConsulta.map((i) => (
-                    <div
-                      key={i.id}
-                      className="p-3 border rounded-md flex justify-between items-center"
-                    >
-                      <p className="font-medium">
-                        {i.estudianteNombre}{" "}
-                        {i.estudianteId === state.persona?.id && (
-                          <span className="text-xs font-normal text-blue-600 dark:text-blue-400">
-                            (Tú)
-                          </span>
-                        )}
-                      </p>
-                      {i.email && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => i.email && copiarEmail(i.email)}
-                        >
-                          <ClipboardCopy className="h-4 w-4 mr-2" />
-                          Copiar Email
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+      {/* --- MODAL DE INSCRIPTOS --- */}
+      <Modal
+        isOpen={showInscriptos}
+        onClose={closeInscriptosModal}
+        title={`Inscriptos a ${
+          inscripcionConsultada?.materiaNombre || "la materia"
+        }`}
+      >
+        {inscripcionConsultada && (
+          <p className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-md mb-4 text-sm">
+            Mesa: {inscripcionConsultada.turno} {inscripcionConsultada.anio}
+          </p>
+        )}
+        <div className="max-h-96 overflow-y-auto pr-2">
+          {loadingInscriptos ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-500 dark:text-blue-400" />
             </div>
-          </Modal>
-        </>
-      )}
+          ) : inscriptosConsulta.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No hay otros inscriptos.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {inscriptosConsulta.map((i) => (
+                <div
+                  key={i.id}
+                  className="p-3 border rounded-md flex justify-between items-center"
+                >
+                  <p className="font-medium">
+                    {i.estudianteNombre}{" "}
+                    {i.estudianteId === persona?.id && (
+                      <span className="text-xs font-normal text-blue-600 dark:text-blue-400">
+                        (Tú)
+                      </span>
+                    )}
+                  </p>
+                  {i.email && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => i.email && copiarEmail(i.email)}
+                    >
+                      <ClipboardCopy className="h-4 w-4 mr-2" />
+                      Copiar Email
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

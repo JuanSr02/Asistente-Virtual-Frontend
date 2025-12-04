@@ -47,7 +47,7 @@ const historiaAcademicaService = {
   },
 
   /**
-   * Carga la historia académica desde un archivo Excel
+   * Carga la historia académica desde un archivo Excel/PDF
    */
   cargarHistoriaAcademica: async (
     file: File,
@@ -58,10 +58,11 @@ const historiaAcademicaService = {
       const formData = new FormData();
       formData.append("file", file);
 
+      // CORRECCIÓN: Eliminamos el header manual Content-Type
+      // Aumentamos el timeout porque el procesamiento de archivos puede tardar
       const config = {
-        headers: { "Content-Type": "multipart/form-data" },
         params: { codigoPlan },
-        timeout: 20000, // 20 segundos
+        timeout: 60000, // 60 segundos
       };
 
       const response = await api.post(
@@ -75,8 +76,6 @@ const historiaAcademicaService = {
       throw error;
     }
   },
-
- 
 
   /**
    * Elimina la historia académica de un estudiante

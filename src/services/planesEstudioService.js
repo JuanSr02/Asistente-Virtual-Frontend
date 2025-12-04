@@ -17,11 +17,9 @@ const planesEstudioService = {
       const formData = new FormData();
       formData.append("file", file);
 
-      const config = { headers: { "Content-Type": "multipart/form-data" } };
       const response = await api.post(
         API_ROUTES.ADMIN.CARGAR_PLAN,
-        formData,
-        config
+        formData
       );
       return response.data;
     } catch (error) {
