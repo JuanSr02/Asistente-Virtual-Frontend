@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookCopy, Calendar, TrendingUp } from "lucide-react";
+import { BookCopy, Calendar, ThumbsUp } from "lucide-react";
 
 interface ResultadosProps {
   recomendaciones: any[];
@@ -21,8 +21,18 @@ export function ResultadosRecomendacion({
 }: ResultadosProps) {
   if (recomendaciones.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>No se encontraron materias sugeridas para este criterio.</p>
+      <div className="text-center py-12 flex flex-col items-center gap-4 animate-fade-in">
+        <div className="h-20 w-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+          <ThumbsUp className="h-10 w-10 text-green-600 dark:text-green-400" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-foreground">
+            ¡Felicitaciones!
+          </h3>
+          <p className="text-muted-foreground mt-1">
+            No tienes más finales para rendir.
+          </p>
+        </div>
       </div>
     );
   }
@@ -37,7 +47,7 @@ export function ResultadosRecomendacion({
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <div className="flex gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm flex-shrink-0">
                   {index + 1}
                 </div>
                 <div>
@@ -50,7 +60,7 @@ export function ResultadosRecomendacion({
                 </div>
               </div>
               {criterio === "ESTADISTICAS" && final.estadisticas && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="hidden sm:inline-flex">
                   Aprobación: {final.estadisticas.porcentajeAprobados}%
                 </Badge>
               )}

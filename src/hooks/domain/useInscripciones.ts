@@ -1,14 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import inscripcionService from "@/services/inscripcionService";
+import materiaService from "@/services/materiaService"; // Necesitamos esto
 import { studentKeys } from "@/lib/query-keys";
 import { toast } from "sonner";
 
 export function useInscripciones(
-  personaId: number | undefined, // CAMBIO: Recibe número
+  personaId: number | undefined,
   tieneHistoria: boolean
 ) {
   const queryClient = useQueryClient();
-  // Usamos string para la key, pero el ID real es number
   const personaKey = personaId?.toString() || "0";
 
   // 1. Materias Disponibles
@@ -19,15 +19,62 @@ export function useInscripciones(
     enabled: !!personaId && tieneHistoria,
   });
 
-  // 2. Mis Inscripciones
+  // 2. Mis Inscripciones (Con enriquecimiento de nombres)
   const misInscripcionesQuery = useQuery({
     queryKey: studentKeys.misInscripciones(personaKey),
-    queryFn: () =>
-      inscripcionService.obtenerInscripcionesEstudiante(personaId!),
+    queryFn: async () => {
+      // a. Obtener inscripciones crudas (sin nombres bonitos a veces)
+      const inscripciones =
+        await inscripcionService.obtenerInscripcionesEstudiante(personaId!);
+
+      if (!inscripciones || inscripciones.length === 0) return [];
+
+      // b. Filtrar las que no tienen nombre
+      const sinNombre = inscripciones.filter((i: any) => !i.materiaNombre);
+      if (sinNombre.length === 0) return inscripciones;
+
+      // c. Buscar nombres faltantes (Lógica "Enriquecer" restaurada)
+      try {
+        // Crear lista de códigos únicos para consultar
+        const materiasABuscar = sinNombre.map((i: any) => ({
+          codigo: i.materiaCodigo,
+          plan: i.materiaPlan,
+        }));
+
+        // Eliminar duplicados para no consultar lo mismo 2 veces
+        const unicas = materiasABuscar.filter(
+          (m: any, index: number, self: any[]) =>
+            index ===
+            self.findIndex((t) => t.codigo === m.codigo && t.plan === m.plan)
+        );
+
+        if (unicas.length > 0) {
+          const infoMaterias =
+            await materiaService.obtenerMateriasPorCodigos(unicas);
+          // Crear mapa rápido codigo-plan -> nombre
+          const mapaNombres: Record<string, string> = {};
+          infoMaterias.forEach((m: any) => {
+            mapaNombres[`${m.codigo}-${m.plan_de_estudio_codigo}`] = m.nombre;
+          });
+
+          // Asignar nombres encontrados
+          return inscripciones.map((i: any) => ({
+            ...i,
+            materiaNombre:
+              i.materiaNombre ||
+              mapaNombres[`${i.materiaCodigo}-${i.materiaPlan}`] ||
+              `Materia ${i.materiaCodigo}`, // Fallback
+          }));
+        }
+      } catch (err) {
+        console.error("Error enriqueciendo nombres:", err);
+      }
+      return inscripciones;
+    },
     enabled: !!personaId && tieneHistoria,
   });
 
-  // 3. Mutación: Inscribirse
+  // 3. Mutaciones (Inscripción / Baja) - Sin cambios mayores
   const inscribirseMutation = useMutation({
     mutationFn: inscripcionService.crearInscripcion,
     onSuccess: () => {
@@ -50,7 +97,6 @@ export function useInscripciones(
     },
   });
 
-  // 4. Mutación: Eliminar Inscripción
   const bajaMutation = useMutation({
     mutationFn: inscripcionService.eliminarInscripcion,
     onSuccess: () => {
@@ -70,7 +116,7 @@ export function useInscripciones(
   const materiasFiltradas =
     disponiblesQuery.data?.filter((materia) => {
       const yaInscripto = misInscripcionesQuery.data?.some(
-        (ins) => ins.materiaCodigo === materia.codigo
+        (ins: any) => ins.materiaCodigo === materia.codigo
       );
       return !yaInscripto;
     }) || [];
