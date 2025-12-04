@@ -40,12 +40,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-
-// Tipos auxiliares
-interface User {
-  id: string;
-  email: string;
-}
+import { type User } from "@supabase/supabase-js";
 
 interface EstadisticasMateria {
   porcentajeAprobados: number;
@@ -127,7 +122,7 @@ export default function Recomendacion({ user }: { user: User }) {
         user.id
       );
       if (!personaData)
-        personaData = await personaService.obtenerPersonaPorEmail(user.email);
+        personaData = await personaService.obtenerPersonaPorEmail(user.email || "");
       if (!personaData) {
         updateState({
           error: "No se encontró tu perfil en el sistema.",

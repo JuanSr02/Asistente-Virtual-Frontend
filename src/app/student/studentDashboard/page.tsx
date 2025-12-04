@@ -14,17 +14,13 @@ import {
   BarChart3,
   UserCircle,
   LayoutDashboard,
+  Loader2,
 } from "lucide-react";
+import { type User } from "@supabase/supabase-js";
 
-// Tipos
-interface User {
-  id: string;
-  email: string;
-  // Agrega otras propiedades si el objeto user las tiene
-}
 
 interface StudentDashboardProps {
-  user: User;
+  user: User; // Ahora usa el tipo oficial
 }
 
 // Función para detectar si es dispositivo móvil
@@ -43,7 +39,7 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
       : dashboardState?.activeTab || "recomendacion"
   );
 
-  // NUEVO: Estado para controlar si hay operaciones críticas
+  // Estado para controlar si hay operaciones críticas
   const [criticalOperationInProgress, setCriticalOperationInProgress] =
     useState(false);
 
@@ -60,7 +56,7 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
     }
   }, [dashboardState?.activeTab]);
 
-  // NUEVO: Escuchar eventos de operaciones críticas desde el componente Recomendacion
+  // Escuchar eventos de operaciones críticas
   useEffect(() => {
     const handleCriticalOperationStart = () => {
       setCriticalOperationInProgress(true);
@@ -88,7 +84,7 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
     };
   }, []);
 
-  // NUEVO: Prevenir navegación durante operaciones críticas (solo en desktop)
+  // Prevenir navegación durante operaciones críticas (solo en desktop)
   useEffect(() => {
     if (!esDispositivoMovil() && criticalOperationInProgress) {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -104,7 +100,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
             "Hay una operación crítica en progreso. ¿Estás seguro de que quieres salir? Esto podría causar problemas con la persistencia de datos."
           );
           if (!confirmLeave) {
-            // Prevenir la navegación
             window.history.pushState(null, "", window.location.href);
           }
         }
@@ -112,8 +107,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
 
       window.addEventListener("beforeunload", handleBeforeUnload);
       window.addEventListener("popstate", handlePopState);
-
-      // Agregar estado al historial para detectar navegación hacia atrás
       window.history.pushState(null, "", window.location.href);
 
       return () => {
@@ -124,13 +117,12 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
   }, [criticalOperationInProgress]);
 
   const handleTabChange = (tab: string) => {
-    // NUEVO: Prevenir cambio de pestaña durante operaciones críticas (solo en desktop)
     if (!esDispositivoMovil() && criticalOperationInProgress) {
       const confirmChange = window.confirm(
         "Hay una operación crítica en progreso. ¿Estás seguro de que quieres cambiar de pestaña? Esto podría causar problemas con la persistencia de datos."
       );
       if (!confirmChange) {
-        return; // No cambiar de pestaña
+        return;
       }
     }
 
@@ -150,9 +142,21 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
 
     window.addEventListener("changeTab", handleChangeTab);
     return () => window.removeEventListener("changeTab", handleChangeTab);
-  }, [activeTab, criticalOperationInProgress]); // Agregar criticalOperationInProgress como dependencia
+  }, [activeTab, criticalOperationInProgress]);
 
-  // Array de pestañas para un código más limpio
+  // --- CHECK DEFENSIVO: Si no hay usuario, mostramos carga o error ---
+  // Esto previene el crash al intentar leer user.email más abajo
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+        <p className="text-muted-foreground">
+          Cargando perfil del estudiante...
+        </p>
+      </div>
+    );
+  }
+
   const tabs = [
     { id: "recomendacion", label: "Sugerencias", icon: GraduationCap },
     { id: "experiencias", label: "Experiencias", icon: MessageSquareQuote },
@@ -187,7 +191,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
 
   return (
     <div className="flex-1 flex flex-col bg-muted/30 dark:bg-background">
-      {/* NUEVO: Indicador de operación crítica en progreso */}
       {!esDispositivoMovil() && criticalOperationInProgress && (
         <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium dark:bg-yellow-600">
           ⚠️ Operación en progreso - No cierres esta ventana ni cambies de
@@ -195,11 +198,10 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
         </div>
       )}
 
-      {/* Barra de navegación de pestañas */}
+      {/* Barra de navegación */}
       <nav className="bg-background border-b border-border sticky top-16 z-30">
         <div className="container mx-auto px-2 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            {/* Contenedor de pestañas con scroll horizontal en móvil */}
             <div className="flex-1 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1 sm:pb-0">
               <div className="inline-flex items-center">
                 {tabs.map((tab) => (
@@ -230,7 +232,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
                     }
                   >
                     <tab.icon className="h-5 w-5 flex-shrink-0" />
-                    {/* El texto se muestra a partir de 'sm' para algunas y 'md' para otras */}
                     <span
                       className={`
                         ${["perfil", "estadisticas"].includes(tab.id) ? "hidden sm:inline" : ""}
@@ -243,10 +244,10 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
                 ))}
               </div>
             </div>
-            {/* Información del usuario (oculto en pantallas muy pequeñas) */}
             <div className="hidden lg:block text-right pl-4">
               <span className="text-xs text-muted-foreground truncate">
-                Usuario: {user.email}
+                {/* AQUI ESTABA EL ERROR: Usamos optional chaining por seguridad extra */}
+                Usuario: {user?.email}
               </span>
             </div>
           </div>
