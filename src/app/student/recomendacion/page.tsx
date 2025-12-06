@@ -83,7 +83,6 @@ export default function Recomendacion({ user }: { user: User }) {
     }
   };
 
-  // [NUEVO] Handler con confirmación
   const handleDeleteHistoria = async () => {
     const ok = await confirm({
       title: "¿Eliminar Historia Académica?",
@@ -233,15 +232,16 @@ export default function Recomendacion({ user }: { user: User }) {
             </div>
 
             {isLoadingRecs ? (
-              <div className="grid gap-4">
-                {[1, 2].map((i) => (
-                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-32 w-full rounded-xl" />
                 ))}
               </div>
             ) : (
               <ResultadosRecomendacion
                 recomendaciones={recomendaciones}
                 criterio={criterio}
+                planCodigo={historia?.plan_de_estudio_codigo}
               />
             )}
           </div>

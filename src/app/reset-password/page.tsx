@@ -23,7 +23,7 @@ import {
   Loader2,
   PartyPopper,
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function ResetPassword() {
@@ -34,26 +34,11 @@ export default function ResetPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
   const [errors, setErrors] = useState({
     newPassword: "",
     confirmPassword: "",
   });
-
-  const showToast = ({
-    title,
-    description,
-    variant = "default",
-    duration = 5000,
-  }: {
-    title: string;
-    description: string;
-    variant?: "default" | "destructive";
-    duration?: number;
-  }) => {
-    toast({ title, description, variant, duration });
-  };
 
   const validatePassword = (password: string) => {
     if (password.trim() && password.length < 8) {
@@ -99,13 +84,11 @@ export default function ResetPassword() {
     e.preventDefault();
     const passwordError = validatePassword(newPassword);
     const confirmError = validateConfirmPassword(newPassword, confirmPassword);
-    
+
     if (passwordError || confirmError) {
       setErrors({ newPassword: passwordError, confirmPassword: confirmError });
-      showToast({
-        title: "❌ Error de validación",
-        description: "Por favor corrige los errores antes de continuar",
-        variant: "destructive",
+      toast.error("Error de validación", {
+        description: "Por favor corrige los errores antes de continuar.",
       });
       return;
     }
@@ -116,52 +99,42 @@ export default function ResetPassword() {
         password: newPassword,
       });
       if (error) {
-        showToast({
-          title: "❌ Error al actualizar",
+        toast.error("Error al actualizar", {
           description: error.message,
-          variant: "destructive",
-          duration: 6000,
         });
       } else {
         setSuccess(true);
-        showToast({
-          title: "✅ Contraseña actualizada",
-          description: "Tu contraseña ha sido actualizada correctamente",
-          duration: 5000,
+        toast.success("Contraseña actualizada", {
+          description: "Tu contraseña ha sido actualizada correctamente.",
         });
         setTimeout(() => {
           router.push("/auth");
         }, 3000);
       }
     } catch (error) {
-      showToast({
-        title: "❌ Error inesperado",
-        description: "Ocurrió un error al actualizar la contraseña",
-        variant: "destructive",
-        duration: 6000,
+      toast.error("Error inesperado", {
+        description: "Ocurrió un error al intentar actualizar la contraseña.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Lógica de clases dinámica optimizada para dark mode
+  // Helper de estilos consistente con Auth
   const getInputClasses = (hasError: boolean, hasContent: boolean) => {
     return cn(
-      "h-10 pr-10 transition-all",
-      // Base y Focus
+      "h-10 pr-10 transition-all bg-slate-50/50 dark:bg-slate-900/50",
       "border-input focus-visible:ring-2 focus-visible:ring-offset-0",
-      // Estados
       hasError
-        ? "border-red-500 focus-visible:ring-red-400 dark:border-red-700 dark:focus-visible:ring-red-900"
+        ? "border-red-500 focus-visible:ring-red-500 dark:border-red-700"
         : hasContent
-        ? "border-green-500 focus-visible:ring-green-400 dark:border-green-700 dark:focus-visible:ring-green-900"
-        : "focus-visible:ring-blue-400 dark:focus-visible:ring-blue-800"
+          ? "border-green-500 focus-visible:ring-green-500 dark:border-green-600"
+          : "focus-visible:ring-blue-400 dark:focus-visible:ring-blue-800"
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4 dark:bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4 dark:bg-background animate-in fade-in duration-500">
       <Card className="w-full max-w-md mx-auto shadow-lg border-border rounded-xl">
         <CardHeader className="p-6 text-center">
           <div className="mx-auto h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-3">
@@ -177,8 +150,8 @@ export default function ResetPassword() {
 
         <CardContent className="p-6 pt-0">
           {success ? (
-            <div className="text-center space-y-4 py-8 animate-fade-in">
-              <PartyPopper className="mx-auto h-16 w-16 text-green-500 dark:text-green-400" />
+            <div className="text-center space-y-4 py-8 animate-in zoom-in-95 duration-300">
+              <PartyPopper className="mx-auto h-16 w-16 text-green-500 dark:text-green-400 animate-bounce" />
               <h3 className="text-xl font-semibold text-foreground">
                 ¡Contraseña Actualizada!
               </h3>
