@@ -6,6 +6,8 @@ import { APP_CONFIG } from "@/lib/config";
 import { TableSkeleton } from "@/components/Skeleton";
 import MateriasModal from "@/components/modals/MateriasModal";
 import { PlanEstudio } from "@/services/planesEstudioService";
+import { useModal } from "@/stores/modal-store"; // [NUEVO]
+import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
 import {
   Upload,
   BookOpen,
@@ -25,7 +27,6 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function PlanesEstudio() {
-  // Hook de dominio (Lógica desacoplada)
   const {
     planes,
     isLoading,
@@ -36,10 +37,18 @@ export default function PlanesEstudio() {
     isDeleting,
   } = usePlanesEstudio();
 
-  // Estado UI local (Transitorio)
+  // Estados locales para selección
   const [selectedPlan, setSelectedPlan] = useState<PlanEstudio | null>(null);
-  const [showMateriasModal, setShowMateriasModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // [NUEVO] Hooks de UI Global
+  const {
+    isOpen: showMateriasModal,
+    openModal: openMateriasModal,
+    closeModal: closeMateriasModal,
+  } = useModal("admin-materias-modal");
+
+  const { confirm } = useConfirm();
 
   const handleSelectPlan = (plan: PlanEstudio) => {
     setSelectedPlan((prev) => (prev?.codigo === plan.codigo ? null : plan));
@@ -67,12 +76,16 @@ export default function PlanesEstudio() {
 
   const handleDeletePlan = async () => {
     if (!selectedPlan) return;
-    if (
-      !confirm(
-        `¿Seguro que desea eliminar el plan ${selectedPlan.propuesta}? Esto es irreversible.`
-      )
-    )
-      return;
+
+    // [NUEVO] Confirmación bonita
+    const ok = await confirm({
+      title: "¿Eliminar Plan de Estudio?",
+      description: `Se eliminará el plan "${selectedPlan.propuesta}" y todas sus materias asociadas. Esta acción no se puede deshacer.`,
+      confirmText: "Sí, eliminar",
+      variant: "destructive",
+    });
+
+    if (!ok) return;
 
     try {
       await deletePlan(selectedPlan.codigo);
@@ -80,6 +93,11 @@ export default function PlanesEstudio() {
     } catch (e) {
       // Error manejado en hook
     }
+  };
+
+  const handleVerMaterias = () => {
+    if (!selectedPlan) return;
+    openMateriasModal(); // [NUEVO] Abrir vía store
   };
 
   return (
@@ -90,14 +108,13 @@ export default function PlanesEstudio() {
           Planes de Estudio
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground mt-1">
-          Administra los planes de estudio.
+          Administra los planes de estudio y sus materias.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="p-4 sm:p-6 space-y-6">
-        {/* --- BARRA DE ACCIONES --- */}
+        {/* Barra de Acciones */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-between lg:items-end gap-4 p-4 bg-muted/50 border border-border rounded-lg">
-          {/* Carga */}
           <div className="relative w-full lg:w-auto">
             <input
               type="file"
@@ -127,11 +144,10 @@ export default function PlanesEstudio() {
             </p>
           </div>
 
-          {/* Acciones sobre selección */}
           <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
             <Button
               variant="outline"
-              onClick={() => setShowMateriasModal(true)}
+              onClick={handleVerMaterias}
               disabled={!selectedPlan}
               className="w-full sm:w-auto"
             >
@@ -154,7 +170,7 @@ export default function PlanesEstudio() {
           </div>
         </div>
 
-        {/* --- ESTADO ERROR --- */}
+        {/* Error */}
         {isError && (
           <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-center gap-3">
             <AlertTriangle className="h-5 w-5" />
@@ -162,7 +178,7 @@ export default function PlanesEstudio() {
           </div>
         )}
 
-        {/* --- TABLA DE PLANES --- */}
+        {/* Tabla */}
         <div className="w-full overflow-x-auto rounded-lg border border-border">
           {isLoading ? (
             <div className="p-4">
@@ -220,7 +236,7 @@ export default function PlanesEstudio() {
 
         <MateriasModal
           isOpen={showMateriasModal}
-          onClose={() => setShowMateriasModal(false)}
+          onClose={closeMateriasModal} // [NUEVO] Cerrar vía store
           plan={selectedPlan}
         />
       </CardContent>
