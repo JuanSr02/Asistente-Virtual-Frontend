@@ -6,8 +6,12 @@ import "@/app/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/providers/query-provider";
-import Link from "next/link";
 import { ConfirmDialogProvider } from "@/components/providers/confirm-dialog-provider";
+import { Inter } from "next/font/google";
+import Link from "next/link";
+
+// Configuración de fuente
+const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,
@@ -28,9 +32,8 @@ export default function RootLayout({
 
   useEffect(() => {
     initializeAuth();
-    // El listener de auth state change es útil para limpiar caché de React Query si cambia el usuario
     const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      // Opcional: queryClient.clear() aquí si fuera necesario
+      // Opcional: invalidar queries aquí si fuera necesario
     });
     return () => {
       authListener.subscription.unsubscribe();
@@ -44,25 +47,29 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
 
-      <body className="min-h-screen flex flex-col bg-background text-foreground">
+      <body
+        className={`${inter.className} min-h-screen flex flex-col bg-background text-foreground antialiased`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
+          {/* 1. QUERY PROVIDER (Datos) */}
           <QueryProvider>
+            {/* 2. CONFIRM DIALOG PROVIDER (Modales de confirmación) */}
             <ConfirmDialogProvider>
-              {/* Si no está inicializado, mostramos spinner para evitar flash */}
               {!isInitialized ? (
                 <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
                   <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
-                  <main className="flex-1">{children}</main>
+                  <main className="flex-1 flex flex-col">{children}</main>
 
-                  <Toaster />
+                  {/* 3. TOASTER GLOBAL (Notificaciones) */}
+                  <Toaster position="top-right" richColors />
 
                   <footer className="bg-muted text-muted-foreground border-t border-border py-4 px-4 sm:px-6 lg:px-8">
                     <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-2">
@@ -88,12 +95,13 @@ export default function RootLayout({
                         </Link>
                       </div>
                       <span className="text-xs text-muted-foreground/80">
-                        Desarrollado por Juan Sánchez
+                        Desarrollado por Juan Sánchez 💻
                       </span>
                     </div>
                   </footer>
                 </>
               )}
+              {/* Portal para Modales */}
               <div id="modal-root"></div>
             </ConfirmDialogProvider>
           </QueryProvider>
