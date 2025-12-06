@@ -1,8 +1,19 @@
 import api from "./api";
-import { API_ROUTES } from "../lib/config";
+import { API_ROUTES } from "@/lib/config";
+
+export interface PlanEstudio {
+  codigo: string;
+  propuesta: string;
+  cantidadMaterias: number;
+}
+
+export interface CargaPlanResponse {
+  propuesta: string;
+  cantidadMateriasCargadas: number;
+}
 
 const planesEstudioService = {
-  obtenerPlanes: async () => {
+  obtenerPlanes: async (): Promise<PlanEstudio[]> => {
     try {
       const response = await api.get(API_ROUTES.SHARED.PLANES_ESTUDIO);
       return response.data;
@@ -12,15 +23,13 @@ const planesEstudioService = {
     }
   },
 
-  cargarPlan: async (file) => {
+  cargarPlan: async (file: File): Promise<CargaPlanResponse> => {
     try {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await api.post(
-        API_ROUTES.ADMIN.CARGAR_PLAN,
-        formData
-      );
+      // Axios gestiona el boundary automáticamente al no setear Content-Type
+      const response = await api.post(API_ROUTES.ADMIN.CARGAR_PLAN, formData);
       return response.data;
     } catch (error) {
       console.error("Error al cargar plan de estudio:", error);
@@ -28,19 +37,19 @@ const planesEstudioService = {
     }
   },
 
-  eliminarPlan: async (codigoPlan) => {
+  eliminarPlan: async (codigoPlan: string): Promise<void> => {
     try {
-      const response = await api.delete(
+      await api.delete(
         `${API_ROUTES.ADMIN.ELIMINAR_PLAN}?codigo=${codigoPlan}`
       );
-      return response.data;
     } catch (error) {
       console.error("Error al eliminar plan de estudio:", error);
       throw error;
     }
   },
 
-  obtenerMateriasPorPlan: async (codigoPlan) => {
+  // Usado por el modal de materias
+  obtenerMateriasPorPlan: async (codigoPlan: string): Promise<any[]> => {
     try {
       const response = await api.get(
         `${API_ROUTES.SHARED.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`

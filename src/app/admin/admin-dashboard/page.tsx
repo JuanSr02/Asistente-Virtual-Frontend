@@ -1,78 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import PlanesEstudio from "../planes-estudio/page";
 import Estadisticas from "../estadisticas/page";
 import Perfil from "@/app/perfil/page";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
-import { BookOpen, BarChart3, UserCircle, LayoutDashboard } from "lucide-react";
+import { useUIStore } from "@/stores/ui-store";
+import { BookOpen, BarChart3, UserCircle } from "lucide-react";
 import { type User } from "@supabase/supabase-js";
+
 interface AdminDashboardProps {
   user: User;
 }
 
 export default function AdminDashboard({ user }: AdminDashboardProps) {
-  const { dashboardState, setDashboardState, updateLastVisited } =
-    useSessionPersistence();
-  const [activeTab, setActiveTab] = useState<string>(dashboardState.activeTab);
+  const { activeTab, setActiveTab } = useUIStore();
 
-  useEffect(() => {
-    updateLastVisited();
-  }, []);
-
-  useEffect(() => {
-    setActiveTab(dashboardState.activeTab);
-  }, [dashboardState.activeTab]);
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setDashboardState("activeTab", tab);
-    updateLastVisited();
-  };
-
-  useEffect(() => {
-    const handleChangeTab = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const newTab = customEvent.detail;
-      if (newTab && newTab !== activeTab) {
-        handleTabChange(newTab);
-      }
-    };
-    window.addEventListener("changeTab", handleChangeTab);
-    return () => window.removeEventListener("changeTab", handleChangeTab);
-  }, [activeTab]);
-
-  // Array de pestañas para evitar repetición en el JSX
+  // Lista de pestañas disponibles para Admin
   const tabs = [
     { id: "planes", label: "Planes de Estudio", icon: BookOpen },
     { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     { id: "perfil", label: "Perfil", icon: UserCircle },
   ];
 
+  // Efecto para asegurar una pestaña válida al montar
+  useEffect(() => {
+    const validTabs = tabs.map((t) => t.id);
+    // Si la tab guardada no es válida para admin (ej: viene de student), forzamos 'planes'
+    if (!validTabs.includes(activeTab)) {
+      setActiveTab("planes");
+    }
+  }, []);
+
+  // Compatibilidad con el Header (Botón Perfil)
+  useEffect(() => {
+    const handleChangeTab = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail) {
+        setActiveTab(customEvent.detail);
+      }
+    };
+    window.addEventListener("changeTab", handleChangeTab);
+    return () => window.removeEventListener("changeTab", handleChangeTab);
+  }, [setActiveTab]);
+
   const renderContent = () => {
     switch (activeTab) {
-      case "planes":
-        return <PlanesEstudio />;
       case "estadisticas":
         return <Estadisticas />;
       case "perfil":
         return <Perfil />;
+      case "planes":
       default:
-        return (
-          <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
-            <LayoutDashboard className="w-12 h-12 text-gray-300 dark:text-gray-600" />
-            <p className="text-lg">
-              Selecciona una opción del menú para comenzar.
-            </p>
-          </div>
-        );
+        // Por defecto siempre Planes, adiós al estado vacío
+        return <PlanesEstudio />;
     }
   };
 
   return (
     <div className="flex-1 flex flex-col bg-muted/30 dark:bg-background">
       {/* Barra de navegación de pestañas */}
-      <nav className="bg-background border-b border-gray-200 dark:border-gray-800 sticky top-16 z-30">
+      <nav className="bg-background border-b border-border sticky top-16 z-30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             {/* Pestañas de navegación */}
@@ -80,7 +67,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`
                     inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3 
                     text-sm font-medium border-b-2 transition-colors duration-200
@@ -93,13 +80,12 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   aria-current={activeTab === tab.id ? "page" : undefined}
                 >
                   <tab.icon className="h-5 w-5" />
-                  {/* El texto de la pestaña se muestra solo en pantallas 'sm' y más grandes */}
                   <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Información del usuario (oculto en pantallas muy pequeñas) */}
+            {/* Información del usuario */}
             <div className="hidden md:block text-right">
               <span className="text-xs text-muted-foreground">
                 Usuario: {user.email}

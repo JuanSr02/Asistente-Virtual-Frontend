@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import EstadisticasGenerales from "../estadisticas-generales/page";
-import EstadisticasMateria from "../../estadisticasMateria/page";
+import EstadisticasMateria from "@/app/estadisticasMateria/page"; // Nota: Ruta absoluta legacy, se podría mover a admin/
 import EstadisticasPorCarrera from "../estadisticas-por-carrera/page";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import {
   ListChecks,
   BarChart3,
@@ -21,41 +20,15 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-// Definimos la interfaz para los objetos de las pestañas
 interface TabItem {
   id: string;
   label: string;
   icon: LucideIcon;
 }
 
-// Como no tengo el archivo del hook, defino una interfaz local para lo que esperamos recibir.
-// Lo ideal sería que el hook useSessionPersistence ya exportara sus propios tipos.
-interface EstadisticasState {
-  activeTab: string;
-}
-
 export default function Estadisticas() {
-  // Tipamos el retorno del hook (si el hook no está tipado en su origen)
-  const { estadisticasState, setEstadisticasState } =
-    useSessionPersistence() as {
-      estadisticasState: EstadisticasState;
-      setEstadisticasState: (key: string, value: string) => void;
-    };
-
-  const [activeTab, setActiveTab] = useState<string>(
-    estadisticasState?.activeTab || "generales"
-  );
-
-  useEffect(() => {
-    if (estadisticasState?.activeTab) {
-      setActiveTab(estadisticasState.activeTab);
-    }
-  }, [estadisticasState?.activeTab]);
-
-  const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
-    setEstadisticasState("activeTab", tabId);
-  };
+  // Estado local simple. No necesitamos persistencia compleja aquí.
+  const [activeTab, setActiveTab] = useState("generales");
 
   const tabs: TabItem[] = [
     { id: "generales", label: "Generales", icon: ListChecks },
@@ -63,26 +36,19 @@ export default function Estadisticas() {
     { id: "carrera", label: "Por Carrera", icon: GraduationCap },
   ];
 
-  const renderContent = (): JSX.Element => {
+  const renderContent = () => {
     switch (activeTab) {
-      case "generales":
-        return <EstadisticasGenerales />;
       case "materia":
         return <EstadisticasMateria />;
       case "carrera":
         return <EstadisticasPorCarrera />;
+      case "generales":
       default:
-        return (
-          <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
-            <LineChart className="w-12 h-12 text-gray-300 dark:text-gray-600" />
-            <p className="text-lg">Contenido no disponible.</p>
-          </div>
-        );
+        return <EstadisticasGenerales />;
     }
   };
 
   return (
-    // Agregado dark:bg-card y bordes adaptativos
     <Card className="w-full shadow-lg border border-gray-200 dark:border-gray-800 dark:bg-card">
       <CardHeader className="p-4 sm:p-6">
         <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-3">
@@ -103,7 +69,7 @@ export default function Estadisticas() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`
                     inline-flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto
                     px-4 py-3 text-sm font-medium border-b-4 transition-all duration-200
