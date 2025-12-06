@@ -54,14 +54,12 @@ export function ResultadosRecomendacion({
                   <CardTitle className="text-lg">
                     {final.nombreMateria}
                   </CardTitle>
-                  <CardDescription>
-                    Código: {final.codigoMateria}
-                  </CardDescription>
                 </div>
               </div>
               {criterio === "ESTADISTICAS" && final.estadisticas && (
                 <Badge variant="secondary" className="hidden sm:inline-flex">
-                  Aprobación: {final.estadisticas.porcentajeAprobados}%
+                  Aprobación:{" "}
+                  {final.estadisticas.porcentajeAprobados.toFixed(2)}%
                 </Badge>
               )}
             </div>
@@ -100,7 +98,8 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
       >
         <Calendar className="h-4 w-4" />
         <span>
-          Vence el {final.fechaVencimiento} ({final.fechaRegularidad})
+          Vence el {final.fechaVencimiento} (Regularidad:{" "}
+          {final.fechaRegularidad})
         </span>
       </div>
     );
@@ -110,18 +109,20 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
     return (
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         <div className="bg-muted p-2 rounded">
-          <div className="font-bold">{final.estadisticas.promedioNotas}</div>
+          <div className="font-bold">
+            {final.estadisticas.promedioNotas.toFixed(2)}
+          </div>
           <div className="text-muted-foreground">Promedio</div>
         </div>
         <div className="bg-muted p-2 rounded">
           <div className="font-bold">
-            {final.estadisticas.promedioDiasEstudio}
+            {final.estadisticas.promedioDiasEstudio.toFixed(2)}
           </div>
           <div className="text-muted-foreground">Días Est.</div>
         </div>
         <div className="bg-muted p-2 rounded">
           <div className="font-bold">
-            {final.estadisticas.promedioDificultad}
+            {final.estadisticas.promedioDificultad.toFixed(2)}
           </div>
           <div className="text-muted-foreground">Dificultad</div>
         </div>
