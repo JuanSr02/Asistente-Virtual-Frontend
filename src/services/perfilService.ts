@@ -1,7 +1,7 @@
 import api from "./api";
 import { API_ROUTES } from "../lib/config";
 import { supabase } from "@/supabaseClient";
-import type { ActualizarPerfilDTO } from "../types/perfil";
+import type { ActualizarPerfilDTO } from "../lib/types/perfil";
 
 const perfilService = {
   /**

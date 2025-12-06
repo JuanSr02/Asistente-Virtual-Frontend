@@ -1,27 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "../supabaseClient";
-import { jwtDecode } from "jwt-decode";
+import personaService from "@/services/personaService";
 import type { User } from "@supabase/supabase-js";
 
 type UserRole = "ADMINISTRADOR" | "ESTUDIANTE" | null;
-type JwtPayload = {
-  rol_usuario?: UserRole;
-  [key: string]: any;
-};
 
-const DEFAULT_ROLE: UserRole = "ESTUDIANTE";
-
-/**
- * Hook para extraer el rol del usuario desde el JWT de Supabase
- * @param {User | null} user - Objeto de usuario provisto por Supabase (o null si no está logueado)
- * @returns {{
- *   role: UserRole,
- *   loading: boolean,
- *   error: string | null
- * }} - Objeto con el rol, estado de carga y posible error
- */
 export function useUserRole(user: User | null): {
   role: UserRole;
   loading: boolean;
@@ -38,40 +22,42 @@ export function useUserRole(user: User | null): {
       return;
     }
 
-    const getUserRoleFromToken = async (): Promise<void> => {
+    const fetchRole = async () => {
       try {
         setLoading(true);
-        setError(null);
+        // Consultamos la tabla 'persona' que es la fuente de verdad
+        const persona = await personaService.obtenerPersonaPorSupabaseId(
+          user.id
+        );
 
-        const { data, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-          throw new Error("No se pudo obtener la sesión del usuario.");
-        }
-
-        const token = data?.session?.access_token;
-        if (!token) throw new Error("Token de sesión no disponible.");
-
-        const decoded = jwtDecode<JwtPayload>(token);
-        const userRole = decoded?.rol_usuario;
-
-        if (userRole) {
-          console.log("✅ Rol extraído del JWT:", userRole);
-          setRole(userRole);
+        if (persona) {
+          // Asumimos que el string en DB coincide, si no, mapeamos
+          setRole(persona.rol_usuario as UserRole);
         } else {
-          console.warn("⚠️ JWT sin 'rol_usuario'. Usando rol por defecto.");
-          setRole(DEFAULT_ROLE);
+          // Fallback: Intentar por email si no tiene ID vinculado aun
+          const personaByEmail = await personaService.obtenerPersonaPorEmail(
+            user.email!
+          );
+          if (personaByEmail) {
+            setRole(personaByEmail.rol_usuario as UserRole);
+          } else {
+            // Si no existe en persona, por defecto es ESTUDIANTE (o null si prefieres bloquear)
+            console.warn(
+              "Usuario no encontrado en tabla persona, asignando rol por defecto."
+            );
+            setRole("ESTUDIANTE");
+          }
         }
       } catch (err) {
-        console.error("❌ Error al obtener o decodificar el JWT:", err);
-        setError("Error al obtener o decodificar el token.");
-        setRole(DEFAULT_ROLE);
+        console.error("Error obteniendo rol:", err);
+        setError("Error al verificar permisos.");
+        setRole("ESTUDIANTE"); // Fallback seguro
       } finally {
         setLoading(false);
       }
     };
 
-    getUserRoleFromToken();
+    fetchRole();
   }, [user]);
 
   return { role, loading, error };

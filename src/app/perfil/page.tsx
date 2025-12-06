@@ -31,7 +31,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ActualizarPerfilDTO } from "@/types/perfil";
+import type { ActualizarPerfilDTO } from "@/lib/types/perfil";
 import { profileSchema } from "@/lib/schemas/profile"; // NUEVO IMPORT
 
 export default function PerfilPage() {
