@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import Recomendacion from "../recomendacion/page";
 import EstadisticasMateria from "@/app/estadisticasMateria/page";
 import Inscripcion from "../inscripcion/page";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import ExperienciasExamen from "../experiencias-examen/page";
 import Perfil from "@/app/perfil/page";
+// [ELIMINADO] import { useSessionPersistence } ...
+import { useUIStore } from "@/stores/ui-store"; // [NUEVO]
 import {
   GraduationCap,
   MessageSquareQuote,
@@ -18,9 +19,8 @@ import {
 } from "lucide-react";
 import { type User } from "@supabase/supabase-js";
 
-
 interface StudentDashboardProps {
-  user: User; // Ahora usa el tipo oficial
+  user: User;
 }
 
 // Función para detectar si es dispositivo móvil
@@ -30,133 +30,14 @@ function esDispositivoMovil(): boolean {
 }
 
 export default function StudentDashboard({ user }: StudentDashboardProps) {
-  const { dashboardState, setDashboardState, updateLastVisited } =
-    useSessionPersistence();
+  // [NUEVO] Usamos el store global de UI
+  const { activeTab, setActiveTab } = useUIStore();
 
-  const [activeTab, setActiveTab] = useState<string>(
-    dashboardState?.activeTab === "planes"
-      ? "recomendacion"
-      : dashboardState?.activeTab || "recomendacion"
-  );
-
-  // Estado para controlar si hay operaciones críticas
+  // Estado para controlar si hay operaciones críticas (Mantenemos local porque es efímero)
   const [criticalOperationInProgress, setCriticalOperationInProgress] =
     useState(false);
 
-  useEffect(() => {
-    updateLastVisited();
-  }, []);
-
-  useEffect(() => {
-    if (dashboardState?.activeTab === "planes") {
-      setActiveTab("recomendacion");
-      setDashboardState("activeTab", "recomendacion");
-    } else {
-      setActiveTab(dashboardState?.activeTab || "recomendacion");
-    }
-  }, [dashboardState?.activeTab]);
-
-  // Escuchar eventos de operaciones críticas
-  useEffect(() => {
-    const handleCriticalOperationStart = () => {
-      setCriticalOperationInProgress(true);
-    };
-
-    const handleCriticalOperationEnd = () => {
-      setCriticalOperationInProgress(false);
-    };
-
-    window.addEventListener(
-      "criticalOperationStart",
-      handleCriticalOperationStart
-    );
-    window.addEventListener("criticalOperationEnd", handleCriticalOperationEnd);
-
-    return () => {
-      window.removeEventListener(
-        "criticalOperationStart",
-        handleCriticalOperationStart
-      );
-      window.removeEventListener(
-        "criticalOperationEnd",
-        handleCriticalOperationEnd
-      );
-    };
-  }, []);
-
-  // Prevenir navegación durante operaciones críticas (solo en desktop)
-  useEffect(() => {
-    if (!esDispositivoMovil() && criticalOperationInProgress) {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue =
-          "Hay una operación en progreso. ¿Estás seguro de que quieres salir?";
-        return e.returnValue;
-      };
-
-      const handlePopState = () => {
-        if (criticalOperationInProgress) {
-          const confirmLeave = window.confirm(
-            "Hay una operación crítica en progreso. ¿Estás seguro de que quieres salir? Esto podría causar problemas con la persistencia de datos."
-          );
-          if (!confirmLeave) {
-            window.history.pushState(null, "", window.location.href);
-          }
-        }
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      window.addEventListener("popstate", handlePopState);
-      window.history.pushState(null, "", window.location.href);
-
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-        window.removeEventListener("popstate", handlePopState);
-      };
-    }
-  }, [criticalOperationInProgress]);
-
-  const handleTabChange = (tab: string) => {
-    if (!esDispositivoMovil() && criticalOperationInProgress) {
-      const confirmChange = window.confirm(
-        "Hay una operación crítica en progreso. ¿Estás seguro de que quieres cambiar de pestaña? Esto podría causar problemas con la persistencia de datos."
-      );
-      if (!confirmChange) {
-        return;
-      }
-    }
-
-    setActiveTab(tab);
-    setDashboardState("activeTab", tab);
-    updateLastVisited();
-  };
-
-  useEffect(() => {
-    const handleChangeTab = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const newTab = customEvent.detail;
-      if (newTab && newTab !== activeTab) {
-        handleTabChange(newTab);
-      }
-    };
-
-    window.addEventListener("changeTab", handleChangeTab);
-    return () => window.removeEventListener("changeTab", handleChangeTab);
-  }, [activeTab, criticalOperationInProgress]);
-
-  // --- CHECK DEFENSIVO: Si no hay usuario, mostramos carga o error ---
-  // Esto previene el crash al intentar leer user.email más abajo
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
-        <p className="text-muted-foreground">
-          Cargando perfil del estudiante...
-        </p>
-      </div>
-    );
-  }
-
+  // Lista de pestañas disponibles para Estudiante
   const tabs = [
     { id: "recomendacion", label: "Sugerencias", icon: GraduationCap },
     { id: "experiencias", label: "Experiencias", icon: MessageSquareQuote },
@@ -164,6 +45,74 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
     { id: "estadisticas", label: "Estadísticas", icon: BarChart3 },
     { id: "perfil", label: "Perfil", icon: UserCircle },
   ];
+
+  // Efecto para asegurar una pestaña válida al montar
+  useEffect(() => {
+    const validTabs = tabs.map((t) => t.id);
+    if (!validTabs.includes(activeTab)) {
+      setActiveTab("recomendacion");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Escuchar eventos de operaciones críticas (Uploads masivos, etc)
+  useEffect(() => {
+    const handleStart = () => setCriticalOperationInProgress(true);
+    const handleEnd = () => setCriticalOperationInProgress(false);
+
+    window.addEventListener("criticalOperationStart", handleStart);
+    window.addEventListener("criticalOperationEnd", handleEnd);
+
+    return () => {
+      window.removeEventListener("criticalOperationStart", handleStart);
+      window.removeEventListener("criticalOperationEnd", handleEnd);
+    };
+  }, []);
+
+  // Prevenir navegación durante operaciones críticas
+  useEffect(() => {
+    if (!esDispositivoMovil() && criticalOperationInProgress) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "Operación en progreso. ¿Salir?";
+        return e.returnValue;
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () =>
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+  }, [criticalOperationInProgress]);
+
+  // Manejador seguro de cambio de pestaña
+  const handleTabChange = (tab: string) => {
+    if (!esDispositivoMovil() && criticalOperationInProgress) {
+      if (!confirm("Hay una operación en progreso. ¿Cambiar de pestaña?")) {
+        return;
+      }
+    }
+    setActiveTab(tab);
+  };
+
+  // Listener para cambios externos (ej: desde Header "Ir a Perfil")
+  useEffect(() => {
+    const handleChangeTab = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail) {
+        handleTabChange(customEvent.detail);
+      }
+    };
+    window.addEventListener("changeTab", handleChangeTab);
+    return () => window.removeEventListener("changeTab", handleChangeTab);
+  }, [criticalOperationInProgress]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+        <p className="text-muted-foreground">Cargando perfil...</p>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -178,14 +127,8 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
       case "perfil":
         return <Perfil />;
       default:
-        return (
-          <div className="text-center py-16 text-muted-foreground flex flex-col items-center gap-4">
-            <LayoutDashboard className="w-12 h-12 text-gray-300 dark:text-gray-600" />
-            <p className="text-lg">
-              Selecciona una opción del menú para comenzar.
-            </p>
-          </div>
-        );
+        // Default safe
+        return <Recomendacion user={user} />;
     }
   };
 
@@ -193,8 +136,7 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
     <div className="flex-1 flex flex-col bg-muted/30 dark:bg-background">
       {!esDispositivoMovil() && criticalOperationInProgress && (
         <div className="bg-yellow-500 text-white px-4 py-2 text-center text-sm font-medium dark:bg-yellow-600">
-          ⚠️ Operación en progreso - No cierres esta ventana ni cambies de
-          pestaña
+          ⚠️ Operación en progreso - No cierres esta ventana
         </div>
       )}
 
@@ -208,6 +150,11 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
+                    disabled={
+                      !esDispositivoMovil() &&
+                      criticalOperationInProgress &&
+                      activeTab !== tab.id
+                    }
                     className={`
                       inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3
                        text-sm font-medium border-b-2 transition-colors duration-200
@@ -224,12 +171,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
                           : ""
                       }
                     `}
-                    aria-current={activeTab === tab.id ? "page" : undefined}
-                    disabled={
-                      !esDispositivoMovil() &&
-                      criticalOperationInProgress &&
-                      activeTab !== tab.id
-                    }
                   >
                     <tab.icon className="h-5 w-5 flex-shrink-0" />
                     <span
@@ -246,7 +187,6 @@ export default function StudentDashboard({ user }: StudentDashboardProps) {
             </div>
             <div className="hidden lg:block text-right pl-4">
               <span className="text-xs text-muted-foreground truncate">
-                {/* AQUI ESTABA EL ERROR: Usamos optional chaining por seguridad extra */}
                 Usuario: {user?.email}
               </span>
             </div>

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import perfilService from "@/services/perfilService";
 import { studentKeys } from "@/lib/query-keys"; // Reutilizamos keys o creamos nuevas si fuera necesario
 import { toast } from "sonner"; // Usamos Sonner en lugar del hook legacy use-toast
-import type { ActualizarPerfilDTO } from "@/types/perfil";
+import type { ActualizarPerfilDTO } from "@/lib/types/perfil";
 import { useRouter } from "next/navigation";
 
 export function usePerfil(userId: string, rolUsuario: string) {

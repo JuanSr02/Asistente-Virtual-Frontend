@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/supabaseClient";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
 import { Loader2, LogOut, UserCircle } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { type User } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import AdminDashboard from "../admin/admin-dashboard/page";
 import StudentDashboard from "../student/studentDashboard/page";
 
@@ -14,7 +14,8 @@ export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
-  const { clearAllSession } = useSessionPersistence();
+
+  const queryClient = useQueryClient(); // [NUEVO] Para limpiar caché al salir
 
   useEffect(() => {
     const getUser = async () => {
@@ -32,14 +33,24 @@ export default function Dashboard() {
     getUser();
   }, []);
 
-  // Hook de rol
   const { role, loading: roleLoading, error: roleError } = useUserRole(user);
 
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
-      clearAllSession();
+      // 1. Limpiar caché de React Query (Datos)
+      queryClient.removeQueries();
+      queryClient.clear();
+
+      // 2. Limpiar localStorage (UI Store y persistencia vieja si queda)
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("ui-storage");
+        sessionStorage.clear();
+      }
+
+      // 3. Cerrar sesión en Supabase
       await supabase.auth.signOut();
+
       window.location.href = "/auth";
     } catch (error: any) {
       alert("Error: " + error.message);
@@ -51,7 +62,6 @@ export default function Dashboard() {
     window.dispatchEvent(new CustomEvent("changeTab", { detail: "perfil" }));
   };
 
-  // --- RENDERIZADO DE CARGA ---
   if (isUserLoading || roleLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
@@ -63,13 +73,11 @@ export default function Dashboard() {
     );
   }
 
-  // --- PROTECCIÓN DE USUARIO ---
   if (!user) {
     if (typeof window !== "undefined") window.location.href = "/auth";
     return null;
   }
 
-  // --- MANEJO DE ERROR DE ROL ---
   if (roleError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
@@ -131,7 +139,6 @@ export default function Dashboard() {
       </header>
 
       <main className="flex-1">
-        {/* Aquí 'user' ya está garantizado que no es null por el if de arriba */}
         {role === "ADMINISTRADOR" ? (
           <AdminDashboard user={user} />
         ) : (
