@@ -1,377 +1,201 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
-import estadisticasService from "@/services/estadisticasService";
+import { useEstadisticasGenerales } from "@/hooks/domain/useEstadisticasGenerales";
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
+import { MetricCard } from "@/components/shared/MetricCard";
 import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
-import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
-
-// --- INTERFACES TS ---
-
-interface MateriaEstadistica {
-  nombre: string;
-  porcentaje: number;
-  codigoMateria?: string; // Opcional porque a veces viene, a veces no
-}
-
-interface EstadisticasData {
-  estudiantesActivos: number;
-  totalMaterias: number;
-  totalExamenesRendidos: number;
-  porcentajeAprobadosGeneral: number;
-  promedioGeneral: number;
-  materiaMasRendida: {
-    nombre: string;
-    porcentaje: number;
-  };
-  cantidadMateriaMasRendida: number;
-  // Asumimos que es un objeto clave-valor para los gráficos
-  distribucionEstudiantesPorCarrera: Record<string, number>;
-  distribucionExamenesPorMateria: Record<string, number>;
-  promedioNotasPorMateria: Record<string, number>;
-  top5Aprobadas: MateriaEstadistica[];
-  top5Reprobadas: MateriaEstadistica[];
-}
-
-interface MetricCardProps {
-  icon: ReactNode;
-  title: string;
-  value: string | number;
-  color: "blue" | "gray" | "green" | "orange" | "teal";
-}
-
-interface RankingListItemProps {
-  rank: number;
-  name: string;
-  value: string | number;
-  color: "green" | "red";
-}
-
-// --- SUB-COMPONENTES ---
-
-const MetricCard = ({ icon, title, value, color }: MetricCardProps) => {
-  const colorClasses = {
-    blue: "border-blue-500",
-    gray: "border-gray-500",
-    green: "border-green-500",
-    orange: "border-orange-500",
-    teal: "border-teal-500",
-  };
-
-  return (
-    // Se mantiene bg-background para adaptarse al tema
-    <div
-      className={`bg-background rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
-    >
-      <div className="text-2xl sm:text-3xl opacity-80">{icon}</div>
-      <div>
-        <h5 className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wide mb-1">
-          {title}
-        </h5>
-        <div className="text-2xl sm:text-3xl font-bold text-foreground">
-          {value}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const RankingListItem = ({
-  rank,
-  name,
-  value,
-  color,
-}: RankingListItemProps) => {
-  // AJUSTE MODO OSCURO: Usamos dark:bg-opacity o colores específicos con alpha
-  const colorClasses = {
-    green:
-      "bg-green-50 border-green-500 dark:bg-green-900/20 dark:border-green-600",
-    red: "bg-red-50 border-red-500 dark:bg-red-900/20 dark:border-red-600",
-  };
-
-  return (
-    <div
-      className={`flex items-center gap-4 p-3 rounded-lg border-l-4 transition-all hover:-translate-y-0.5 hover:shadow-md ${colorClasses[color]}`}
-    >
-      <div className="font-bold text-lg text-muted-foreground w-8 text-center">
-        #{rank}
-      </div>
-      <div className="flex-1 text-sm font-semibold text-foreground truncate">
-        {name}
-      </div>
-      <div className="font-bold text-base sm:text-lg text-foreground">
-        {value}%
-      </div>
-    </div>
-  );
-};
-
-// --- COMPONENTE PRINCIPAL ---
+import {
+  AlertTriangle,
+  Users,
+  Book,
+  FileText,
+  BarChart3,
+  Target,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function EstadisticasGenerales() {
-  const [estadisticas, setEstadisticas] = useState<EstadisticasData | null>(
-    () => {
-      // Verificación segura de window/localStorage para Next.js (SSR) aunque tenga "use client"
-      if (typeof window !== "undefined") {
-        const savedData = localStorage.getItem("estadisticasGenerales");
-        try {
-          return savedData ? JSON.parse(savedData) : null;
-        } catch {
-          return null;
-        }
-      }
-      return null;
-    }
-  );
+  const { estadisticas, isLoading, isError, refetch } =
+    useEstadisticasGenerales();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("");
-  // Estado usado para forzar re-renders o mostrar fecha, aunque no se renderiza explícitamente en el return original
-  const [, setLastUpdate] = useState<Date | null>(() => {
-    if (typeof window !== "undefined") {
-      const savedTime = localStorage.getItem("estadisticasGeneralesTime");
-      return savedTime ? new Date(savedTime) : null;
-    }
-    return null;
-  });
-
-  useEffect(() => {
-    if (!estadisticas) {
-      cargarEstadisticasGenerales();
-    }
-  }, []);
-
-  const cargarEstadisticasGenerales = async () => {
-    setLoading(true);
-    setError(null);
-    setLoadingMessage("Cargando estadísticas...");
-    try {
-      const data = await estadisticasService.obtenerEstadisticasGenerales();
-      setEstadisticas(data);
-      const now = new Date();
-      setLastUpdate(now);
-      localStorage.setItem("estadisticasGenerales", JSON.stringify(data));
-      localStorage.setItem("estadisticasGeneralesTime", now.toISOString());
-    } catch (err) {
-      console.error("Error al cargar estadísticas generales:", err);
-      setError("No se pudieron cargar las estadísticas generales.");
-    } finally {
-      setLoading(false);
-      setLoadingMessage("");
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8">
-        <div className="flex justify-end items-center mb-6">
-          {loadingMessage && (
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm font-medium">{loadingMessage}</span>
-            </div>
-          )}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <MetricSkeleton key={index} />
+      <div className="p-6 space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <MetricSkeleton key={i} />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid lg:grid-cols-2 gap-8">
           <ChartSkeleton type="pie" />
           <ChartSkeleton type="bar" />
         </div>
-        <ChartSkeleton type="bar" />
       </div>
     );
   }
 
-  if (error) {
+  if (isError || !estadisticas) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8">
-        {/* AJUSTE MODO OSCURO: Fondo rojo oscuro transparente y borde ajustado */}
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500 dark:text-red-400" />
-          <div>
-            <strong className="font-semibold block">
-              Error al cargar estadísticas
-            </strong>
-            <p className="text-sm mt-1">{error}</p>
-            <button
-              onClick={cargarEstadisticasGenerales}
-              className="mt-3 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
+      <div className="p-8 flex flex-col items-center justify-center text-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+        <h3 className="text-lg font-semibold">Error al cargar estadísticas</h3>
+        <Button variant="outline" onClick={() => refetch()} className="mt-4">
+          Reintentar
+        </Button>
       </div>
     );
   }
 
-  if (!estadisticas) {
-    return (
-      <div className="p-4 sm:p-6 lg:p-8 text-center text-muted-foreground">
-        No hay datos disponibles para mostrar.
-      </div>
-    );
-  }
+  // Datos para gráficos de promedio
+  const mejoresPromedios = Object.entries(estadisticas.promedioNotasPorMateria)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 10)
+    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+
+  const peoresPromedios = Object.entries(estadisticas.promedioNotasPorMateria)
+    .sort(([, a], [, b]) => a - b)
+    .slice(0, 10)
+    .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-        <h3 className="text-lg sm:text-xl font-semibold text-foreground">
-          Vista General del Sistema
-        </h3>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-10 animate-in fade-in pb-20">
+      <div className="flex justify-between items-center">
+        <h3 className="text-2xl font-bold">Vista General del Sistema</h3>
       </div>
 
-      {/* --- MÉTRICAS PRINCIPALES --- */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Métricas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
-          icon="👥"
           title="Estudiantes"
           value={estadisticas.estudiantesActivos}
+          icon={Users}
           color="blue"
         />
         <MetricCard
-          icon="📚"
           title="Materias"
           value={estadisticas.totalMaterias}
+          icon={Book}
           color="gray"
         />
         <MetricCard
-          icon="📝"
           title="Exámenes"
           value={estadisticas.totalExamenesRendidos}
+          icon={FileText}
           color="green"
         />
         <MetricCard
-          icon="📊"
           title="% Aprobados"
           value={`${estadisticas.porcentajeAprobadosGeneral.toFixed(1)}%`}
+          icon={BarChart3}
           color="orange"
         />
         <MetricCard
-          icon="🎯"
           title="Promedio Gral."
           value={estadisticas.promedioGeneral.toFixed(2)}
+          icon={Target}
           color="teal"
         />
       </div>
 
-      {/* --- GRÁFICOS Y MATERIA MÁS RENDIDA --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      {/* FIX RESPONSIVE: Pie + Card Destacada
+         Usamos flex-col-reverse en mobile para que la Card quede arriba si se quiere,
+         o flex-col normal. gap-10 da aire suficiente.
+      */}
+      <div className="flex flex-col lg:grid lg:grid-cols-5 gap-10 lg:gap-8">
         <div className="lg:col-span-3">
           <PieChart
             data={estadisticas.distribucionEstudiantesPorCarrera}
             title="Distribución de Estudiantes por Carrera"
-            showHover={false}
           />
         </div>
-        {/* Card Materia más Rendida: Gradient se ve bien en ambos modos, texto blanco fijo */}
-        <div className="lg:col-span-2 flex flex-col justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg text-center">
-          <h4 className="text-base font-semibold mb-2 opacity-90">
+
+        <div className="lg:col-span-2 flex flex-col justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl p-8 shadow-lg text-center min-h-[300px]">
+          <h4 className="text-lg font-medium opacity-90 mb-2">
             Materia Más Rendida
           </h4>
-          <p className="text-xl font-bold truncate">
+          <p className="text-2xl font-bold break-words px-2">
             {estadisticas.materiaMasRendida.nombre}
           </p>
-          <div className="my-4">
-            <p className="text-4xl font-extrabold">
+          <div className="my-6">
+            <span className="text-5xl font-extrabold block">
               {estadisticas.cantidadMateriaMasRendida}
-            </p>
-            <p className="opacity-80">exámenes</p>
+            </span>
+            <span className="text-sm opacity-80 uppercase tracking-widest">
+              Exámenes
+            </span>
           </div>
-          <div className="text-lg opacity-90">
-            {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% de
-            aprobación
+          <div className="inline-block bg-white/20 rounded-full px-4 py-1 text-sm font-medium">
+            {estadisticas.materiaMasRendida.porcentaje.toFixed(1)}% Aprobación
           </div>
         </div>
       </div>
 
-      {/* --- GRÁFICO DE MATERIAS MÁS RENDIDAS --- */}
       <BarChart
-        data={Object.fromEntries(
-          Object.entries(estadisticas.distribucionExamenesPorMateria)
-            // 1. Ordenar de mayor a menor (descendente) por la cantidad de exámenes
-            .sort((a, b) => b[1] - a[1])
-            // 2. Tomar los primeros 10 elementos
-            .slice(0, 10)
-            // 3. Reordenar de menor a mayor (ascendente) para visualización
-            .sort((a, b) => a[1] - b[1])
-        )}
-        title="Top 10 - Materias más Rendidas"
-        colors={["#4299e1"]}
-        maxBars={10}
-        useIntegers={true}
-        showNameBelow={true}
+        data={estadisticas.distribucionExamenesPorMateria}
+        title="Top Materias más Rendidas"
+        colors={["#3b82f6"]}
       />
 
-      {/* --- RANKINGS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* AJUSTE MODO OSCURO: dark:bg-card o usar bg-background ya cubre esto si está bien configurado */}
-        <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-          {/* AJUSTE MODO OSCURO: text-gray-700 -> dark:text-gray-300 */}
-          <h4 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            🏆 Top 5 Materias con Mayor Aprobación
-          </h4>
-          <div className="flex flex-col gap-3">
-            {estadisticas.top5Aprobadas.map((materia, index) => (
-              <RankingListItem
-                key={materia.codigoMateria || index}
-                rank={index + 1}
-                name={materia.nombre}
-                value={materia.porcentaje.toFixed(1)}
-                color="green"
-              />
-            ))}
-          </div>
-        </div>
-        <div className="bg-background rounded-xl p-4 sm:p-6 shadow-md">
-          <h4 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            📉 Top 5 Materias con Menor Aprobación
-          </h4>
-          <div className="flex flex-col gap-3">
-            {estadisticas.top5Reprobadas.map((materia, index) => (
-              <RankingListItem
-                key={materia.codigoMateria || index}
-                rank={index + 1}
-                name={materia.nombre}
-                value={materia.porcentaje.toFixed(1)}
-                color="red"
-              />
-            ))}
-          </div>
-        </div>
+        <RankingCard
+          title="🏆 Top 5 Mayor Aprobación"
+          data={estadisticas.top5Aprobadas}
+          color="green"
+        />
+        <RankingCard
+          title="📉 Top 5 Menor Aprobación"
+          data={estadisticas.top5Reprobadas}
+          color="red"
+        />
       </div>
 
-      {/* --- GRÁFICOS DE PROMEDIOS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <BarChart
-          data={Object.entries(estadisticas.promedioNotasPorMateria)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 10)
-            .reverse()
-            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Promedios más altos por Materia"
-          colors={["#38b2ac"]}
-          maxBars={10}
-          useIntegers={false}
-          showNameBelow={true}
+          data={mejoresPromedios}
+          title="Top 10 - Promedios más Altos"
+          colors={["#10b981"]}
         />
         <BarChart
-          data={Object.entries(estadisticas.promedioNotasPorMateria)
-            .sort((a, b) => a[1] - b[1])
-            .slice(0, 10)
-            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {})}
-          title="Top 10 - Promedios más bajos por Materia"
-          colors={["#f56565"]}
-          maxBars={10}
-          useIntegers={false}
-          showNameBelow={true}
+          data={peoresPromedios}
+          title="Top 10 - Promedios más Bajos"
+          colors={["#ef4444"]}
         />
+      </div>
+    </div>
+  );
+}
+
+function RankingCard({ title, data, color }: any) {
+  const isGreen = color === "green";
+  return (
+    <div className="bg-card border rounded-xl p-6 shadow-sm h-full">
+      <h4 className="text-lg font-semibold mb-4">{title}</h4>
+      <div className="space-y-3">
+        {data.map((item: any, i: number) => (
+          <div
+            key={i}
+            className={`flex items-center justify-between p-3 rounded-lg border-l-4 ${
+              isGreen
+                ? "bg-green-50 border-green-500 dark:bg-green-950/20"
+                : "bg-red-50 border-red-500 dark:bg-red-950/20"
+            }`}
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              <span className="font-bold text-muted-foreground w-6 shrink-0">
+                #{i + 1}
+              </span>
+              <span className="font-medium text-sm truncate">
+                {item.nombre}
+              </span>
+            </div>
+            <span
+              className={`font-bold shrink-0 ${isGreen ? "text-green-600" : "text-red-600"}`}
+            >
+              {item.porcentaje.toFixed(1)}%
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

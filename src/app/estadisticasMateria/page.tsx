@@ -1,21 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import estadisticasService from "@/services/estadisticasService";
+import { useState } from "react";
+import { useEstadisticasMateria } from "@/hooks/domain/useEstadisticasMateria";
+import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
+import { useQuery } from "@tanstack/react-query";
 import planesEstudioService from "@/services/planesEstudioService";
+import { sharedKeys } from "@/lib/query-keys";
+
+// Componentes UI
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
+import { MetricCard } from "@/components/shared/MetricCard";
 import { MetricSkeleton, ChartSkeleton } from "@/components/Skeleton";
-import { useSessionPersistence } from "@/hooks/useSessionPersistence";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
-  RefreshCw,
   AlertTriangle,
   BarChartBig,
   Info,
+  Users,
+  CheckCircle,
+  XCircle,
+  Target,
+  Calendar,
+  Clock,
+  Star,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-// Definimos los períodos disponibles
 const PERIODOS_ESTADISTICAS = [
   { value: "ULTIMO_ANIO", label: "Último año" },
   { value: "ULTIMOS_2_ANIOS", label: "Últimos 2 años" },
@@ -23,556 +41,245 @@ const PERIODOS_ESTADISTICAS = [
   { value: "TODOS_LOS_TIEMPOS", label: "Todos los tiempos" },
 ];
 
-// Tipos básicos
-interface Plan {
-  codigo: string;
-  propuesta: string;
-}
-
-interface Materia {
-  codigo: string;
-  nombre: string;
-}
-
-interface Estadisticas {
-  nombreMateria: string;
-  codigoMateria: string;
-  totalRendidos: number;
-  aprobados: number;
-  reprobados: number;
-  porcentajeAprobados: number;
-  promedioNotas: number;
-  promedioDiasEstudio: number;
-  promedioHorasDiarias: number;
-  promedioDificultad: number;
-  distribucionModalidad: Record<string, number>;
-  distribucionRecursos: Record<string, number>;
-  distribucionDificultad: Record<string, number>;
-}
-
 export default function EstadisticasMateria() {
-  const { estadisticasState, setEstadisticasState } = useSessionPersistence();
+  const [plan, setPlan] = useState<string>("");
+  const [materia, setMateria] = useState<string>("");
+  const [periodo, setPeriodo] = useState("TODOS_LOS_TIEMPOS");
 
-  const [estadisticas, setEstadisticas] = useState<Estadisticas | null>(() => {
-    if (typeof window === "undefined") return null;
-    const savedData = localStorage.getItem("estadisticasMateria");
-    return savedData ? JSON.parse(savedData) : null;
+  // 1. Obtener Planes (Cacheado)
+  const { planes, isLoadingPlanes } = useHistoriaAcademica(0);
+
+  // 2. Obtener Materias (Cuando cambia el plan)
+  const { data: materias, isLoading: isLoadingMaterias } = useQuery({
+    queryKey: sharedKeys.materiasPorPlan(plan),
+    queryFn: () => planesEstudioService.obtenerMateriasPorPlan(plan),
+    enabled: !!plan,
+    staleTime: 1000 * 60 * 60, // 1 hora
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("");
-
-  const [planes, setPlanes] = useState<Plan[]>([]);
-  const [materias, setMaterias] = useState<Materia[]>([]);
-  const [planSeleccionado, setPlanSeleccionado] = useState<string>(
-    estadisticasState.planSeleccionado || ""
+  // 3. Obtener Estadísticas (Cuando hay materia)
+  const { estadisticas, isLoading, isError } = useEstadisticasMateria(
+    materia,
+    periodo
   );
-  const [materiaSeleccionada, setMateriaSeleccionada] = useState<string>(
-    estadisticasState.materiaSeleccionada || ""
-  );
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState<string>(
-    estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
-  );
-
-  const [loadingPlanes, setLoadingPlanes] = useState(true);
-  const [loadingMaterias, setLoadingMaterias] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(() => {
-    if (typeof window === "undefined") return null;
-    const savedTime = localStorage.getItem("estadisticasMateriaTime");
-    return savedTime ? new Date(savedTime) : null;
-  });
-
-  useEffect(() => {
-    setPlanSeleccionado(estadisticasState.planSeleccionado || "");
-    setMateriaSeleccionada(estadisticasState.materiaSeleccionada || "");
-    setPeriodoSeleccionado(
-      estadisticasState.periodoSeleccionado || "TODOS_LOS_TIEMPOS"
-    );
-  }, [
-    estadisticasState.planSeleccionado,
-    estadisticasState.materiaSeleccionada,
-    estadisticasState.periodoSeleccionado,
-  ]);
-
-  useEffect(() => {
-    cargarPlanes();
-  }, []);
-
-  useEffect(() => {
-    if (planSeleccionado) {
-      setEstadisticasState("planSeleccionado", planSeleccionado);
-      cargarMaterias(planSeleccionado);
-      if (
-        materiaSeleccionada &&
-        materiaSeleccionada !== estadisticasState.materiaSeleccionada
-      ) {
-        setMateriaSeleccionada("");
-        setEstadisticasState("materiaSeleccionada", "");
-        setEstadisticas(null);
-        localStorage.removeItem("estadisticasMateria");
-        localStorage.removeItem("estadisticasMateriaTime");
-        localStorage.removeItem("savedMateriaCode");
-      }
-    } else {
-      setEstadisticasState("planSeleccionado", "");
-      setMaterias([]);
-      setMateriaSeleccionada("");
-      setEstadisticasState("materiaSeleccionada", "");
-      setEstadisticas(null);
-      localStorage.removeItem("estadisticasMateria");
-      localStorage.removeItem("estadisticasMateriaTime");
-      localStorage.removeItem("savedMateriaCode");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planSeleccionado]);
-
-  useEffect(() => {
-    if (materiaSeleccionada) {
-      setEstadisticasState("materiaSeleccionada", materiaSeleccionada);
-      const savedData = localStorage.getItem("estadisticasMateria");
-      const savedMateria = localStorage.getItem("savedMateriaCode");
-      if (!savedData || savedMateria !== materiaSeleccionada) {
-        buscarEstadisticas(materiaSeleccionada, periodoSeleccionado);
-      }
-    } else {
-      setEstadisticasState("materiaSeleccionada", "");
-      setEstadisticas(null);
-      localStorage.removeItem("estadisticasMateria");
-      localStorage.removeItem("estadisticasMateriaTime");
-      localStorage.removeItem("savedMateriaCode");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [materiaSeleccionada]);
-
-  useEffect(() => {
-    if (materiaSeleccionada) {
-      buscarEstadisticas(materiaSeleccionada, periodoSeleccionado);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodoSeleccionado]);
-
-  const cargarPlanes = async () => {
-    setLoadingPlanes(true);
-    try {
-      const data = await planesEstudioService.obtenerPlanes();
-      setPlanes(data);
-      if (
-        estadisticasState.planSeleccionado &&
-        !data.some(
-          (plan: Plan) => plan.codigo === estadisticasState.planSeleccionado
-        )
-      ) {
-        setPlanSeleccionado("");
-        setEstadisticasState("planSeleccionado", "");
-        setEstadisticasState("materiaSeleccionada", "");
-        localStorage.removeItem("estadisticasMateria");
-        localStorage.removeItem("estadisticasMateriaTime");
-        localStorage.removeItem("savedMateriaCode");
-      }
-    } catch (err) {
-      console.error("Error al cargar planes:", err);
-      setError("No se pudieron cargar los planes de estudio.");
-    } finally {
-      setLoadingPlanes(false);
-    }
-  };
-
-  const cargarMaterias = async (codigoPlan: string) => {
-    setLoadingMaterias(true);
-    setError(null);
-    try {
-      const data =
-        await planesEstudioService.obtenerMateriasPorPlan(codigoPlan);
-      setMaterias(data);
-      if (
-        estadisticasState.materiaSeleccionada &&
-        !data.some(
-          (materia: Materia) =>
-            materia.codigo === estadisticasState.materiaSeleccionada
-        )
-      ) {
-        setMateriaSeleccionada("");
-        setEstadisticasState("materiaSeleccionada", "");
-        localStorage.removeItem("estadisticasMateria");
-        localStorage.removeItem("estadisticasMateriaTime");
-        localStorage.removeItem("savedMateriaCode");
-      }
-    } catch (err) {
-      console.error("Error al cargar materias:", err);
-      setError("No se pudieron cargar las materias del plan seleccionado.");
-      setMaterias([]);
-    } finally {
-      setLoadingMaterias(false);
-    }
-  };
-
-  const buscarEstadisticas = async (codigoMateria: string, periodo: string) => {
-    setLoading(true);
-    setError(null);
-    setLoadingMessage("Cargando estadísticas...");
-    try {
-      let data;
-      data = await estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
-        codigoMateria,
-        periodo
-      );
-      setEstadisticas(data);
-      const now = new Date();
-      setLastUpdate(now);
-      localStorage.setItem("estadisticasMateria", JSON.stringify(data));
-      localStorage.setItem("estadisticasMateriaTime", now.toISOString());
-      localStorage.setItem("savedMateriaCode", codigoMateria);
-      setEstadisticasState("periodoSeleccionado", periodo);
-    } catch (err) {
-      console.error("Error al cargar estadísticas de materia:", err);
-      setError("No se encontraron estadísticas para la materia seleccionada.");
-      setEstadisticas(null);
-    } finally {
-      setLoading(false);
-      setLoadingMessage("");
-    }
-  };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      {/* --- HEADER --- */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in pb-20">
+      {/* Header y Filtros */}
+      <div className="flex flex-col gap-6">
         <h3 className="text-2xl font-bold text-foreground">
           Estadísticas por Materia
         </h3>
-        <div className="flex items-center gap-4">
-          {loadingMessage && (
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm font-medium">{loadingMessage}</span>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* --- FILTROS --- */}
-      <div className="bg-muted rounded-xl p-4 sm:p-6 border border-border mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div>
-            <label
-              htmlFor="plan-select"
-              className="text-sm font-semibold text-foreground block mb-2"
-            >
-              Plan de Estudio
-            </label>
-            <select
-              id="plan-select"
-              value={planSeleccionado}
-              onChange={(e) => setPlanSeleccionado(e.target.value)}
-              disabled={loadingPlanes}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-            >
-              <option value="">
-                {loadingPlanes ? "Cargando..." : "Seleccione un plan"}
-              </option>
-              {planes.map((plan) => (
-                <option key={plan.codigo} value={plan.codigo}>
-                  {`${plan.propuesta} (${plan.codigo})`}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="materia-select"
-              className="text-sm font-semibold text-foreground block mb-2"
-            >
-              Materia
-            </label>
-            <select
-              id="materia-select"
-              value={materiaSeleccionada}
-              onChange={(e) => setMateriaSeleccionada(e.target.value)}
-              disabled={
-                !planSeleccionado || loadingMaterias || materias.length === 0
-              }
-              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-            >
-              <option value="">
-                {!planSeleccionado
-                  ? "Primero seleccione un plan"
-                  : loadingMaterias
-                    ? "Cargando..."
-                    : materias.length === 0
-                      ? "No hay materias disponibles"
-                      : "Seleccione una materia"}
-              </option>
-              {materias.map((materia) => (
-                <option key={materia.codigo} value={materia.codigo}>
-                  {materia.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="periodo-select"
-              className="text-sm font-semibold text-foreground block mb-2"
-            >
-              Período de tiempo
-            </label>
-            <select
-              id="periodo-select"
-              value={periodoSeleccionado}
-              onChange={(e) => setPeriodoSeleccionado(e.target.value)}
-              disabled={!materiaSeleccionada}
-              className="w-full px-3 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg text-base bg-background text-foreground transition-colors cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-            >
-              {PERIODOS_ESTADISTICAS.map((periodo) => (
-                <option key={periodo.value} value={periodo.value}>
-                  {periodo.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* --- ESTADOS DE LA UI --- */}
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500 dark:text-red-400" />
-          <div>
-            <strong className="font-semibold block">
-              Error al cargar estadísticas
-            </strong>
-            <p className="text-sm mt-1">{error}</p>
-            {materiaSeleccionada && (
-              <button
-                onClick={() =>
-                  buscarEstadisticas(materiaSeleccionada, periodoSeleccionado)
-                }
-                className="mt-3 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"
+        <div className="bg-muted/50 rounded-xl p-4 sm:p-6 border border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Selector Plan */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Plan de Estudio</label>
+              <Select
+                value={plan}
+                onValueChange={(val) => {
+                  setPlan(val);
+                  setMateria(""); // Reset materia al cambiar plan
+                }}
+                disabled={isLoadingPlanes}
               >
-                Reintentar
-              </button>
-            )}
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {planes.map((p: any) => (
+                    <SelectItem key={p.codigo} value={p.codigo}>
+                      {p.propuesta} ({p.codigo})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Selector Materia */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Materia</label>
+              <Select
+                value={materia}
+                onValueChange={setMateria}
+                disabled={!plan || isLoadingMaterias}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      isLoadingMaterias
+                        ? "Cargando..."
+                        : !plan
+                          ? "Selecciona un plan primero"
+                          : "Selecciona una materia"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {materias?.map((m: any) => (
+                    <SelectItem key={m.codigo} value={m.codigo}>
+                      {m.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Selector Periodo */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Período</label>
+              <Select
+                value={periodo}
+                onValueChange={setPeriodo}
+                disabled={!materia}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIODOS_ESTADISTICAS.map((p) => (
+                    <SelectItem key={p.value} value={p.value}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Estados de Carga y Error */}
+      {isError && (
+        <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-center gap-3">
+          <AlertTriangle className="h-5 w-5" />
+          <div>
+            <p className="font-semibold">Error al cargar estadísticas</p>
+            <p className="text-sm">
+              No se encontraron datos para esta selección.
+            </p>
           </div>
         </div>
       )}
 
-      {loading && (
-        <div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <MetricSkeleton key={index} />
+      {isLoading && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <MetricSkeleton key={i} />
             ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <ChartSkeleton type="pie" />
-            <ChartSkeleton type="pie" />
-          </div>
-          <ChartSkeleton type="bar" />
+          <ChartSkeleton type="pie" />
         </div>
       )}
 
-      {/* --- RESULTADOS --- */}
-      {estadisticas && !loading && (
-        <div className="animate-fade-in">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-700 dark:to-purple-800 text-white p-6 rounded-lg mb-8 text-center shadow-lg">
-            <h4 className="text-xl sm:text-2xl font-bold mb-1">
+      {/* Resultados */}
+      {estadisticas && !isLoading && (
+        <div className="space-y-8 animate-in slide-in-from-bottom-4 fade-in">
+          {/* Header Materia */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-xl text-center shadow-lg">
+            <h4 className="text-2xl font-bold mb-1">
               {estadisticas.nombreMateria}
             </h4>
-            <span className="block text-sm sm:text-base opacity-90">
-              Código: {estadisticas.codigoMateria}
-            </span>
           </div>
 
           {estadisticas.totalRendidos === 0 ? (
-            <div className="text-center py-12 px-4 bg-muted rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-              <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400 dark:text-gray-600" />
-              <h4 className="text-xl sm:text-2xl text-foreground mb-2 font-semibold">
-                No hay estadísticas disponibles
+            <div className="text-center py-12 px-4 bg-muted/30 rounded-xl border-2 border-dashed border-muted-foreground/20">
+              <BarChartBig className="mx-auto text-6xl mb-4 text-muted-foreground/30" />
+              <h4 className="text-xl font-semibold mb-2">
+                Sin datos suficientes
               </h4>
-              <p className="text-base text-muted-foreground mb-6 max-w-lg mx-auto">
-                Esta materia aún no tiene exámenes rendidos registrados en el
-                sistema.
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Esta materia aún no tiene registros de exámenes en el período
+                seleccionado.
               </p>
-              <div className="bg-background p-4 sm:p-6 rounded-lg border-l-4 border-orange-400 dark:border-orange-600 max-w-md mx-auto text-left space-y-2">
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Info className="h-4 w-4 text-orange-500" /> Total de exámenes
-                  rendidos: <strong className="text-foreground">0</strong>
-                </span>
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Info className="h-4 w-4 text-orange-500" /> Los datos
-                  aparecerán cuando se registren exámenes.
-                </span>
-              </div>
             </div>
           ) : (
             <>
-              {/* --- MÉTRICAS PRINCIPALES --- */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {/* Métricas como componentes para evitar repetición, pero aquí las dejamos inline por simplicidad */}
+              {/* Métricas Principales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <MetricCard
-                  icon="👥"
                   title="Total Rendidos"
                   value={estadisticas.totalRendidos}
+                  icon={Users}
                   color="blue"
                 />
                 <MetricCard
-                  icon="✅"
                   title="Aprobados"
                   value={estadisticas.aprobados}
+                  icon={CheckCircle}
                   color="green"
                 />
                 <MetricCard
-                  icon="❌"
                   title="Reprobados"
                   value={estadisticas.reprobados}
+                  icon={XCircle}
                   color="red"
                 />
                 <MetricCard
-                  icon="📊"
-                  title="% Aprobados"
+                  title="% Aprobación"
                   value={`${estadisticas.porcentajeAprobados.toFixed(1)}%`}
+                  icon={BarChartBig}
                   color="orange"
                 />
                 <MetricCard
-                  icon="🎯"
                   title="Promedio Notas"
                   value={estadisticas.promedioNotas.toFixed(2)}
+                  icon={Target}
                   color="teal"
                 />
                 <MetricCard
-                  icon="📅"
                   title="Promedio Días"
                   value={estadisticas.promedioDiasEstudio.toFixed(1)}
+                  icon={Calendar}
                   color="gray"
                 />
                 <MetricCard
-                  icon="⏰"
                   title="Promedio Horas"
                   value={estadisticas.promedioHorasDiarias.toFixed(1)}
+                  icon={Clock}
                   color="gray"
                 />
                 <MetricCard
-                  icon="⭐"
-                  title="Promedio Dificultad"
+                  title="Promedio Dificultad (1-10)"
                   value={estadisticas.promedioDificultad.toFixed(1)}
+                  icon={Star}
                   color="purple"
                 />
               </div>
 
-              {/* --- GRÁFICOS --- */}
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <PieChart
-                    data={estadisticas.distribucionModalidad}
-                    title="Distribución por Modalidad"
-                    colors={["#4299e1", "#48bb78", "#ed8936"]}
-                    showHover={false}
-                  />
-                  <PieChart
-                    data={estadisticas.distribucionRecursos}
-                    title="Recursos Utilizados"
-                    colors={[
-                      "#9f7aea", // Morado pastel
-                      "#38b2ac", // Verde azulado
-                      "#f56565", // Rojo coral
-                      "#4299e1", // Azul brillante
-                      "#ed8936", // Naranja cálido
-                      "#48bb78", // Verde esmeralda
-                      "#667eea", // Azul suave
-                      "#f6ad55", // Melocotón
-                      "#a0aec0", // Gris azulado
-                      "#e53e3e", // Rojo intenso
-                      "#805ad5", // Morado vibrante
-                      "#319795", // Verde turquesa
-                      "#d53f8c", // Rosa fuerte
-                      "#f687b3", // Rosa pastel
-                      "#4fd1c5", // Cian claro
-                      "#68d391", // Verde menta
-                      "#fbbf24", // Amarillo dorado
-                      "#fc8181", // Rosa salmón
-                      "#0bc5ea", // Azul cielo
-                      "#9ae6b4", // Verde manzana
-                    ]}
-                    showHover={false}
-                  />
-                </div>
-                <BarChart
-                  data={estadisticas.distribucionDificultad}
-                  title="Distribución de Dificultad (1-10)"
-                  colors={["#9f7aea"]}
-                  maxBars={10}
-                  useIntegers={true}
-                  showBaseLabels={true}
-                  baseLabels={[
-                    "1",
-                    "2",
-                    "3",
-                    "4",
-                    "5",
-                    "6",
-                    "7",
-                    "8",
-                    "9",
-                    "10",
-                  ]}
-                  showHover={false}
+              {/* Gráficos de Torta */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <PieChart
+                  data={estadisticas.distribucionModalidad}
+                  title="Distribución por Modalidad"
+                  colors={["#3b82f6", "#10b981", "#f59e0b"]}
+                />
+                <PieChart
+                  data={estadisticas.distribucionRecursos}
+                  title="Recursos Utilizados"
                 />
               </div>
+
+              {/* Gráfico de Dificultad */}
+              <BarChart
+                data={estadisticas.distribucionDificultad}
+                title="Distribución de Dificultad Percibida"
+                colors={["#8b5cf6"]} // Violeta
+              />
             </>
           )}
         </div>
       )}
 
-      {/* --- ESTADO VACÍO INICIAL --- */}
-      {!estadisticas && !loading && !error && (
-        <div className="text-center py-16 px-4 text-muted-foreground">
-          <BarChartBig className="mx-auto text-6xl mb-4 text-gray-400 dark:text-gray-600" />
-          <h4 className="text-xl sm:text-2xl text-muted-foreground mb-2 font-semibold">
-            Seleccione un plan y una materia
-          </h4>
-          <p className="text-base text-muted-foreground max-w-md mx-auto">
-            Elija un plan de estudio y luego una materia para ver las
-            estadísticas detalladas.
-          </p>
+      {/* Estado Vacío Inicial */}
+      {!materia && (
+        <div className="text-center py-20 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/20">
+          <Info className="w-12 h-12 mx-auto mb-2 opacity-20" />
+          <p>Selecciona un plan y una materia para ver el análisis.</p>
         </div>
       )}
     </div>
   );
 }
-
-interface MetricCardProps {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  color: "blue" | "green" | "red" | "orange" | "teal" | "gray" | "purple";
-}
-
-// Componente auxiliar para las tarjetas de métricas
-const MetricCard = ({ icon, title, value, color }: MetricCardProps) => {
-  const colorClasses: Record<string, string> = {
-    blue: "border-blue-500 dark:border-blue-700",
-    green: "border-green-500 dark:border-green-700",
-    red: "border-red-500 dark:border-red-700",
-    orange: "border-orange-500 dark:border-orange-700",
-    teal: "border-teal-500 dark:border-teal-700",
-    gray: "border-gray-500 dark:border-gray-600",
-    purple: "border-purple-500 dark:border-purple-700",
-  };
-
-  return (
-    <div
-      className={`bg-background rounded-xl p-4 sm:p-5 shadow-md flex items-center gap-4 border-l-4 ${colorClasses[color]}`}
-    >
-      <div className="text-2xl sm:text-3xl opacity-80">{icon}</div>
-      <div>
-        <h5 className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wide mb-1">
-          {title}
-        </h5>
-        <div className="text-2xl sm:text-3xl font-bold text-foreground">
-          {value}
-        </div>
-      </div>
-    </div>
-  );
-};

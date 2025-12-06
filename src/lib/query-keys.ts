@@ -1,9 +1,16 @@
+export const sharedKeys = {
+  all: ["shared"] as const,
+  planes: () => [...sharedKeys.all, "planes"] as const,
+  materiasPorPlan: (plan: string) =>
+    [...sharedKeys.all, "materias", plan] as const,
+};
+
 export const studentKeys = {
   all: ["student"] as const,
-  persona: (userId: string) => [...studentKeys.all, "persona", userId] as const, // NUEVO
+  persona: (userId: string) => [...studentKeys.all, "persona", userId] as const,
   historia: (userId: string) =>
     [...studentKeys.all, "historia", userId] as const,
-  planes: () => [...studentKeys.all, "planes"] as const,
+  planes: () => sharedKeys.planes(), // Alias para compatibilidad
   recomendaciones: (userId: string, criterio: string) =>
     [...studentKeys.all, "recomendaciones", userId, criterio] as const,
   materiasInscripcion: (userId: string) =>
@@ -12,4 +19,15 @@ export const studentKeys = {
     [...studentKeys.all, "mis-inscripciones", userId] as const,
   inscriptosMesa: (materiaId: string, turno: string) =>
     [...studentKeys.all, "inscriptos", materiaId, turno] as const,
+};
+
+export const adminKeys = {
+  all: ["admin"] as const,
+  stats: {
+    general: () => [...adminKeys.all, "stats", "general"] as const,
+    carrera: (plan: string, periodo: string) =>
+      [...adminKeys.all, "stats", "carrera", plan, periodo] as const,
+    materia: (codigo: string, periodo: string) =>
+      [...adminKeys.all, "stats", "materia", codigo, periodo] as const,
+  },
 };
