@@ -8,17 +8,41 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookCopy, Calendar, ThumbsUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookCopy, Calendar, ThumbsUp, BarChart2 } from "lucide-react";
+import { useUIStore } from "@/stores/ui-store";
 
 interface ResultadosProps {
   recomendaciones: any[];
   criterio: string;
+  planCodigo?: string; // [NUEVO] Necesitamos el plan para redirigir
 }
 
 export function ResultadosRecomendacion({
   recomendaciones,
   criterio,
+  planCodigo,
 }: ResultadosProps) {
+  const { setActiveTab, setStatsParams } = useUIStore(); // [NUEVO]
+
+  // Handler para la navegación mágica
+  const handleVerEstadisticas = (codigoMateria: string) => {
+    if (!planCodigo) return;
+
+    // 1. Seteamos los parámetros para que Estadísticas sepa qué cargar
+    setStatsParams({
+      plan: planCodigo,
+      materia: codigoMateria,
+      periodo: "TODOS_LOS_TIEMPOS",
+    });
+
+    // 2. Cambiamos la pestaña
+    setActiveTab("estadisticas");
+
+    // Scroll top suave por si acaso
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (recomendaciones.length === 0) {
     return (
       <div className="text-center py-12 flex flex-col items-center gap-4 animate-fade-in">
@@ -30,7 +54,7 @@ export function ResultadosRecomendacion({
             ¡Felicitaciones!
           </h3>
           <p className="text-muted-foreground mt-1">
-            No tienes más finales para rendir.
+            No tienes más finales para rendir bajo este criterio.
           </p>
         </div>
       </div>
@@ -42,7 +66,7 @@ export function ResultadosRecomendacion({
       {recomendaciones.map((final, index) => (
         <Card
           key={final.codigoMateria}
-          className="hover:shadow-md transition-all"
+          className="hover:shadow-md transition-all flex flex-col"
         >
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
@@ -59,13 +83,27 @@ export function ResultadosRecomendacion({
               {criterio === "ESTADISTICAS" && final.estadisticas && (
                 <Badge variant="secondary" className="hidden sm:inline-flex">
                   Aprobación:{" "}
-                  {final.estadisticas.porcentajeAprobados.toFixed(2)}%
+                  {final.estadisticas.porcentajeAprobados.toFixed(1)}%
                 </Badge>
               )}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             <InfoCriterio final={final} criterio={criterio} />
+
+            {criterio === "ESTADISTICAS" && planCodigo && (
+              <div className="mt-4 pt-4 border-t flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-900 dark:hover:bg-blue-950/50"
+                  onClick={() => handleVerEstadisticas(final.codigoMateria)}
+                >
+                  <BarChart2 className="w-4 h-4 mr-2" />
+                  Ver estadísticas detalladas
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
@@ -98,8 +136,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
       >
         <Calendar className="h-4 w-4" />
         <span>
-          Vence el {final.fechaVencimiento} (Regularidad:{" "}
-          {final.fechaRegularidad})
+          Vence el {final.fechaVencimiento} (Regularidad: {final.fechaRegularidad})
         </span>
       </div>
     );
@@ -110,19 +147,19 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         <div className="bg-muted p-2 rounded">
           <div className="font-bold">
-            {final.estadisticas.promedioNotas.toFixed(2)}
+            {final.estadisticas.promedioNotas.toFixed(1)}
           </div>
           <div className="text-muted-foreground">Promedio</div>
         </div>
         <div className="bg-muted p-2 rounded">
           <div className="font-bold">
-            {final.estadisticas.promedioDiasEstudio.toFixed(2)}
+            {final.estadisticas.promedioDiasEstudio.toFixed(1)}
           </div>
           <div className="text-muted-foreground">Días Est.</div>
         </div>
         <div className="bg-muted p-2 rounded">
           <div className="font-bold">
-            {final.estadisticas.promedioDificultad.toFixed(2)}
+            {final.estadisticas.promedioDificultad.toFixed(1)}
           </div>
           <div className="text-muted-foreground">Dificultad</div>
         </div>

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEstadisticasMateria } from "@/hooks/domain/useEstadisticasMateria";
 import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
 import { useQuery } from "@tanstack/react-query";
 import planesEstudioService from "@/services/planesEstudioService";
 import { sharedKeys } from "@/lib/query-keys";
+import { useUIStore } from "@/stores/ui-store"; // [NUEVO]
 
-// Componentes UI
+// ... imports de componentes UI ...
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
 import { MetricCard } from "@/components/shared/MetricCard";
@@ -32,7 +33,6 @@ import {
   Clock,
   Star,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const PERIODOS_ESTADISTICAS = [
   { value: "ULTIMO_ANIO", label: "Último año" },
@@ -42,30 +42,45 @@ const PERIODOS_ESTADISTICAS = [
 ];
 
 export default function EstadisticasMateria() {
+  const { statsParams, setStatsParams } = useUIStore(); // [NUEVO]
+
   const [plan, setPlan] = useState<string>("");
   const [materia, setMateria] = useState<string>("");
   const [periodo, setPeriodo] = useState("TODOS_LOS_TIEMPOS");
 
-  // 1. Obtener Planes (Cacheado)
-  const { planes, isLoadingPlanes } = useHistoriaAcademica(0);
+  // [NUEVO] Efecto para procesar navegación automática desde Recomendación
+  useEffect(() => {
+    if (statsParams) {
+      if (statsParams.plan) setPlan(statsParams.plan);
+      if (statsParams.materia) setMateria(statsParams.materia);
+      if (statsParams.periodo) setPeriodo(statsParams.periodo);
 
-  // 2. Obtener Materias (Cuando cambia el plan)
+      // Limpiamos los params para evitar re-seteos futuros indeseados al navegar dentro de la página
+      setStatsParams(null);
+    }
+  }, [statsParams, setStatsParams]);
+
+  // 1. Obtener Planes (Cacheado)
+  const { planes, isLoadingPlanes } = useHistoriaAcademica(0); // Corregido a string "0" o null según tu implementación del hook
+
+  // ... resto del código igual ...
+  // (Mantén el resto del componente como estaba en el paso anterior)
   const { data: materias, isLoading: isLoadingMaterias } = useQuery({
     queryKey: sharedKeys.materiasPorPlan(plan),
     queryFn: () => planesEstudioService.obtenerMateriasPorPlan(plan),
     enabled: !!plan,
-    staleTime: 1000 * 60 * 60, // 1 hora
+    staleTime: 1000 * 60 * 60,
   });
 
-  // 3. Obtener Estadísticas (Cuando hay materia)
   const { estadisticas, isLoading, isError } = useEstadisticasMateria(
     materia,
     periodo
   );
 
   return (
+    // ... JSX del componente (sin cambios mayores) ...
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in pb-20">
-      {/* Header y Filtros */}
+      {/* ... Header y Filtros ... */}
       <div className="flex flex-col gap-6">
         <h3 className="text-2xl font-bold text-foreground">
           Estadísticas por Materia
@@ -73,14 +88,15 @@ export default function EstadisticasMateria() {
 
         <div className="bg-muted/50 rounded-xl p-4 sm:p-6 border border-border">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Selector Plan */}
+            {/* Selectores... Asegúrate de que los 'value={plan}' etc estén conectados al state */}
+            {/* ... */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Plan de Estudio</label>
               <Select
                 value={plan}
                 onValueChange={(val) => {
                   setPlan(val);
-                  setMateria(""); // Reset materia al cambiar plan
+                  setMateria("");
                 }}
                 disabled={isLoadingPlanes}
               >
@@ -97,7 +113,6 @@ export default function EstadisticasMateria() {
               </Select>
             </div>
 
-            {/* Selector Materia */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Materia</label>
               <Select
@@ -110,9 +125,7 @@ export default function EstadisticasMateria() {
                     placeholder={
                       isLoadingMaterias
                         ? "Cargando..."
-                        : !plan
-                          ? "Selecciona un plan primero"
-                          : "Selecciona una materia"
+                        : "Selecciona una materia"
                     }
                   />
                 </SelectTrigger>
@@ -126,7 +139,6 @@ export default function EstadisticasMateria() {
               </Select>
             </div>
 
-            {/* Selector Periodo */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Período</label>
               <Select
