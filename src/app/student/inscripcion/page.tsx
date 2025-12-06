@@ -5,11 +5,12 @@ import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useInscripciones } from "@/hooks/domain/useInscripciones";
 import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
-import { useModalPersistence } from "@/hooks/useModalPersistence"; // Recuperado
-import inscripcionService from "@/services/inscripcionService"; // Necesario para consultar inscriptos
+import { useModal } from "@/stores/modal-store"; // [NUEVO]
+import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
+import inscripcionService from "@/services/inscripcionService";
 import { MateriasDisponibles } from "@/components/student/inscripcion/MateriasDisponibles";
 import { MisInscripciones } from "@/components/student/inscripcion/MisInscripciones";
-import Modal from "@/components/modals/Modal"; // Recuperado
+import Modal from "@/components/modals/Modal";
 import {
   Card,
   CardContent,
@@ -29,14 +30,13 @@ import {
 import {
   Loader2,
   AlertTriangle,
-  CheckCircle,
   Pencil,
   ClipboardCopy,
+  CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Inscripcion({ user }: { user: User }) {
-  // 1. Datos del usuario y dominio
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
     user.email
@@ -52,24 +52,25 @@ export default function Inscripcion({ user }: { user: User }) {
     isDandoseDeBaja,
   } = useInscripciones(persona?.id, !!historia);
 
-  // 2. Estado local de selección
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<any | null>(
     null
   );
   const [mesaSeleccionada, setMesaSeleccionada] = useState<string>("");
+  const [showConfirmacionAlta, setShowConfirmacionAlta] = useState(false); // Local para el alta
 
-  // 3. Lógica del Modal de Inscriptos (RECUPERADA)
+  // [NUEVO] Hooks Globales
   const {
     isOpen: showInscriptos,
     data: inscripcionConsultada,
     openModal: openInscriptosModal,
     closeModal: closeInscriptosModal,
-  } = useModalPersistence("inscriptos-modal");
+  } = useModal("inscriptos-modal");
+
+  const { confirm } = useConfirm();
 
   const [inscriptosConsulta, setInscriptosConsulta] = useState<any[]>([]);
   const [loadingInscriptos, setLoadingInscriptos] = useState(false);
 
-  // Helpers
   const mesas = [
     "FEBRERO",
     "MARZO",
@@ -78,7 +79,6 @@ export default function Inscripcion({ user }: { user: User }) {
     "NOVIEMBRE",
     "DICIEMBRE",
   ];
-
   const calcularAnio = (mesa: string) => {
     const hoy = new Date();
     const mesActual = hoy.getMonth() + 1;
@@ -94,12 +94,10 @@ export default function Inscripcion({ user }: { user: User }) {
     return mesMesa < mesActual ? hoy.getFullYear() + 1 : hoy.getFullYear();
   };
 
-  // --- FUNCIONES FALTANTES ---
-
   const consultarInscriptos = async (inscripcion: any) => {
-    openInscriptosModal(inscripcion);
+    openInscriptosModal(inscripcion); // [NUEVO] Abrir con store
     setLoadingInscriptos(true);
-    setInscriptosConsulta([]); // Limpiar anteriores
+    setInscriptosConsulta([]);
     try {
       const inscriptos = await inscripcionService.obtenerInscriptosConEmails(
         inscripcion.materiaCodigo,
@@ -126,7 +124,6 @@ export default function Inscripcion({ user }: { user: User }) {
   const handleInscribirse = async () => {
     if (!materiaSeleccionada || !mesaSeleccionada || !historia || !persona)
       return;
-
     try {
       await inscribirse({
         turno: mesaSeleccionada,
@@ -137,12 +134,23 @@ export default function Inscripcion({ user }: { user: User }) {
       });
       setMateriaSeleccionada(null);
       setMesaSeleccionada("");
-    } catch (error) {
-      // Error manejado en hook
-    }
+      setShowConfirmacionAlta(false);
+    } catch (error) {}
   };
 
-  // --- RENDERS ---
+  const handleBaja = async (id: number) => {
+    // [NUEVO] Confirmación Global
+    const ok = await confirm({
+      title: "¿Anular Inscripción?",
+      description: "Perderás tu lugar en la mesa. Esta acción es irreversible.",
+      confirmText: "Sí, anular",
+      variant: "destructive",
+    });
+
+    if (ok) {
+      darseDeBaja(id);
+    }
+  };
 
   if (isLoadingPersona || isLoadingHistoria || (historia && isLoadingData)) {
     return <Skeleton className="h-96 w-full rounded-xl" />;
@@ -154,8 +162,7 @@ export default function Inscripcion({ user }: { user: User }) {
         <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
         <h3 className="text-lg font-semibold">Falta Historia Académica</h3>
         <p className="text-muted-foreground mb-4">
-          Debes cargar tu historia académica en la sección "Sugerencias" para
-          poder inscribirte.
+          Debes cargar tu historia académica en la sección "Sugerencias".
         </p>
         <Button
           onClick={() =>
@@ -179,8 +186,7 @@ export default function Inscripcion({ user }: { user: User }) {
             Inscripción a Mesas de Examen
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Inscríbete para contactar con compañeros. Esta inscripción es
-            independiente del SIU Guaraní.
+            Inscríbete para contactar con compañeros. Independiente del SIU.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -202,7 +208,7 @@ export default function Inscripcion({ user }: { user: User }) {
                     Para: {materiaSeleccionada.nombre}
                   </span>
                 ) : (
-                  "Selecciona una materia de la lista primero"
+                  "Selecciona una materia primero"
                 )}
               </CardDescription>
             </CardHeader>
@@ -229,34 +235,78 @@ export default function Inscripcion({ user }: { user: User }) {
                 disabled={
                   !materiaSeleccionada || !mesaSeleccionada || isInscribiendo
                 }
-                onClick={handleInscribirse}
+                onClick={() => setShowConfirmacionAlta(true)}
               >
                 {isInscribiendo ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <CheckCircle className="mr-2 h-4 w-4" />
                 )}
-                Confirmar Inscripción
+                Inscribirse
               </Button>
             </CardContent>
           </Card>
 
           <MisInscripciones
             inscripciones={misInscripciones}
-            onBaja={darseDeBaja}
-            onVer={consultarInscriptos} // ¡Ahora sí existe!
+            onBaja={handleBaja} // [NUEVO] Usamos el handler con confirmación
+            onVer={consultarInscriptos}
             isProcessing={isDandoseDeBaja}
           />
         </div>
       </div>
 
-      {/* --- MODAL DE INSCRIPTOS --- */}
+      {/* Modal Confirmación Alta (Local por contenido complejo) */}
+      {showConfirmacionAlta && (
+        <Modal
+          isOpen={showConfirmacionAlta}
+          onClose={() => setShowConfirmacionAlta(false)}
+          title="Confirmar Inscripción"
+        >
+          <div className="space-y-4">
+            <div>
+              <p className="font-medium">Materia:</p>
+              <p>{materiaSeleccionada?.nombre}</p>
+            </div>
+            <div>
+              <p className="font-medium">Mesa:</p>
+              <p>
+                {mesaSeleccionada} {calcularAnio(mesaSeleccionada)}
+              </p>
+            </div>
+            <div className="bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-lg text-sm text-yellow-800 dark:text-yellow-300">
+              Se notificará a otros estudiantes inscriptos.
+            </div>
+          </div>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={handleInscribirse}
+              disabled={isInscribiendo}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isInscribiendo ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                "Confirmar"
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmacionAlta(false)}
+              disabled={isInscribiendo}
+              className="w-full"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Inscriptos (Global) */}
       <Modal
         isOpen={showInscriptos}
         onClose={closeInscriptosModal}
-        title={`Inscriptos a ${
-          inscripcionConsultada?.materiaNombre || "la materia"
-        }`}
+        title={`Inscriptos a ${inscripcionConsultada?.materiaNombre || "la materia"}`}
       >
         {inscripcionConsultada && (
           <p className="bg-blue-50 dark:bg-blue-950/30 p-2 rounded-md mb-4 text-sm">
@@ -266,7 +316,7 @@ export default function Inscripcion({ user }: { user: User }) {
         <div className="max-h-96 overflow-y-auto pr-2">
           {loadingInscriptos ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500 dark:text-blue-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
             </div>
           ) : inscriptosConsulta.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
@@ -282,7 +332,7 @@ export default function Inscripcion({ user }: { user: User }) {
                   <p className="font-medium">
                     {i.estudianteNombre}{" "}
                     {i.estudianteId === persona?.id && (
-                      <span className="text-xs font-normal text-blue-600 dark:text-blue-400">
+                      <span className="text-xs font-normal text-blue-600">
                         (Tú)
                       </span>
                     )}
@@ -293,8 +343,7 @@ export default function Inscripcion({ user }: { user: User }) {
                       variant="ghost"
                       onClick={() => i.email && copiarEmail(i.email)}
                     >
-                      <ClipboardCopy className="h-4 w-4 mr-2" />
-                      Copiar Email
+                      <ClipboardCopy className="h-4 w-4 mr-2" /> Copiar
                     </Button>
                   )}
                 </div>

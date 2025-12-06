@@ -5,6 +5,7 @@ import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
 import { useRecomendaciones } from "@/hooks/domain/useRecomendaciones";
+import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
 import { CargaHistoria } from "@/components/student/recomendacion/CargaHistoria";
 import { ResultadosRecomendacion } from "@/components/student/recomendacion/ResultadosRecomendacion";
 import {
@@ -30,7 +31,6 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 import { APP_CONFIG } from "@/lib/config";
 import { toast } from "sonner";
@@ -39,13 +39,13 @@ export default function Recomendacion({ user }: { user: User }) {
   const [criterio, setCriterio] = useState("CORRELATIVAS");
   const updateFileInputRef = useRef<HTMLInputElement>(null);
 
-  // 1. Obtener Persona
+  const { confirm } = useConfirm(); // [NUEVO] Hook de confirmación
+
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
     user.email
   );
 
-  // 2. Obtener Historia
   const {
     historia,
     planes,
@@ -56,14 +56,12 @@ export default function Recomendacion({ user }: { user: User }) {
     isLoadingHistoria,
   } = useHistoriaAcademica(persona?.id);
 
-  // 3. Obtener Recomendaciones
   const {
     recomendaciones,
     isLoading: isLoadingRecs,
     refetch,
   } = useRecomendaciones(persona?.id, criterio, !!historia);
 
-  // Handler para actualizar historia (botón pequeño)
   const handleUpdateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !historia) return;
@@ -79,19 +77,31 @@ export default function Recomendacion({ user }: { user: User }) {
         file,
         planCodigo: historia.plan_de_estudio_codigo,
       });
-      // Limpiar input
       if (updateFileInputRef.current) updateFileInputRef.current.value = "";
     } catch (error) {
-      // El error ya se maneja en el hook
+      // Error manejado en hook
     }
   };
 
-  // Loading inicial
+  // [NUEVO] Handler con confirmación
+  const handleDeleteHistoria = async () => {
+    const ok = await confirm({
+      title: "¿Eliminar Historia Académica?",
+      description:
+        "Se borrarán todos tus datos académicos, inscripciones ,experiencias y sugerencias. Tendrás que volver a subir el archivo para ver recomendaciones.",
+      confirmText: "Sí, borrar todo",
+      variant: "destructive",
+    });
+
+    if (ok) {
+      remove();
+    }
+  };
+
   if (isLoadingPersona || (persona?.id && isLoadingHistoria)) {
     return <Skeleton className="h-64 w-full rounded-xl" />;
   }
 
-  // Sin perfil
   if (!persona && !isLoadingPersona) {
     return (
       <div className="text-center py-12">
@@ -104,7 +114,6 @@ export default function Recomendacion({ user }: { user: User }) {
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      {/* Header Principal Restaurado */}
       <Card className="bg-gradient-to-br from-blue-50/50 via-background to-purple-50/50 dark:from-blue-950/30 dark:via-background dark:to-purple-950/30 border-none shadow-md">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
@@ -118,7 +127,6 @@ export default function Recomendacion({ user }: { user: User }) {
         </CardHeader>
       </Card>
 
-      {/* Vista 1: Sin historia cargada */}
       {!historia ? (
         <div className="max-w-2xl mx-auto mt-8">
           <CargaHistoria
@@ -129,7 +137,6 @@ export default function Recomendacion({ user }: { user: User }) {
         </div>
       ) : (
         <>
-          {/* Vista 2: Panel de Control de Historia */}
           <div className="bg-card border rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -156,7 +163,6 @@ export default function Recomendacion({ user }: { user: User }) {
                 SIU Guaraní
               </Button>
 
-              {/* Botón Actualizar Restaurado */}
               <input
                 type="file"
                 ref={updateFileInputRef}
@@ -183,9 +189,7 @@ export default function Recomendacion({ user }: { user: User }) {
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => {
-                  if (confirm("¿Eliminar historia académica?")) remove();
-                }}
+                onClick={handleDeleteHistoria} // Usamos el nuevo handler
                 disabled={isDeleting || isUploading}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -194,7 +198,6 @@ export default function Recomendacion({ user }: { user: User }) {
             </div>
           </div>
 
-          {/* Controles de Filtro y Resultados */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
               <h2 className="text-lg font-semibold flex items-center gap-2">

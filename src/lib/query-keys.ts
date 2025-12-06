@@ -19,8 +19,15 @@ export const studentKeys = {
     [...studentKeys.all, "mis-inscripciones", userId] as const,
   inscriptosMesa: (materiaId: string, turno: string) =>
     [...studentKeys.all, "inscriptos", materiaId, turno] as const,
+  experiencias: {
+    misExperiencias: (userId: string) =>
+      [...studentKeys.all, "experiencias", "mias", userId] as const,
+    porMateria: (materiaId: string) =>
+      [...studentKeys.all, "experiencias", "materia", materiaId] as const,
+    examenesDisponibles: (userId: string) =>
+      [...studentKeys.all, "experiencias", "disponibles", userId] as const,
+  },
 };
-
 export const adminKeys = {
   all: ["admin"] as const,
   stats: {
