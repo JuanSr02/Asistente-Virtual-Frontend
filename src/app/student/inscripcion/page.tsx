@@ -5,8 +5,8 @@ import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useInscripciones } from "@/hooks/domain/useInscripciones";
 import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
-import { useModal } from "@/stores/modal-store"; // [NUEVO]
-import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
+import { useModal } from "@/stores/modal-store";
+import { useConfirm } from "@/components/providers/confirm-dialog-provider";
 import inscripcionService from "@/services/inscripcionService";
 import { MateriasDisponibles } from "@/components/student/inscripcion/MateriasDisponibles";
 import { MisInscripciones } from "@/components/student/inscripcion/MisInscripciones";
@@ -58,7 +58,7 @@ export default function Inscripcion({ user }: { user: User }) {
   const [mesaSeleccionada, setMesaSeleccionada] = useState<string>("");
   const [showConfirmacionAlta, setShowConfirmacionAlta] = useState(false); // Local para el alta
 
-  // [NUEVO] Hooks Globales
+  // Hooks Globales
   const {
     isOpen: showInscriptos,
     data: inscripcionConsultada,
@@ -95,7 +95,7 @@ export default function Inscripcion({ user }: { user: User }) {
   };
 
   const consultarInscriptos = async (inscripcion: any) => {
-    openInscriptosModal(inscripcion); // [NUEVO] Abrir con store
+    openInscriptosModal(inscripcion); // Abrir con store
     setLoadingInscriptos(true);
     setInscriptosConsulta([]);
     try {
@@ -139,7 +139,7 @@ export default function Inscripcion({ user }: { user: User }) {
   };
 
   const handleBaja = async (id: number) => {
-    // [NUEVO] Confirmación Global
+    // Confirmación Global
     const ok = await confirm({
       title: "¿Anular Inscripción?",
       description: "Perderás tu lugar en la mesa. Esta acción es irreversible.",
@@ -249,7 +249,7 @@ export default function Inscripcion({ user }: { user: User }) {
 
           <MisInscripciones
             inscripciones={misInscripciones}
-            onBaja={handleBaja} // [NUEVO] Usamos el handler con confirmación
+            onBaja={handleBaja} // Usamos el handler con confirmación
             onVer={consultarInscriptos}
             isProcessing={isDandoseDeBaja}
           />

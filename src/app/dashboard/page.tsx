@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [isUserLoading, setIsUserLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
 
-  const queryClient = useQueryClient(); // [NUEVO] Para limpiar caché al salir
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const getUser = async () => {
@@ -42,7 +42,7 @@ export default function Dashboard() {
       queryClient.removeQueries();
       queryClient.clear();
 
-      // 2. Limpiar localStorage (UI Store y persistencia vieja si queda)
+      // 2. Limpiar localStorage (UI Store y persistencia si queda)
       if (typeof window !== "undefined") {
         localStorage.removeItem("ui-storage");
         sessionStorage.clear();

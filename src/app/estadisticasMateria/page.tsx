@@ -6,9 +6,8 @@ import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
 import { useQuery } from "@tanstack/react-query";
 import planesEstudioService from "@/services/planesEstudioService";
 import { sharedKeys } from "@/lib/query-keys";
-import { useUIStore } from "@/stores/ui-store"; // [NUEVO]
+import { useUIStore } from "@/stores/ui-store";
 
-// ... imports de componentes UI ...
 import PieChart from "@/components/charts/PieChart";
 import BarChart from "@/components/charts/BarChart";
 import { MetricCard } from "@/components/shared/MetricCard";
@@ -42,13 +41,12 @@ const PERIODOS_ESTADISTICAS = [
 ];
 
 export default function EstadisticasMateria() {
-  const { statsParams, setStatsParams } = useUIStore(); // [NUEVO]
+  const { statsParams, setStatsParams } = useUIStore();
 
   const [plan, setPlan] = useState<string>("");
   const [materia, setMateria] = useState<string>("");
   const [periodo, setPeriodo] = useState("TODOS_LOS_TIEMPOS");
 
-  // [NUEVO] Efecto para procesar navegación automática desde Recomendación
   useEffect(() => {
     if (statsParams) {
       if (statsParams.plan) setPlan(statsParams.plan);
@@ -61,10 +59,8 @@ export default function EstadisticasMateria() {
   }, [statsParams, setStatsParams]);
 
   // 1. Obtener Planes (Cacheado)
-  const { planes, isLoadingPlanes } = useHistoriaAcademica(0); // Corregido a string "0" o null según tu implementación del hook
+  const { planes, isLoadingPlanes } = useHistoriaAcademica(0);
 
-  // ... resto del código igual ...
-  // (Mantén el resto del componente como estaba en el paso anterior)
   const { data: materias, isLoading: isLoadingMaterias } = useQuery({
     queryKey: sharedKeys.materiasPorPlan(plan),
     queryFn: () => planesEstudioService.obtenerMateriasPorPlan(plan),
@@ -78,9 +74,7 @@ export default function EstadisticasMateria() {
   );
 
   return (
-    // ... JSX del componente (sin cambios mayores) ...
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 animate-in fade-in pb-20">
-      {/* ... Header y Filtros ... */}
       <div className="flex flex-col gap-6">
         <h3 className="text-2xl font-bold text-foreground">
           Estadísticas por Materia
@@ -88,8 +82,6 @@ export default function EstadisticasMateria() {
 
         <div className="bg-muted/50 rounded-xl p-4 sm:p-6 border border-border">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Selectores... Asegúrate de que los 'value={plan}' etc estén conectados al state */}
-            {/* ... */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Plan de Estudio</label>
               <Select

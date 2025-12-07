@@ -6,8 +6,7 @@ import EstadisticasMateria from "@/app/estadisticasMateria/page";
 import Inscripcion from "../inscripcion/page";
 import ExperienciasExamen from "../experiencias-examen/page";
 import Perfil from "@/app/perfil/page";
-// [ELIMINADO] import { useSessionPersistence } ...
-import { useUIStore } from "@/stores/ui-store"; // [NUEVO]
+import { useUIStore } from "@/stores/ui-store";
 import {
   GraduationCap,
   MessageSquareQuote,
@@ -30,7 +29,7 @@ function esDispositivoMovil(): boolean {
 }
 
 export default function StudentDashboard({ user }: StudentDashboardProps) {
-  // [NUEVO] Usamos el store global de UI
+  // Usamos el store global de UI
   const { activeTab, setActiveTab } = useUIStore();
 
   // Estado para controlar si hay operaciones críticas (Mantenemos local porque es efímero)

@@ -5,7 +5,7 @@ import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
 import { useRecomendaciones } from "@/hooks/domain/useRecomendaciones";
-import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
+import { useConfirm } from "@/components/providers/confirm-dialog-provider";
 import { CargaHistoria } from "@/components/student/recomendacion/CargaHistoria";
 import { ResultadosRecomendacion } from "@/components/student/recomendacion/ResultadosRecomendacion";
 import {
@@ -39,7 +39,7 @@ export default function Recomendacion({ user }: { user: User }) {
   const [criterio, setCriterio] = useState("CORRELATIVAS");
   const updateFileInputRef = useRef<HTMLInputElement>(null);
 
-  const { confirm } = useConfirm(); // [NUEVO] Hook de confirmación
+  const { confirm } = useConfirm(); // Hook de confirmación
 
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
