@@ -20,7 +20,7 @@ export function usePlanesEstudio() {
     mutationFn: planesEstudioService.cargarPlan,
     onSuccess: (data) => {
       toast.success(
-        `Plan cargado: ${data.propuesta} (${data.cantidadMateriasCargadas} materias)`
+        `Plan cargado: ${data.propuesta} (${data.cantidadMaterias} materias)`
       );
       queryClient.invalidateQueries({ queryKey: sharedKeys.planes() });
     },

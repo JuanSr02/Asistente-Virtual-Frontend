@@ -9,7 +9,7 @@ export interface PlanEstudio {
 
 export interface CargaPlanResponse {
   propuesta: string;
-  cantidadMateriasCargadas: number;
+  cantidadMaterias: number;
 }
 
 const planesEstudioService = {
