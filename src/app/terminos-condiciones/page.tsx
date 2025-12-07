@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -103,7 +102,9 @@ export default function TerminosCondiciones() {
             </h3>
             <p className="text-muted-foreground">
               El diseño y código fuente son propiedad intelectual del autor del
-              Proyecto Integrador y de la UNSL.
+              Proyecto Integrador,{" "}
+              <strong className="text-foreground">Juan Manuel Sanchez</strong>,
+              y de la UNSL.
             </p>
           </section>
 

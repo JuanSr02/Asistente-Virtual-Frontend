@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,10 +94,10 @@ export default function PoliticaPrivacidad() {
             <p className="text-muted-foreground">
               No vendemos ni alquilamos información personal a terceros. Los
               datos académicos agregados (estadísticas) pueden ser visibles para
-              otros usuarios del sistema (estudiantes y
-              administradores/docentes) pero siempre de forma disociada de la
-              identidad del titular, salvo en el módulo de Inscripciones donde
-              el usuario acepta compartir su contacto con compañeros de mesa.
+              otros usuarios del sistema (estudiantes y administradores) pero
+              siempre de forma disociada de la identidad del titular, salvo en
+              el módulo de Inscripciones donde el usuario acepta compartir su
+              contacto con compañeros de mesa.
             </p>
           </section>
 
@@ -107,11 +106,10 @@ export default function PoliticaPrivacidad() {
               4. Almacenamiento y Seguridad
             </h3>
             <p className="text-muted-foreground mb-2">
-              Los datos se almacenan en bases de datos seguras
-              (Supabase/PostgreSQL). Implementamos medidas de seguridad
-              técnicas, como el uso de autenticación vía JWT (JSON Web Tokens) y
-              cifrado de contraseñas, para proteger su información contra el
-              acceso no autorizado.
+              Los datos se almacenan en bases de datos seguras. Implementamos
+              medidas de seguridad técnicas, como el uso de autenticación vía
+              JWT (JSON Web Tokens) y cifrado de contraseñas, para proteger su
+              información contra el acceso no autorizado.
             </p>
           </section>
 
@@ -123,8 +121,8 @@ export default function PoliticaPrivacidad() {
               Como titular de los datos, usted tiene derecho a acceder,
               rectificar, actualizar y suprimir su información. Puede eliminar
               su historia académica o su cuenta completa en cualquier momento
-              desde la sección{" "}
-              <strong className="text-foreground">Perfil</strong> de la
+              desde la sección
+              <strong className="text-foreground"> Perfil</strong> de la
               aplicación. Al eliminar su cuenta, se borran todos sus datos
               personales asociados.
             </p>
@@ -135,9 +133,9 @@ export default function PoliticaPrivacidad() {
               6. Cookies y Almacenamiento Local
             </h3>
             <p className="text-muted-foreground">
-              Utilizamos almacenamiento local (LocalStorage/SessionStorage) para
+              Utilizamos almacenamiento local para
               mantener su sesión activa y recordar sus preferencias de
-              visualización (ej. filtros de estadísticas). No utilizamos cookies
+              visualización. No utilizamos cookies
               de rastreo publicitario.
             </p>
           </section>
