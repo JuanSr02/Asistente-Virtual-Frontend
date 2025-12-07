@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ActualizarPerfilDTO } from "@/lib/types/perfil";
-import { profileSchema } from "@/lib/schemas/profile"; // NUEVO IMPORT
+import { profileSchema } from "@/lib/schemas/profile";
 
 export default function PerfilPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -369,7 +369,7 @@ export default function PerfilPage() {
 }
 
 // Helpers visuales
-const usuarioConFormato = (tel: string | undefined) => tel; // Placeholder si quisieras formatear
+const usuarioConFormato = (tel: string | undefined) => tel;
 
 const StatusIcon = ({
   hasError,

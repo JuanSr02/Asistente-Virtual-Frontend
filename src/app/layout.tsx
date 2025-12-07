@@ -3,10 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClientLayout } from "@/components/layout/client-layout";
 
-// Configuración de fuente (Funciona aquí porque es Server Component)
 const inter = Inter({ subsets: ["latin"] });
 
-// Metadata API (Reemplaza al <head>)
 export const metadata: Metadata = {
   title: "Asistente Virtual",
   description: "Soporte académico virtual para estudiantes de la UNSL.",

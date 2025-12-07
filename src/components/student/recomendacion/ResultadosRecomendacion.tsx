@@ -15,7 +15,7 @@ import { useUIStore } from "@/stores/ui-store";
 interface ResultadosProps {
   recomendaciones: any[];
   criterio: string;
-  planCodigo?: string; // [NUEVO] Necesitamos el plan para redirigir
+  planCodigo?: string; // Necesitamos el plan para redirigir
 }
 
 export function ResultadosRecomendacion({
@@ -23,7 +23,7 @@ export function ResultadosRecomendacion({
   criterio,
   planCodigo,
 }: ResultadosProps) {
-  const { setActiveTab, setStatsParams } = useUIStore(); // [NUEVO]
+  const { setActiveTab, setStatsParams } = useUIStore();
 
   // Handler para la navegación mágica
   const handleVerEstadisticas = (codigoMateria: string) => {
@@ -136,7 +136,8 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
       >
         <Calendar className="h-4 w-4" />
         <span>
-          Vence el {final.fechaVencimiento} (Regularidad: {final.fechaRegularidad})
+          Vence el {final.fechaVencimiento} (Regularidad:{" "}
+          {final.fechaRegularidad})
         </span>
       </div>
     );

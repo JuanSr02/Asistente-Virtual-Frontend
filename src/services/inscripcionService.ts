@@ -47,7 +47,9 @@ const inscripcionService = {
   ): Promise<MateriaParaInscripcion[]> => {
     try {
       const response = await api.get(
-       API_ROUTES.ESTUDIANTE.OBTENER_INSCRIPCIONES_POSIBLES + estudianteId + "/inscripciones"
+        API_ROUTES.ESTUDIANTE.OBTENER_INSCRIPCIONES_POSIBLES +
+          estudianteId +
+          "/inscripciones"
       );
       return response.data;
     } catch (error) {

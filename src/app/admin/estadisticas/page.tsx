@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import EstadisticasGenerales from "../estadisticas-generales/page";
-import EstadisticasMateria from "@/app/estadisticasMateria/page"; // Nota: Ruta absoluta legacy, se podría mover a admin/
+import EstadisticasMateria from "@/app/estadisticasMateria/page";
 import EstadisticasPorCarrera from "../estadisticas-por-carrera/page";
 import {
   ListChecks,
@@ -27,7 +27,7 @@ interface TabItem {
 }
 
 export default function Estadisticas() {
-  // Estado local simple. No necesitamos persistencia compleja aquí.
+  
   const [activeTab, setActiveTab] = useState("generales");
 
   const tabs: TabItem[] = [

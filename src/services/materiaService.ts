@@ -15,7 +15,6 @@ const materiaService = {
     planCodigo: string
   ): Promise<Materia | null> => {
     try {
-      console.log(`Buscando materia: código=${codigo}, plan=${planCodigo}`);
 
       const { data, error } = await supabase
         .from("materia")
@@ -27,13 +26,11 @@ const materiaService = {
       if (error) {
         if (error.code === "PGRST116") {
           // No encontrado - no es un error crítico
-          console.log(`Materia no encontrada: ${codigo}-${planCodigo}`);
           return null;
         }
         throw error;
       }
 
-      console.log(`Materia encontrada:`, data);
       return data;
     } catch (error) {
       console.error(`Error al obtener materia ${codigo}-${planCodigo}:`, error);
@@ -48,7 +45,6 @@ const materiaService = {
     materias: { codigo: string; plan: string }[]
   ): Promise<Materia[]> => {
     try {
-      console.log("Buscando materias:", materias);
 
       if (!materias || materias.length === 0) {
         return [];
@@ -67,18 +63,11 @@ const materiaService = {
           if (error) {
             if (error.code === "PGRST116") {
               // No encontrado - no es un error crítico
-              console.log(
-                `Materia no encontrada: ${materia.codigo}-${materia.plan}`
-              );
               return null;
             }
             throw error;
           }
 
-          console.log(
-            `Materia encontrada: ${materia.codigo}-${materia.plan}:`,
-            data
-          );
           return data;
         } catch (error) {
           console.error(
@@ -95,9 +84,6 @@ const materiaService = {
         (materia) => materia !== null
       ) as Materia[];
 
-      console.log(
-        `Materias encontradas: ${materiasEncontradas.length} de ${materias.length}`
-      );
       return materiasEncontradas;
     } catch (error) {
       console.error("Error al obtener materias por códigos:", error);
@@ -110,7 +96,6 @@ const materiaService = {
    */
   obtenerMateriasPorPlan: async (planCodigo: string): Promise<Materia[]> => {
     try {
-      console.log(`Buscando materias del plan: ${planCodigo}`);
 
       const { data, error } = await supabase
         .from("materia")
@@ -122,10 +107,6 @@ const materiaService = {
         throw error;
       }
 
-      console.log(
-        `Materias encontradas para el plan ${planCodigo}:`,
-        data?.length || 0
-      );
       return data || [];
     } catch (error) {
       console.error(`Error al obtener materias del plan ${planCodigo}:`, error);
@@ -141,10 +122,6 @@ const materiaService = {
     planCodigo?: string
   ): Promise<Materia[]> => {
     try {
-      console.log(
-        `Buscando materias por nombre: "${nombre}"${planCodigo ? ` en plan ${planCodigo}` : ""}`
-      );
-
       let query = supabase
         .from("materia")
         .select("codigo, nombre, plan_de_estudio_codigo")
@@ -160,10 +137,6 @@ const materiaService = {
         throw error;
       }
 
-      console.log(
-        `Materias encontradas por nombre "${nombre}":`,
-        data?.length || 0
-      );
       return data || [];
     } catch (error) {
       console.error(`Error al buscar materias por nombre "${nombre}":`, error);

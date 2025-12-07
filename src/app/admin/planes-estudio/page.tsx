@@ -6,8 +6,8 @@ import { APP_CONFIG } from "@/lib/config";
 import { TableSkeleton } from "@/components/Skeleton";
 import MateriasModal from "@/components/modals/MateriasModal";
 import { PlanEstudio } from "@/services/planesEstudioService";
-import { useModal } from "@/stores/modal-store"; // [NUEVO]
-import { useConfirm } from "@/components/providers/confirm-dialog-provider"; // [NUEVO]
+import { useModal } from "@/stores/modal-store";
+import { useConfirm } from "@/components/providers/confirm-dialog-provider";
 import {
   Upload,
   BookOpen,
@@ -41,7 +41,7 @@ export default function PlanesEstudio() {
   const [selectedPlan, setSelectedPlan] = useState<PlanEstudio | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // [NUEVO] Hooks de UI Global
+  // Hooks de UI Global
   const {
     isOpen: showMateriasModal,
     openModal: openMateriasModal,
@@ -77,7 +77,6 @@ export default function PlanesEstudio() {
   const handleDeletePlan = async () => {
     if (!selectedPlan) return;
 
-    // [NUEVO] Confirmación bonita
     const ok = await confirm({
       title: "¿Eliminar Plan de Estudio?",
       description: `Se eliminará el plan "${selectedPlan.propuesta}" y todas sus materias asociadas. Esta acción no se puede deshacer.`,
@@ -97,7 +96,7 @@ export default function PlanesEstudio() {
 
   const handleVerMaterias = () => {
     if (!selectedPlan) return;
-    openMateriasModal(); // [NUEVO] Abrir vía store
+    openMateriasModal();
   };
 
   return (
@@ -236,7 +235,7 @@ export default function PlanesEstudio() {
 
         <MateriasModal
           isOpen={showMateriasModal}
-          onClose={closeMateriasModal} // [NUEVO] Cerrar vía store
+          onClose={closeMateriasModal}
           plan={selectedPlan}
         />
       </CardContent>
