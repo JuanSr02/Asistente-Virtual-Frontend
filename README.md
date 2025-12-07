@@ -60,10 +60,10 @@ Este proyecto utiliza una arquitectura moderna y escalable:
 
 ## 🤝 Contribución
 ¡Las contribuciones son bienvenidas! Si deseas mejorar el Asistente Virtual:
-Haz un Fork del repositorio.
-Crea una rama para tu feature (git checkout -b feature/NuevaFuncionalidad).
-Haz commit de tus cambios (git commit -m 'Agrega nueva funcionalidad').
-Push a la rama (git push origin feature/NuevaFuncionalidad).
-Abre un Pull Request.
+* Haz un Fork del repositorio.
+* Crea una rama para tu feature (git checkout -b feature/NuevaFuncionalidad).
+* Haz commit de tus cambios (git commit -m 'Agrega nueva funcionalidad').
+* Push a la rama (git push origin feature/NuevaFuncionalidad).
+* Abre un Pull Request.
 
 Desarrollado con ❤️ por Juan Sánchez para la Universidad Nacional de San Luis.
