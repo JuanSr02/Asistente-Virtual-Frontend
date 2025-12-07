@@ -57,28 +57,6 @@ Este proyecto utiliza una arquitectura moderna y escalable:
 * **Base de Datos:** PostgreSQL.
 
 ---
-## 📂 Estructura del Proyecto
-### La estructura sigue las mejores prácticas de Next.js App Router:
-src/
-├── app/                 # Rutas y páginas (App Router)
-│   ├── admin/           # Panel de administración
-│   ├── auth/            # Login, Registro, Recuperar contraseña
-│   ├── dashboard/       # Dashboard principal (Ruteo según rol)
-│   ├── student/         # Funcionalidades de estudiante
-│   └── ...
-├── components/          # Componentes de UI reutilizables
-│   ├── charts/          # Gráficos Recharts
-│   ├── modals/          # Modales globales
-│   ├── ui/              # Componentes base (ShadCN)
-│   └── ...
-├── hooks/               # Custom Hooks
-│   └── domain/          # Lógica de negocio (usePerfil, useInscripciones, etc.)
-├── lib/                 # Utilidades y configuraciones
-│   ├── schemas/         # Validaciones Zod
-│   ├── supabase/        # Cliente y Middleware de Supabase
-│   └── ...
-├── services/            # Capa de comunicación con API/Backend
-└── stores/              # Estados globales con Zustand
 
 ## 🤝 Contribución
 ¡Las contribuciones son bienvenidas! Si deseas mejorar el Asistente Virtual:
