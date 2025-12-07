@@ -1,69 +1,91 @@
+---
+
 # Asistente Virtual de Soporte Académico - UNSL 🎓🚀
 
 ![Estado del Proyecto](https://img.shields.io/badge/Estado-Finalizado-success?style=for-the-badge)
-![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)
-![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=for-the-badge&logo=supabase)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge\&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge\&logo=typescript)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=for-the-badge\&logo=supabase)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-Java-brightgreen?style=for-the-badge\&logo=springboot)
 
-> **Una plataforma integral para optimizar la trayectoria académica de los estudiantes del Departamento de Informática de la UNSL.**
+> **Plataforma integral para optimizar la trayectoria académica de los estudiantes del Departamento de Informática de la UNSL.**
 
-🌐 **Sitio Web:** [asistenteestudiantil.vercel.app](https://asistenteestudiantil.vercel.app)  
-🔙 **Repositorio Backend:** [github.com/JuanSr02/Asistente-Virtual-Backend](https://github.com/JuanSr02/Asistente-Virtual-Backend)
+🌐 **Sitio Web:** [https://asistenteestudiantil.vercel.app](https://asistenteestudiantil.vercel.app)
+🔙 **Backend Java (API REST):** [https://github.com/JuanSr02/Asistente-Virtual-Backend](https://github.com/JuanSr02/Asistente-Virtual-Backend)
+🗄️ **BaaS Secundario:** Supabase (DB + Auth)
 
-El **Asistente Virtual** es una Progressive Web App (PWA) diseñada para resolver la incertidumbre académica. Ayuda a los estudiantes a decidir qué rendir, encontrar compañeros de estudio y compartir experiencias de exámenes, todo basado en su historia académica real.
+El **Asistente Virtual** es una PWA diseñada para reducir la incertidumbre académica. Brinda sugerencias de finales, conecta estudiantes y centraliza experiencias de examen basándose en datos reales.
 
 ---
 
 ## ✨ Características Principales
 
-### 👨‍🎓 Para Estudiantes
-* **Sugerencias Inteligentes:** Algoritmo de recomendación que analiza tu historia académica y sugiere qué finales rendir basándose en:
-    * ⛓️ Cadenas de correlativas futuras.
-    * 📅 Fechas de vencimiento de regularidades.
-    * 📊 Estadísticas de dificultad y aprobación.
-* **Gestión de Historia Académica:** Carga y análisis automático de archivos analíticos (PDF/Excel del SIU Guaraní).
-* **Experiencias de Examen:** Una base de conocimiento colaborativa donde los alumnos comparten dificultad, modalidad, recursos y tips sobre mesas finales.
-* **Inscripción Social:** Sistema de inscripción *no oficial* para coordinar con otros estudiantes, ver quién rinde en la misma mesa y compartir contactos (Email/WhatsApp).
-* **Estadísticas Personales:** Dashboard visual con métricas de progreso, promedios y desempeño.
+### 👨‍🎓 Funcionalidades para Estudiantes
 
-### 🛠️ Para Administradores
-* **Gestión de Planes de Estudio:** Carga masiva y administración de planes y materias.
-* **Analíticas Globales:** Visualización de métricas generales de la facultad (tasas de aprobación, deserción, materias "filtro").
-* **Estadísticas por Carrera:** Desglose detallado del rendimiento por cada plan de estudio.
+* **Sugerencias Inteligentes:** Algoritmo que analiza historia académica real considerando:
+
+  * Correlativas futuras.
+  * Vencimiento de regularidades.
+  * Estadísticas de dificultad y aprobación.
+* **Procesamiento de Analíticos:** Carga automática de archivos PDF/Excel del SIU Guaraní.
+* **Experiencias de Examen:** Sistema colaborativo con modalidad, dificultad, recursos y tips.
+* **Inscripción Social (no oficial):** Permite coordinar mesas, ver quién rinde y compartir contacto.
+* **Dashboard Personal:** Métricas visuales de rendimiento y progreso.
+
+### 🛠️ Funciones para Administradores
+
+* Gestión integral de **planes de estudio** y materias.
+* Analíticas globales: tasas de aprobación, deserción y materias críticas.
+* Estadísticas detalladas por carrera.
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-Este proyecto utiliza una arquitectura moderna y escalable:
+### Frontend
 
-### Frontend & UI
-* **Framework:** [Next.js 14](https://nextjs.org/) (App Router).
-* **Lenguaje:** TypeScript.
-* **Estilos:** Tailwind CSS.
-* **Componentes:** [ShadCN UI](https://ui.shadcn.com/) + Radix UI.
-* **Iconos:** Lucide React.
-* **Gráficos:** Recharts.
-* **PWA:** next-pwa (Instalable en móviles y escritorio).
+* **Next.js 16 (App Router)**
+* **TypeScript**
+* **Tailwind CSS + ShadCN UI + Radix UI**
+* **Zustand** (estado global)
+* **TanStack Query v5** (caché y server state)
+* **Recharts**, Lucide React
+* **PWA** via next-pwa
+* **Axios** como cliente HTTP
 
-### Estado & Data Fetching
-* **Estado Global:** Zustand (Manejo de UI y Modales).
-* **Server State:** TanStack Query v5 (React Query) para caché, sincronización y actualizaciones optimistas.
-* **HTTP Client:** Axios.
+### Backend
 
-### Backend & Auth
-* **BaaS:** [Supabase](https://supabase.com/).
-* **Autenticación:** Supabase Auth (Email/Password + Google OAuth).
-* **Base de Datos:** PostgreSQL.
+#### 🔧 API Principal (Custom Backend)
+
+* **Java Spring Boot**
+* **API REST propia** alojada en el repo:
+  [https://github.com/JuanSr02/Asistente-Virtual-Backend](https://github.com/JuanSr02/Asistente-Virtual-Backend)
+* Procesa lógica avanzada:
+
+  * Parsing del historial académico.
+  * Algoritmos de recomendación.
+  * Endpoints optimizados para análisis y estadísticas.
+
+#### 🗄️ BaaS de Soporte
+
+* **Supabase**
+
+  * Autenticación (Email/Password + Google OAuth)
+  * Base de Datos PostgreSQL
+  * Storage opcional
 
 ---
 
 ## 🤝 Contribución
-¡Las contribuciones son bienvenidas! Si deseas mejorar el Asistente Virtual:
-* Haz un Fork del repositorio.
-* Crea una rama para tu feature (git checkout -b feature/NuevaFuncionalidad).
-* Haz commit de tus cambios (git commit -m 'Agrega nueva funcionalidad').
-* Push a la rama (git push origin feature/NuevaFuncionalidad).
-* Abre un Pull Request.
+
+1. Hacé Fork del repositorio.
+2. Creá una rama: `git checkout -b feature/NuevaFuncionalidad`.
+3. Commit: `git commit -m "Agrega nueva funcionalidad"`.
+4. Push: `git push origin feature/NuevaFuncionalidad`.
+5. Abrí un Pull Request.
 
 Desarrollado con ❤️ por Juan Sánchez para la Universidad Nacional de San Luis.
+
+---
+
+Si querés, también puedo generar una versión más corta, más formal o con estructura profesional tipo README empresarial.
