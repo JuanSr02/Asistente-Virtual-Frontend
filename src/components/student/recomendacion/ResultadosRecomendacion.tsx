@@ -124,24 +124,28 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
     );
   }
 
-  if (criterio === "VENCIMIENTO") {
-    const esCritico = final.semanasParaVencimiento <= 4;
-    return (
-      <div
-        className={`flex items-center gap-2 text-sm p-2 rounded ${
-          esCritico
-            ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
-            : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
-        }`}
-      >
-        <Calendar className="h-4 w-4" />
-        <span>
-          Vence el {final.fechaVencimiento} (Regularidad:{" "}
-          {final.fechaRegularidad})
-        </span>
-      </div>
-    );
-  }
+if (criterio === "VENCIMIENTO") {
+  const estaVencida = final.semanasParaVencimiento < 0;
+  // Si está vencida, también es crítico (<= 4), así que mantenemos el color rojo
+  const esCritico = final.semanasParaVencimiento <= 4;
+
+  return (
+    <div
+      className={`flex items-center gap-2 text-sm p-2 rounded ${
+        esCritico
+          ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
+          : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
+      }`}
+    >
+      <Calendar className="h-4 w-4" />
+      <span>
+        {estaVencida
+          ? "Materia Vencida (Averigua si puedes pedir extensión de regularidad si no lo has hecho)"
+          : `Vence el ${final.fechaVencimiento} (Regularidad: ${final.fechaRegularidad})`}
+      </span>
+    </div>
+  );
+}
 
   if (criterio === "ESTADISTICAS" && final.estadisticas) {
     return (
