@@ -104,15 +104,18 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                onClick={() =>
-                  window.open("https://youtu.be/eJyXexJL2LE", "_blank")
-                }
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-background/10 hover:bg-background/20 transition-colors"
-                title="Ver Manual"
-              >
-                <span className="hidden sm:inline">📘 Ver manual</span>
-              </button>
+              {role !== "ADMINISTRADOR" && (
+                <button
+                  onClick={() =>
+                    window.open("https://youtu.be/eJyXexJL2LE", "_blank")
+                  }
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-background/10 hover:bg-background/20 transition-colors"
+                  title="Ver Manual"
+                >
+                  <span className="hidden sm:inline">📘 Ver manual</span>
+                </button>
+              )}
+
               <button
                 onClick={handleGoToProfile}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-background/10 hover:bg-background/20 transition-colors"
