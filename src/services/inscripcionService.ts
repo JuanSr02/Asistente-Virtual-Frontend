@@ -168,13 +168,13 @@ const inscripcionService = {
       for (const inscripto of inscriptos) {
         try {
           const { data, error } = await supabase
-            .rpc("obtener_email_estudiante", { id_buscado: inscripto.estudianteId })
+            .rpc<{ mail: string }>("obtener_email_estudiante", { 
+              id_buscado: inscripto.estudianteId 
+            })
             .single();
-
           inscriptosConEmails.push({
             ...inscripto,
-            email: error ? undefined : data?.mail,
-          });
+            email: error || !data ? undefined : data.mail,          });
         } catch (emailError) {
           console.warn(
             `No se pudo obtener email para estudiante ${inscripto.estudianteId}:`,
