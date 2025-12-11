@@ -168,9 +168,7 @@ const inscripcionService = {
       for (const inscripto of inscriptos) {
         try {
           const { data, error } = await supabase
-            .from("persona")
-            .select("mail")
-            .eq("id", inscripto.estudianteId)
+            .rpc("obtener_email_estudiante", { id_buscado: inscripto.estudianteId })
             .single();
 
           inscriptosConEmails.push({
