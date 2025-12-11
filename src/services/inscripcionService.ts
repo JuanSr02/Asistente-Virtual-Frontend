@@ -168,13 +168,19 @@ const inscripcionService = {
       for (const inscripto of inscriptos) {
         try {
           const { data, error } = await supabase
-            .rpc<{ mail: string }>("obtener_email_estudiante", { 
+            .rpc("obtener_email_estudiante", { 
               id_buscado: inscripto.estudianteId 
             })
             .single();
+
+          // 2. Casteamos 'data' para que TS sepa que tiene la propiedad 'mail'
+          //    (Supabase suele devolver 'any' o 'unknown' para RPCs no tipadas)
+          const dataTipado = data as { mail: string } | null;
+
           inscriptosConEmails.push({
             ...inscripto,
-            email: error || !data ? undefined : data.mail,          });
+            email: error || !dataTipado ? undefined : dataTipado.mail,
+          });
         } catch (emailError) {
           console.warn(
             `No se pudo obtener email para estudiante ${inscripto.estudianteId}:`,
