@@ -36,7 +36,6 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Aquí podríamos agregar logging a Sentry o similar
     if (error.response?.status === 401) {
       console.warn("Sesión expirada o token inválido detectado por Axios.");
       // No redirigimos aquí automáticamente para no causar loops,
