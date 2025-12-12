@@ -54,7 +54,7 @@ export function ResultadosRecomendacion({
             ¡Felicitaciones!
           </h3>
           <p className="text-muted-foreground mt-1">
-            No tienes más finales para rendir bajo este criterio.
+            No tienes más finales para rendir.
           </p>
         </div>
       </div>
