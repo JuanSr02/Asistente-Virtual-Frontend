@@ -39,6 +39,7 @@ export function usePlanesEstudio() {
     },
     onError: (error: any) => {
       toast.error("No se pudo eliminar el plan de estudio.");
+      console.error(error);
     },
   });
 
