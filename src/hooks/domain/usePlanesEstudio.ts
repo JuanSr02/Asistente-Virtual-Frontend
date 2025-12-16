@@ -25,7 +25,9 @@ export function usePlanesEstudio() {
       queryClient.invalidateQueries({ queryKey: sharedKeys.planes() });
     },
     onError: (error: any) => {
-      toast.error("Error al cargar el plan. Verifica el formato del archivo.");
+      toast.error(
+        "Error al cargar el plan. Verifica el formato dentro del archivo."
+      );
       console.error(error);
     },
   });

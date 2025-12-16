@@ -294,7 +294,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 <SelectValue placeholder="Antigüedad" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Siempre</SelectItem>
+                <SelectItem value="all">Todos los tiempos</SelectItem>
                 <SelectItem value="1year">Último año</SelectItem>
                 <SelectItem value="2years">Últimos 2 años</SelectItem>
                 <SelectItem value="5years">Últimos 5 años</SelectItem>
