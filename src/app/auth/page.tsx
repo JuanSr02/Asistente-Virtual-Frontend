@@ -140,7 +140,6 @@ export default function Auth() {
         },
       });
       if (error) throw error;
-      router.push("/dashboard");
       router.refresh();
     } catch (error: any) {
       toast.error("Error con Google: " + error.message);
