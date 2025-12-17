@@ -129,23 +129,26 @@ export default function Auth() {
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}`,
-          queryParams: { access_type: "offline", prompt: "consent" },
-        },
-      });
-      if (error) throw error;
-      router.refresh();
-    } catch (error: any) {
-      toast.error("Error con Google: " + error.message);
-      setLoading(false);
-    }
-  };
+ const handleGoogleAuth = async () => {
+   setLoading(true);
+   try {
+     const { error } = await supabase.auth.signInWithOAuth({
+       provider: "google",
+       options: {
+         // CAMBIO AQUÍ:
+         // 1. Apunta a tu ruta de callback (fundamental para crear la cookie de sesión).
+         // 2. Añade ?next=/dashboard para saber a dónde ir después.
+         redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+
+         queryParams: { access_type: "offline", prompt: "consent" },
+       },
+     });
+     if (error) throw error;
+   } catch (error: any) {
+     toast.error("Error: " + error.message);
+     setLoading(false);
+   }
+ };
 
   const renderLoadingSpinner = () => (
     <Loader2 className="h-5 w-5 animate-spin" />
