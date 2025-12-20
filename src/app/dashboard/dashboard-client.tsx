@@ -14,7 +14,10 @@ interface DashboardClientProps {
   initialRole: string;
 }
 
-export default function DashboardClient({ user, initialRole }: DashboardClientProps) {
+export default function DashboardClient({
+  user,
+  initialRole,
+}: DashboardClientProps) {
   const [signingOut, setSigningOut] = useState(false);
   const queryClient = useQueryClient();
 
@@ -53,7 +56,9 @@ export default function DashboardClient({ user, initialRole }: DashboardClientPr
             <div className="flex items-center gap-2 sm:gap-3">
               {initialRole !== "ADMINISTRADOR" && (
                 <button
-                  onClick={() => window.open("https://youtu.be/eJyXexJL2LE", "_blank")}
+                  onClick={() =>
+                    window.open("https://youtu.be/0MnMoquT22I", "_blank")
+                  }
                   className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold bg-background/10 hover:bg-background/20 transition-colors"
                   title="Ver Manual"
                 >

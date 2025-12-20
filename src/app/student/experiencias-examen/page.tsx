@@ -65,7 +65,7 @@ const MOTIVACIONES_DISPONIBLES = [
   "Es correlativa importante",
   "Se me vencía la regularidad",
   "Para avanzar en la carrera",
-  "Materia fácil / Promedio",
+  "Materia Karma",
 ];
 
 const INITIAL_FORM_STATE = {
@@ -616,7 +616,7 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
           <div>
             <CardTitle className="text-base font-bold text-blue-700 dark:text-blue-400">
               {isOwner
-                ? experiencia.nombreMateria
+                ? `${experiencia.nombreMateria} Nota: ${experiencia.nota}`
                 : `Nota: ${experiencia.nota}`}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
@@ -657,36 +657,36 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
           <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded flex items-center gap-2">
             <Clock className="h-3 w-3 text-blue-600" />
             <span>
-              <strong>{experiencia.diasEstudio}</strong> días
+              <strong>{experiencia.diasEstudio}</strong> días de estudio
             </span>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded flex items-center gap-2">
             <BarChart3 className="h-3 w-3 text-purple-600" />
             <span>
-              <strong>{experiencia.horasDiarias}</strong> hs/día
+              <strong>{experiencia.horasDiarias}</strong> hs de estudio/día
             </span>
           </div>
           <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded flex items-center gap-2">
             <Hash className="h-3 w-3 text-orange-600" />
             <span>
-              <strong>{experiencia.intentosPrevios}</strong> intentos
+              <strong>{experiencia.intentosPrevios}</strong> intentos previos
             </span>
           </div>
           <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex items-center gap-2 truncate">
             <Target className="h-3 w-3" />
-            <span className="truncate">{experiencia.modalidad}</span>
+            <span className="truncate">Modalidad: {experiencia.modalidad}</span>
           </div>
         </div>
 
         <div className="text-muted-foreground flex gap-2 items-start">
           <Target className="h-4 w-4 mt-0.5 shrink-0" />
-          <p className="italic text-xs">{experiencia.motivacion}</p>
+          <p className="italic text-xs">Motivación: {experiencia.motivacion}</p>
         </div>
 
         <div className="flex gap-2 items-start">
           <Book className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
           <p className="text-muted-foreground line-clamp-2 text-xs">
-            {experiencia.recursos}
+            Recursos: {experiencia.recursos}
           </p>
         </div>
 

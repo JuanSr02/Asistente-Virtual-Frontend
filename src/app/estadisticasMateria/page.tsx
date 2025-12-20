@@ -234,13 +234,13 @@ export default function EstadisticasMateria() {
                   color="teal"
                 />
                 <MetricCard
-                  title="Promedio Días"
+                  title="Días de estudio"
                   value={estadisticas.promedioDiasEstudio.toFixed(1)}
                   icon={Calendar}
                   color="gray"
                 />
                 <MetricCard
-                  title="Promedio Horas"
+                  title="Horas estudio diarias"
                   value={estadisticas.promedioHorasDiarias.toFixed(1)}
                   icon={Clock}
                   color="gray"
