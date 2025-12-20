@@ -1,4 +1,5 @@
-import { supabase } from "@/supabaseClient";
+import { API_ROUTES } from "@/lib/config";
+import api from "./api";
 
 export interface Persona {
   id: number;
@@ -17,23 +18,11 @@ const personaService = {
     supabaseUserId: string
   ): Promise<Persona | null> => {
     try {
-      const { data, error } = await supabase
-        .from("persona")
-        .select("*")
-        .eq("supabase_user_id", supabaseUserId)
-        .single();
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          // No se encontró la persona
-          return null;
-        }
-        throw error;
-      }
-
-      return data;
+      const response = await api.get(`
+        ${API_ROUTES.SHARED.OBTENER_PERSONA}/usuario/${supabaseUserId}`);
+      return response.data;
     } catch (error) {
-      console.error("Error al obtener persona por Supabase ID:", error);
+      console.error("Error al obtener persona por supabaseId", error);
       throw error;
     }
   },
@@ -43,23 +32,16 @@ const personaService = {
    */
   obtenerPersonaPorEmail: async (email: string): Promise<Persona | null> => {
     try {
-      const { data, error } = await supabase
-        .from("persona")
-        .select("*")
-        .eq("mail", email)
-        .single();
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          // No se encontró la persona
-          return null;
+      const response = await api.get(
+        `
+        ${API_ROUTES.SHARED.OBTENER_PERSONA}/buscar`,
+        {
+          params: { email },
         }
-        throw error;
-      }
-
-      return data;
+      );
+      return response.data;
     } catch (error) {
-      console.error("Error al obtener persona por email:", error);
+      console.error("Error al obtener persona por mail", error);
       throw error;
     }
   },

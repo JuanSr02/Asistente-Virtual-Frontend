@@ -99,7 +99,7 @@ export default function Inscripcion({ user }: { user: User }) {
     setLoadingInscriptos(true);
     setInscriptosConsulta([]);
     try {
-      const inscriptos = await inscripcionService.obtenerInscriptosConEmails(
+      const inscriptos = await inscripcionService.obtenerInscriptos(
         inscripcion.materiaCodigo,
         inscripcion.anio,
         inscripcion.turno
@@ -337,11 +337,13 @@ export default function Inscripcion({ user }: { user: User }) {
                       </span>
                     )}
                   </p>
-                  {i.email && (
+                  {i.estudianteEmail && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => i.email && copiarEmail(i.email)}
+                      onClick={() =>
+                        i.estudianteEmail && copiarEmail(i.estudianteEmail)
+                      }
                     >
                       <ClipboardCopy className="h-4 w-4 mr-2" /> Copiar
                     </Button>

@@ -1,6 +1,5 @@
 import { API_ROUTES } from "@/lib/config";
 import api from "./api";
-import { supabase } from "@/supabaseClient";
 
 export interface MateriaParaInscripcion {
   codigo: string;
@@ -24,19 +23,9 @@ export interface InscripcionResponseDTO {
   materiaPlan: string;
   estudianteNombre: string;
   estudianteId: number;
+  estudianteEmail: string;
 }
 
-export interface InscriptoConEmail {
-  id: number;
-  turno: string;
-  anio: number;
-  materiaNombre: string;
-  materiaCodigo: string;
-  materiaPlan: string;
-  estudianteNombre: string;
-  estudianteId: number;
-  email?: string;
-}
 
 const inscripcionService = {
   /**
@@ -111,88 +100,12 @@ const inscripcionService = {
     estudianteId: number
   ): Promise<InscripcionResponseDTO[]> => {
     try {
-      // Obtener inscripciones desde Supabase
-      const { data, error } = await supabase
-        .from("registro_inscripcion")
-        .select(
-          `
-          id,
-          anio,
-          turno,
-          materia_codigo,
-          materia_plan_codigo
-        `
-        )
-        .eq("persona_id_estudiante", estudianteId);
-
-      if (error) {
-        throw error;
-      }
-
-      // Transformar los datos al formato esperado
-      return data.map((inscripcion: any) => ({
-        id: inscripcion.id,
-        turno: inscripcion.turno,
-        anio: inscripcion.anio,
-        materiaNombre: inscripcion.materiaNombre,
-        materiaCodigo: inscripcion.materia_codigo,
-        materiaPlan: inscripcion.materia_plan_codigo,
-        estudianteNombre: "", // No necesario para las propias inscripciones
-        estudianteId: estudianteId,
-      }));
-    } catch (error) {
-      console.error("Error al obtener inscripciones del estudiante:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Obtiene inscriptos con sus emails desde Supabase
-   */
-  obtenerInscriptosConEmails: async (
-    codigoMateria: string,
-    anio: number,
-    turno: string
-  ): Promise<InscriptoConEmail[]> => {
-    try {
-      // Primero obtener los inscriptos del backend
-      const inscriptos = await inscripcionService.obtenerInscriptos(
-        codigoMateria,
-        anio,
-        turno
+      const response = await api.get(
+        `${API_ROUTES.SHARED.INSCRIPCIONES}/estudiante/${estudianteId}`
       );
-
-      // Luego obtener los emails desde Supabase
-      const inscriptosConEmails: InscriptoConEmail[] = [];
-
-      for (const inscripto of inscriptos) {
-        try {
-          const { data, error } = await supabase
-            .rpc("obtener_email_estudiante", { 
-              id_buscado: inscripto.estudianteId 
-            })
-            .single();
-
-          // 2. Casteamos 'data' para que TS sepa que tiene la propiedad 'mail'
-          //    (Supabase suele devolver 'any' o 'unknown' para RPCs no tipadas)
-          const dataTipado = data as { mail: string } | null;
-
-          inscriptosConEmails.push({
-            ...inscripto,
-            email: error || !dataTipado ? undefined : dataTipado.mail,
-          });
-        } catch (emailError) {
-          console.warn(
-            `No se pudo obtener email para estudiante ${inscripto.estudianteId}:`,
-            emailError
-          );
-          inscriptosConEmails.push(inscripto);
-        }
-      }
-
-      return inscriptosConEmails;
+      return response.data;
     } catch (error) {
-      console.error("Error al obtener inscriptos con emails:", error);
+      console.error("Error al obtener inscripciones:", error);
       throw error;
     }
   },

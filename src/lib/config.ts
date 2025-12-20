@@ -26,6 +26,7 @@ export const API_ROUTES = {
     INSCRIPCIONES: "/api/shared/inscripciones",
     ACTUALIZAR_ESTUDIANTE: "/api/shared/estudiantes",
     ELIMINAR_ESTUDIANTE: "/api/shared/estudiantes",
+    OBTENER_PERSONA :"api/shared/personas",
   },
   ESTUDIANTE: {
     FINALES_PARA_RENDIR: "/api/shared/finales",

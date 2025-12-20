@@ -1,6 +1,5 @@
 import { API_ROUTES } from "@/lib/config";
 import api from "./api";
-import { supabase } from "@/supabaseClient";
 
 export interface HistoriaAcademica {
   id: number;
@@ -24,26 +23,14 @@ const historiaAcademicaService = {
     personaId: number
   ): Promise<HistoriaAcademica | null> => {
     try {
-      const { data, error } = await supabase
-        .from("historia_academica")
-        .select("*")
-        .eq("persona_id_estudiante", personaId)
-        .eq("estado", "ACTIVA")
-        .single();
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          // No se encontró historia académica
-          return null;
+          const response = await api.get(
+            `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${personaId}`
+          );
+          return response.data;
+        } catch (error) {
+          console.error("Error al obtener historia academica", error);
+          throw error;
         }
-        throw error;
-      }
-
-      return data;
-    } catch (error) {
-      console.error("Error al verificar historia académica:", error);
-      throw error;
-    }
   },
 
   /**
