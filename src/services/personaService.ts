@@ -18,8 +18,7 @@ const personaService = {
     supabaseUserId: string
   ): Promise<Persona | null> => {
     try {
-      const response = await api.get(`
-        ${API_ROUTES.SHARED.OBTENER_PERSONA}/usuario/${supabaseUserId}`);
+      const response = await api.get(`${API_ROUTES.SHARED.OBTENER_PERSONA}/usuario/${supabaseUserId}`);
       return response.data;
     } catch (error) {
       console.error("Error al obtener persona por supabaseId", error);
@@ -32,9 +31,7 @@ const personaService = {
    */
   obtenerPersonaPorEmail: async (email: string): Promise<Persona | null> => {
     try {
-      const response = await api.get(
-        `
-        ${API_ROUTES.SHARED.OBTENER_PERSONA}/buscar`,
+      const response = await api.get(`${API_ROUTES.SHARED.OBTENER_PERSONA}/buscar`,
         {
           params: { email },
         }
