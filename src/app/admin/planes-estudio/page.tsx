@@ -79,7 +79,7 @@ export default function PlanesEstudio() {
 
     const ok = await confirm({
       title: "¿Eliminar Plan de Estudio?",
-      description: `Se eliminará el plan "${selectedPlan.propuesta}" y todas sus materias asociadas. Esta acción no se puede deshacer.`,
+      description: `Se eliminará el plan "${selectedPlan.propuesta} (${selectedPlan.codigo})" y todas sus materias asociadas. Esta acción no se puede deshacer.`,
       confirmText: "Sí, eliminar",
       variant: "destructive",
     });
