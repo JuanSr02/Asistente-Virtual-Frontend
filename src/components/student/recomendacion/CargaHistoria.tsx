@@ -75,7 +75,7 @@ export function CargaHistoria({
               variant="outline"
               size="sm"
               onClick={() =>
-                window.open("https://youtu.be/K4uE6e0xp3M", "_blank")
+                window.open("https://youtu.be/0MnMoquT22I", "_blank")
               }
             >
               <Youtube className="mr-2 h-4 w-4" /> Tutorial
