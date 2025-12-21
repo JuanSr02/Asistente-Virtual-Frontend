@@ -8,6 +8,7 @@ export interface PlanEstudio {
 }
 
 export interface CargaPlanResponse {
+  codigo: string;
   propuesta: string;
   cantidadMaterias: number;
 }
