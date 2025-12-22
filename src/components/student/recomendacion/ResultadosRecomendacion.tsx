@@ -3,19 +3,18 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookCopy, Calendar, ThumbsUp, BarChart2 } from "lucide-react";
+import { BookCopy, Calendar, ThumbsUp, BarChart2, Info } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 
 interface ResultadosProps {
   recomendaciones: any[];
   criterio: string;
-  planCodigo?: string; // Necesitamos el plan para redirigir
+  planCodigo?: string;
 }
 
 export function ResultadosRecomendacion({
@@ -25,21 +24,14 @@ export function ResultadosRecomendacion({
 }: ResultadosProps) {
   const { setActiveTab, setStatsParams } = useUIStore();
 
-  // Handler para la navegación mágica
   const handleVerEstadisticas = (codigoMateria: string) => {
     if (!planCodigo) return;
-
-    // 1. Seteamos los parámetros para que Estadísticas sepa qué cargar
     setStatsParams({
       plan: planCodigo,
       materia: codigoMateria,
       periodo: "TODOS_LOS_TIEMPOS",
     });
-
-    // 2. Cambiamos la pestaña
     setActiveTab("estadisticas");
-
-    // Scroll top suave por si acaso
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -63,6 +55,18 @@ export function ResultadosRecomendacion({
 
   return (
     <div className="grid gap-4 animate-fade-in">
+      {/* --- EXPLICACIÓN DEL PUNTAJE (Solo visible en modo ESTADISTICAS) --- */}
+      {criterio === "ESTADISTICAS" && (
+        <div className="bg-blue-50 dark:bg-blue-950/40 p-3 rounded-md border border-blue-100 dark:border-blue-900 flex gap-3 items-start text-sm text-blue-800 dark:text-blue-300">
+          <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block mb-1">¿Cómo ordenamos estas materias?</span>
+            El <strong>Puntaje</strong> te sugiere qué rendir primero combinando dos factores: 
+            la <strong>probabilidad de aprobar (70%)</strong> y qué tan <strong>accesible/fácil</strong> es la materia (30%).
+          </div>
+        </div>
+      )}
+
       {recomendaciones.map((final, index) => (
         <Card
           key={final.codigoMateria}
@@ -80,10 +84,10 @@ export function ResultadosRecomendacion({
                   </CardTitle>
                 </div>
               </div>
+              {/* Badge opcional de aprobación si se desea mantener */}
               {criterio === "ESTADISTICAS" && final.estadisticas && (
-                <Badge variant="secondary" className="hidden sm:inline-flex">
-                  Aprobación:{" "}
-                  {final.estadisticas.porcentajeAprobados.toFixed(1)}%
+                <Badge variant="outline" className="hidden sm:inline-flex border-primary/20 text-primary">
+                  {final.estadisticas.porcentajeAprobados.toFixed(0)}% Aprobación
                 </Badge>
               )}
             </div>
@@ -124,61 +128,61 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
     );
   }
 
-if (criterio === "VENCIMIENTO") {
-  const estaVencida = final.semanasParaVencimiento < 0;
-  // Si está vencida, también es crítico (<= 4), así que mantenemos el color rojo
-  const esCritico = final.semanasParaVencimiento <= 4;
+  if (criterio === "VENCIMIENTO") {
+    const estaVencida = final.semanasParaVencimiento < 0;
+    const esCritico = final.semanasParaVencimiento <= 4;
 
-  return (
-    <div
-      className={`flex items-center gap-2 text-sm p-2 rounded ${
-        esCritico
-          ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
-          : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
-      }`}
-    >
-      <Calendar className="h-4 w-4" />
-      <span>
-        {estaVencida
-          ? "Materia Vencida (Averigua si puedes pedir extensión de regularidad si no lo has hecho)"
-          : `Vence el ${final.fechaVencimiento} (Regularidad: ${final.fechaRegularidad})`}
-      </span>
-    </div>
-  );
-}
+    return (
+      <div
+        className={`flex items-center gap-2 text-sm p-2 rounded ${
+          esCritico
+            ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
+            : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
+        }`}
+      >
+        <Calendar className="h-4 w-4" />
+        <span>
+          {estaVencida
+            ? "Materia Vencida (Averigua si puedes pedir extensión de regularidad si no lo has hecho)"
+            : `Vence el ${final.fechaVencimiento} (Regularidad: ${final.fechaRegularidad})`}
+        </span>
+      </div>
+    );
+  }
 
   if (criterio === "ESTADISTICAS" && final.estadisticas) {
     return (
-      <div className="grid grid-cols-4 gap-2 text-center text-xs">
-        {/* Score Destacado */}
+      <div className="grid grid-cols-4 gap-2 text-center text-xs mt-2">
+        {/* COLUMNA 1: PUNTAJE DESTACADO */}
         <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded border border-primary/20 flex flex-col justify-center">
-          <div className="font-bold text-primary text-sm">
-            {final.estadisticas.puntaje
-              ? final.estadisticas.puntaje.toFixed(0)
-              : "-"}{" "}
-            pts
+          <div className="font-bold text-primary text-lg">
+             {/* Mostramos el puntaje calculado en el backend */}
+            {final.estadisticas.puntaje ? final.estadisticas.puntaje.toFixed(0) : "-"}
           </div>
-          <div className="text-[10px] text-primary/80 uppercase font-semibold">
-            Score
+          <div className="text-[10px] text-primary/80 uppercase font-bold tracking-wider">
+            Puntaje
           </div>
         </div>
 
+        {/* COLUMNA 2: PROMEDIO */}
         <div className="bg-muted p-2 rounded flex flex-col justify-center">
-          <div className="font-bold">
+          <div className="font-bold text-foreground">
             {final.estadisticas.promedioNotas.toFixed(1)}
           </div>
           <div className="text-muted-foreground text-[10px]">Promedio</div>
         </div>
 
+        {/* COLUMNA 3: DIAS ESTUDIO */}
         <div className="bg-muted p-2 rounded flex flex-col justify-center">
-          <div className="font-bold">
-            {final.estadisticas.promedioDiasEstudio.toFixed(1)}
+          <div className="font-bold text-foreground">
+            {final.estadisticas.promedioDiasEstudio.toFixed(0)}
           </div>
           <div className="text-muted-foreground text-[10px]">Días Est.</div>
         </div>
 
+        {/* COLUMNA 4: DIFICULTAD */}
         <div className="bg-muted p-2 rounded flex flex-col justify-center">
-          <div className="font-bold">
+          <div className="font-bold text-foreground">
             {final.estadisticas.promedioDificultad.toFixed(1)}
           </div>
           <div className="text-muted-foreground text-[10px]">Dificultad</div>
