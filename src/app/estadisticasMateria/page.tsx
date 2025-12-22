@@ -161,7 +161,8 @@ export default function EstadisticasMateria() {
           <div>
             <p className="font-semibold">Error al cargar estadísticas</p>
             <p className="text-sm">
-              No se encontraron datos para esta selección.
+              No se encontraron datos para esta selección de plan, materia y
+              periodo.
             </p>
           </div>
         </div>
