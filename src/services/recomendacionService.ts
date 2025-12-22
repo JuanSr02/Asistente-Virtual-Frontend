@@ -9,6 +9,7 @@ export interface EstadisticasMateria {
   promedioDiasEstudio: number;
   promedioHorasDiarias: number;
   promedioDificultad: number;
+  puntaje: number;
 }
 
 export interface FinalDTO {

@@ -149,24 +149,39 @@ if (criterio === "VENCIMIENTO") {
 
   if (criterio === "ESTADISTICAS" && final.estadisticas) {
     return (
-      <div className="grid grid-cols-3 gap-2 text-center text-xs">
-        <div className="bg-muted p-2 rounded">
+      <div className="grid grid-cols-4 gap-2 text-center text-xs">
+        {/* Score Destacado */}
+        <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded border border-primary/20 flex flex-col justify-center">
+          <div className="font-bold text-primary text-sm">
+            {final.estadisticas.puntaje
+              ? final.estadisticas.puntaje.toFixed(0)
+              : "-"}{" "}
+            pts
+          </div>
+          <div className="text-[10px] text-primary/80 uppercase font-semibold">
+            Score
+          </div>
+        </div>
+
+        <div className="bg-muted p-2 rounded flex flex-col justify-center">
           <div className="font-bold">
             {final.estadisticas.promedioNotas.toFixed(1)}
           </div>
-          <div className="text-muted-foreground">Promedio</div>
+          <div className="text-muted-foreground text-[10px]">Promedio</div>
         </div>
-        <div className="bg-muted p-2 rounded">
+
+        <div className="bg-muted p-2 rounded flex flex-col justify-center">
           <div className="font-bold">
             {final.estadisticas.promedioDiasEstudio.toFixed(1)}
           </div>
-          <div className="text-muted-foreground">Días Est.</div>
+          <div className="text-muted-foreground text-[10px]">Días Est.</div>
         </div>
-        <div className="bg-muted p-2 rounded">
+
+        <div className="bg-muted p-2 rounded flex flex-col justify-center">
           <div className="font-bold">
             {final.estadisticas.promedioDificultad.toFixed(1)}
           </div>
-          <div className="text-muted-foreground">Dificultad</div>
+          <div className="text-muted-foreground text-[10px]">Dificultad</div>
         </div>
       </div>
     );
