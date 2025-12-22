@@ -169,7 +169,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
           <div className="font-bold text-foreground">
             {final.estadisticas.promedioNotas.toFixed(1)}
           </div>
-          <div className="text-muted-foreground text-[10px]">Promedio</div>
+          <div className="text-muted-foreground text-[10px]">Promedio Notas</div>
         </div>
 
         {/* COLUMNA 3: DIAS ESTUDIO */}
@@ -177,7 +177,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
           <div className="font-bold text-foreground">
             {final.estadisticas.promedioDiasEstudio.toFixed(0)}
           </div>
-          <div className="text-muted-foreground text-[10px]">Días Est.</div>
+          <div className="text-muted-foreground text-[10px]">Promedio Días Estudio</div>
         </div>
 
         {/* COLUMNA 4: DIFICULTAD */}
@@ -185,7 +185,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
           <div className="font-bold text-foreground">
             {final.estadisticas.promedioDificultad.toFixed(1)}
           </div>
-          <div className="text-muted-foreground text-[10px]">Dificultad</div>
+          <div className="text-muted-foreground text-[10px]">Dificultad promedio</div>
         </div>
       </div>
     );
