@@ -207,6 +207,7 @@ export default function Recomendacion({ user }: { user: User }) {
               </h2>
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Select value={criterio} onValueChange={setCriterio}>
+                  Ordenar por...
                   <SelectTrigger className="w-[220px]">
                     <SelectValue placeholder="Ordenar por..." />
                   </SelectTrigger>
@@ -215,7 +216,9 @@ export default function Recomendacion({ user }: { user: User }) {
                       Importancia (Correlativas)
                     </SelectItem>
                     <SelectItem value="VENCIMIENTO">Vencimiento</SelectItem>
-                    <SelectItem value="ESTADISTICAS">Dificultad</SelectItem>
+                    <SelectItem value="ESTADISTICAS">
+                      Estadisticas (Dificultad)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Button

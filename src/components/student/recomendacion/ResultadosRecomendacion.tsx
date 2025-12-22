@@ -91,7 +91,7 @@ export function ResultadosRecomendacion({
           <CardContent className="flex-1 flex flex-col">
             <InfoCriterio final={final} criterio={criterio} />
 
-            {criterio === "ESTADISTICAS" && planCodigo && (
+            {planCodigo && (
               <div className="mt-4 pt-4 border-t flex justify-end">
                 <Button
                   variant="outline"
