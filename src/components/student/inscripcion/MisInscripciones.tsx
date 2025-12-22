@@ -55,7 +55,7 @@ export function MisInscripciones({
                     size="sm"
                     disabled={isProcessing}
                     onClick={() => {
-                      if (confirm("¿Anular inscripción?")) onBaja(ins.id);
+                      onBaja(ins.id);
                     }}
                     className="flex-1 sm:flex-none"
                   >
