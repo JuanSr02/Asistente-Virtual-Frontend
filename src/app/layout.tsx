@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { ClientLayout } from "@/components/layout/client-layout";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
       >
         {/* Delegamos la lógica de cliente al wrapper */}
         <ClientLayout>{children}</ClientLayout>
+        <Analytics />
       </body>
     </html>
   );
