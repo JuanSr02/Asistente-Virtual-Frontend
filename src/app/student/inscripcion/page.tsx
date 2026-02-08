@@ -36,6 +36,18 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Type definitions for exam sessions (mesas)
+type Mesa = "FEBRERO" | "MARZO" | "JULIO" | "AGOSTO" | "NOVIEMBRE" | "DICIEMBRE";
+
+const MESES_MAP: Record<Mesa, number> = {
+  FEBRERO: 2,
+  MARZO: 3,
+  JULIO: 7,
+  AGOSTO: 8,
+  NOVIEMBRE: 11,
+  DICIEMBRE: 12,
+};
+
 export default function Inscripcion({ user }: { user: User }) {
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
@@ -55,7 +67,7 @@ export default function Inscripcion({ user }: { user: User }) {
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<any | null>(
     null
   );
-  const [mesaSeleccionada, setMesaSeleccionada] = useState<string>("");
+  const [mesaSeleccionada, setMesaSeleccionada] = useState<Mesa | "">("");
   const [showConfirmacionAlta, setShowConfirmacionAlta] = useState(false); // Local para el alta
 
   // Hooks Globales
@@ -71,7 +83,7 @@ export default function Inscripcion({ user }: { user: User }) {
   const [inscriptosConsulta, setInscriptosConsulta] = useState<any[]>([]);
   const [loadingInscriptos, setLoadingInscriptos] = useState(false);
 
-  const mesas = [
+  const mesas: Mesa[] = [
     "FEBRERO",
     "MARZO",
     "JULIO",
@@ -79,19 +91,35 @@ export default function Inscripcion({ user }: { user: User }) {
     "NOVIEMBRE",
     "DICIEMBRE",
   ];
-  const calcularAnio = (mesa: string) => {
+
+  const calcularAnio = (mesa: Mesa | string) => {
     const hoy = new Date();
     const mesActual = hoy.getMonth() + 1;
-    const mesMesa =
-      {
-        FEBRERO: 2,
-        MARZO: 3,
-        JULIO: 7,
-        AGOSTO: 8,
-        NOVIEMBRE: 11,
-        DICIEMBRE: 12,
-      }[mesa] || 12;
+    const mesMesa = (mesa in MESES_MAP) ? MESES_MAP[mesa as Mesa] : 12;
     return mesMesa < mesActual ? hoy.getFullYear() + 1 : hoy.getFullYear();
+  };
+
+  // Filtrar inscripciones cuya fecha ya pasó (para no mostrarlas, pero no eliminarlas de BD)
+  const filtrarInscripcionesActivas = (inscripciones: any[]) => {
+    const hoy = new Date();
+    const mesActual = hoy.getMonth() + 1; // 1-12
+    const anioActual = hoy.getFullYear();
+
+    return inscripciones.filter((ins) => {
+      const turno = ins.turno as string;
+      const mesMesa = (turno in MESES_MAP) ? MESES_MAP[turno as Mesa] : 12;
+
+      const anioMesa = ins.anio;
+
+      // Si el año de la mesa es menor al actual, está pasada
+      if (anioMesa < anioActual) return false;
+
+      // Si es del mismo año, verificar el mes
+      if (anioMesa === anioActual && mesMesa < mesActual) return false;
+
+      // En cualquier otro caso, la inscripción está vigente
+      return true;
+    });
   };
 
   const consultarInscriptos = async (inscripcion: any) => {
@@ -135,7 +163,7 @@ export default function Inscripcion({ user }: { user: User }) {
       setMateriaSeleccionada(null);
       setMesaSeleccionada("");
       setShowConfirmacionAlta(false);
-    } catch (error) {}
+    } catch (error) { }
   };
 
   const handleBaja = async (id: number) => {
@@ -215,7 +243,7 @@ export default function Inscripcion({ user }: { user: User }) {
             <CardContent className="space-y-4">
               <Select
                 value={mesaSeleccionada}
-                onValueChange={setMesaSeleccionada}
+                onValueChange={(value) => setMesaSeleccionada(value as Mesa | "")}
                 disabled={!materiaSeleccionada}
               >
                 <SelectTrigger>
@@ -248,7 +276,7 @@ export default function Inscripcion({ user }: { user: User }) {
           </Card>
 
           <MisInscripciones
-            inscripciones={misInscripciones}
+            inscripciones={filtrarInscripcionesActivas(misInscripciones)}
             onBaja={handleBaja} // Usamos el handler con confirmación
             onVer={consultarInscriptos}
             isProcessing={isDandoseDeBaja}
