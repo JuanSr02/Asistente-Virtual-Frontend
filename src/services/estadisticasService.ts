@@ -1,8 +1,6 @@
 import { API_ROUTES } from "@/lib/config";
 import api from "./api";
 
-// --- Interfaces de Dominio ---
-
 export interface MateriaEstadistica {
   nombre: string;
   porcentaje: number;
@@ -28,7 +26,6 @@ export interface EstadisticasGeneralesDTO {
 }
 
 export interface EstadisticasCarreraDTO extends EstadisticasGeneralesDTO {
-  // Hereda la misma estructura por ahora, pero permite extensión futura
   planCodigo: string;
 }
 

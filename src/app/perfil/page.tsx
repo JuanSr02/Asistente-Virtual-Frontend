@@ -42,7 +42,6 @@ export default function PerfilPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUser(data.user);
-      // Check if user logged in with Google
       if (data.user?.app_metadata?.provider === 'google') {
         setIsGoogleUser(true);
       }
@@ -62,7 +61,6 @@ export default function PerfilPage() {
 
   const { confirm } = useConfirm();
 
-  // Estado del Formulario
   const [formData, setFormData] = useState({
     nombreApellido: "",
     mail: "",
@@ -70,10 +68,8 @@ export default function PerfilPage() {
     contrasenia: "",
   });
 
-  // Estado de Errores (Zod)
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Sincronizar (Solo resetear campos editables, dejamos vacíos para placeholder)
   useEffect(() => {
     if (persona) {
       setFormData({
@@ -91,7 +87,6 @@ export default function PerfilPage() {
     const newData = { ...formData, [field]: value };
     setFormData(newData);
 
-    // Validar solo el campo que cambió
     const result = profileSchema.safeParse(newData);
     if (!result.success) {
       const fieldError = result.error.issues.find((e) => e.path[0] === field);
@@ -114,7 +109,6 @@ export default function PerfilPage() {
     );
     if (!hasAnyContent) return false;
 
-    // Verificar si hay errores en el estado o si Zod falla globalmente
     const result = profileSchema.safeParse(formData);
     return result.success;
   }, [formData]);
@@ -122,7 +116,6 @@ export default function PerfilPage() {
   const handleActualizar = async () => {
     if (!persona) return;
 
-    // Validación final antes de enviar
     const result = profileSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
@@ -133,7 +126,6 @@ export default function PerfilPage() {
       return;
     }
 
-    // Construir DTO solo con campos llenos
     const datosActualizacion: ActualizarPerfilDTO = {};
     if (formData.nombreApellido.trim())
       datosActualizacion.nombreApellido = formData.nombreApellido.trim();
@@ -153,7 +145,6 @@ export default function PerfilPage() {
         contrasenia: "",
       });
     } catch (e) {
-      // Error manejado en hook
     }
   };
 
@@ -208,7 +199,6 @@ export default function PerfilPage() {
         </CardHeader>
 
         <CardContent className="p-6 space-y-6">
-          {/* Nombre y Apellido */}
           <div className="space-y-2">
             <Label htmlFor="nombreApellido" className="font-semibold">
               Nombre y Apellido
@@ -237,7 +227,6 @@ export default function PerfilPage() {
             )}
           </div>
 
-          {/* Email */}
           {!isGoogleUser && (
             <div className="space-y-2">
               <Label htmlFor="mail" className="font-semibold">
@@ -265,7 +254,6 @@ export default function PerfilPage() {
             </div>
           )}
 
-          {/* Teléfono */}
           <div className="space-y-2">
             <Label htmlFor="telefono" className="font-semibold">
               Teléfono{" "}
@@ -294,7 +282,6 @@ export default function PerfilPage() {
             {errors.telefono && <ErrorMessage message={errors.telefono} />}
           </div>
 
-          {/* Contraseña */}
           {!isGoogleUser && (
             <div className="space-y-2 pt-4 border-t border-dashed">
               <Label htmlFor="contrasenia" className="font-semibold">
@@ -332,7 +319,6 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              {/* Aviso importante */}
               <p className="text-xs text-muted-foreground mt-2 flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/10 p-2 rounded border border-yellow-200 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-500">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                 Si cambias tu contraseña, deberás volver a iniciar sesión en todos
@@ -379,7 +365,6 @@ export default function PerfilPage() {
   );
 }
 
-// Helpers visuales
 const usuarioConFormato = (tel: string | undefined) => tel;
 
 const StatusIcon = ({

@@ -29,12 +29,10 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANTE: getUser valida la sesión con el servidor de Supabase (seguro)
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Rutas protegidas: dashboard, admin, student y la raíz si queremos redirigir
   if (
     !user &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
@@ -47,7 +45,6 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Rutas de Auth: Si ya está logueado, no dejar entrar a /auth
   if (user && request.nextUrl.pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";

@@ -18,7 +18,6 @@ const materiaService = {
         return [];
       }
 
-      // Hacer consultas individuales en paralelo para cada materia
       const promesasConsultas = materias.map(async (materia) => {
         try {
           const { data, error } = await supabase
@@ -30,7 +29,6 @@ const materiaService = {
 
           if (error) {
             if (error.code === "PGRST116") {
-              // No encontrado - no es un error crítico
               return null;
             }
             throw error;
@@ -46,7 +44,6 @@ const materiaService = {
         }
       });
 
-      // Esperar todas las consultas y filtrar nulos
       const resultados = await Promise.all(promesasConsultas);
       const materiasEncontradas = resultados.filter(
         (materia) => materia !== null

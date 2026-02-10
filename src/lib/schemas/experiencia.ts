@@ -29,7 +29,6 @@ export const experienciaSchema = z.object({
         .refine(
             (val) => {
                 if (!val || val.trim() === "") return true;
-                // Permitir URLs o texto simple (contactos)
                 return true;
             },
             { message: "Formato inválido" }

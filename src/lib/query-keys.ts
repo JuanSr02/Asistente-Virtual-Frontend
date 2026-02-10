@@ -10,7 +10,7 @@ export const studentKeys = {
   persona: (userId: string) => [...studentKeys.all, "persona", userId] as const,
   historia: (userId: string) =>
     [...studentKeys.all, "historia", userId] as const,
-  planes: () => sharedKeys.planes(), // Alias para compatibilidad
+  planes: () => sharedKeys.planes(),
   recomendaciones: (userId: string, criterio: string) =>
     [...studentKeys.all, "recomendaciones", userId, criterio] as const,
   materiasInscripcion: (userId: string) =>

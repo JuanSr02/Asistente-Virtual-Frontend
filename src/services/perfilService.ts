@@ -32,7 +32,6 @@ const perfilService = {
    */
   eliminarCuenta: async (id: number, rolUsuario: string): Promise<void> => {
     try {
-      // Primero eliminar de la base de datos
       const endpoint =
         rolUsuario === "ESTUDIANTE"
           ? `${API_ROUTES.SHARED.ELIMINAR_ESTUDIANTE}/${id}`
@@ -40,7 +39,6 @@ const perfilService = {
 
       await api.delete(endpoint);
 
-      // Cerrar sesión
       await supabase.auth.signOut();
     } catch (error) {
       console.error("Error eliminando cuenta:", error);

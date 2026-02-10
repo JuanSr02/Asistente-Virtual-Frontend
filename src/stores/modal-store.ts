@@ -25,8 +25,6 @@ export const useModalStore = create<ModalsStore>((set) => ({
     set((state) => ({
       modals: {
         ...state.modals,
-        // CORRECCIÓN: Si el modal no existe en el estado, usamos un objeto vacío por defecto
-        // para evitar el error de "Spread types may only be created from object types".
         [id]: {
           ...(state.modals[id] || { data: null, type: null }),
           isOpen: false,
@@ -41,7 +39,6 @@ export const useModalStore = create<ModalsStore>((set) => ({
  */
 export function useModal(id: string) {
   const { modals, openModal, closeModal } = useModalStore();
-  // Si no existe el modal en el store, devolvemos un estado cerrado por defecto
   const modalState = modals[id] || { isOpen: false, data: null, type: null };
 
   return {

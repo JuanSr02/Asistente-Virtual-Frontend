@@ -1,4 +1,3 @@
-// 🌐 API
 export const API_BASE_URL =
   "https://asistente-virtual-backend-wj8t.onrender.com";
 
@@ -26,7 +25,7 @@ export const API_ROUTES = {
     INSCRIPCIONES: "/api/shared/inscripciones",
     ACTUALIZAR_ESTUDIANTE: "/api/shared/estudiantes",
     ELIMINAR_ESTUDIANTE: "/api/shared/estudiantes",
-    OBTENER_PERSONA :"api/shared/personas",
+    OBTENER_PERSONA: "api/shared/personas",
   },
   ESTUDIANTE: {
     FINALES_PARA_RENDIR: "/api/shared/finales",
@@ -35,12 +34,10 @@ export const API_ROUTES = {
   },
 };
 
-// ⚙️ Axios
 export const AXIOS_CONFIG = {
   headers: {},
 };
 
-// ⚙️ App config
 export const APP_CONFIG = {
   NAME: "Asistente Virtual - Sistema Académico",
   PAGINATION_SIZE: 10,

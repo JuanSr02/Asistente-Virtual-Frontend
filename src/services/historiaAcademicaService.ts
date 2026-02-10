@@ -23,14 +23,14 @@ const historiaAcademicaService = {
     personaId: number
   ): Promise<HistoriaAcademica | null> => {
     try {
-          const response = await api.get(
-            `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${personaId}`
-          );
-          return response.data;
-        } catch (error) {
-          console.error("Error al obtener historia academica", error);
-          throw error;
-        }
+      const response = await api.get(
+        `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${personaId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener historia academica", error);
+      throw error;
+    }
   },
 
   /**
@@ -45,11 +45,9 @@ const historiaAcademicaService = {
       const formData = new FormData();
       formData.append("file", file);
 
-      // CORRECCIÓN: Eliminamos el header manual Content-Type
-      // Aumentamos el timeout porque el procesamiento de archivos puede tardar
       const config = {
         params: { codigoPlan },
-        timeout: 60000, // 60 segundos
+        timeout: 60000,
       };
 
       const response = await api.post(

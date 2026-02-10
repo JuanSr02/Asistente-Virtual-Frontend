@@ -29,7 +29,6 @@ const planesEstudioService = {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Axios gestiona el boundary automáticamente al no setear Content-Type
       const response = await api.post(API_ROUTES.ADMIN.CARGAR_PLAN, formData);
       return response.data;
     } catch (error) {
@@ -49,7 +48,6 @@ const planesEstudioService = {
     }
   },
 
-  // Usado por el modal de materias
   obtenerMateriasPorPlan: async (codigoPlan: string): Promise<any[]> => {
     try {
       const response = await api.get(
