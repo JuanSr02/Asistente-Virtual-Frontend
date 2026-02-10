@@ -77,7 +77,7 @@ const INITIAL_FORM_STATE = {
   horasDiarias: 4,
   intentosPrevios: 0,
   modalidad: "ESCRITO",
-  recursos: [] as string[],
+  recursos: ["Libros"] as string[],
   motivacion: "Para avanzar en la carrera",
   linkResumen: "",
 };
@@ -514,6 +514,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 <Input
                   type="number"
                   min="0"
+                  max="10"
                   className="pl-10"
                   value={formData.intentosPrevios}
                   onChange={(e) =>
