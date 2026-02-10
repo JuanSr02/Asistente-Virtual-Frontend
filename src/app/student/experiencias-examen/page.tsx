@@ -77,7 +77,7 @@ const INITIAL_FORM_STATE = {
   horasDiarias: 4,
   intentosPrevios: 0,
   modalidad: "ESCRITO",
-  recursos: ["Libros"] as string[],
+  recursos: [] as string[],
   motivacion: "Para avanzar en la carrera",
   linkResumen: "",
 };
@@ -166,25 +166,29 @@ export default function ExperienciasExamen({ user }: { user: User }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+
     // Validar con Zod
     try {
       experienciaSchema.parse(formData);
       setErrors({});
     } catch (error: any) {
-      if (error.errors) {
+
+      // Zod usa 'issues' no 'errors'
+      if (error.issues) {
         const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err: any) => {
+        error.issues.forEach((err: any) => {
+
           if (err.path[0]) {
             fieldErrors[err.path[0]] = err.message;
           }
         });
+
         setErrors(fieldErrors);
-        toast.error("Error de validación", {
-          description: "Por favor corrige los errores antes de continuar.",
-        });
       }
+
       return;
     }
+
 
     const dto = {
       ...formData,
@@ -410,13 +414,14 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <BookOpenCheck className="h-5 w-5 text-blue-600" aria-hidden="true" />
             <CardTitle>Mis Experiencias</CardTitle>
           </div>
-          <Button
-            onClick={handleOpenCrear}
-            disabled={examenesDisponibles.length === 0}
-            aria-label="Crear nueva experiencia de examen"
-          >
-            <PenSquare className="h-4 w-4 mr-2" aria-hidden="true" /> Nueva
-          </Button>
+          {!isLoadingMisExperiencias && examenesDisponibles.length > 0 && (
+            <Button
+              onClick={handleOpenCrear}
+              aria-label="Crear nueva experiencia de examen"
+            >
+              <PenSquare className="h-4 w-4 mr-2" aria-hidden="true" /> Nueva
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {isLoadingMisExperiencias ? (
@@ -618,12 +623,13 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             </div>
           </div>
 
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium">Recursos Utilizados</legend>
+          <div className="space-y-3" role="group" aria-labelledby="recursos-legend">
+            <span id="recursos-legend" className="text-sm font-medium">Recursos Utilizados</span>
             <div
-              className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border"
-              role="group"
-              aria-label="Selecciona los recursos que utilizaste"
+              className={`grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border transition-colors ${errors.recursos ? "border-red-500 bg-red-50/50" : ""
+                }`}
+              aria-invalid={!!errors.recursos}
+              aria-describedby={errors.recursos ? "recursos-error" : undefined}
             >
               {RECURSOS_DISPONIBLES.map((rec) => (
                 <div key={rec} className="flex items-center gap-2">
@@ -631,16 +637,23 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                     id={`recurso-${rec}`}
                     checked={formData.recursos.includes(rec)}
                     onCheckedChange={(checked) => {
-                      if (checked)
+                      if (checked) {
                         setFormData({
                           ...formData,
                           recursos: [...formData.recursos, rec],
                         });
-                      else
+                        // Clear error when user selects a resource
+                        if (errors.recursos) {
+                          const newErrors = { ...errors };
+                          delete newErrors.recursos;
+                          setErrors(newErrors);
+                        }
+                      } else {
                         setFormData({
                           ...formData,
                           recursos: formData.recursos.filter((r) => r !== rec),
                         });
+                      }
                     }}
                     aria-label={`Recurso: ${rec}`}
                   />
@@ -652,14 +665,15 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             </div>
             {errors.recursos && (
               <p
-                className="text-red-500 text-xs mt-1"
+                id="recursos-error"
+                className="text-red-600 font-semibold text-sm mt-1 animate-pulse"
                 role="alert"
-                aria-live="polite"
+                aria-live="assertive"
               >
                 {errors.recursos}
               </p>
             )}
-          </fieldset>
+          </div>
 
           {showResumenInput && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
