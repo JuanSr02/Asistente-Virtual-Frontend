@@ -36,13 +36,58 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
   ...props
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
-  // 2. AÑADIR ESTADO PARA MANEJAR SSR
+  const previousActiveElement = useRef<HTMLElement | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const titleId = useRef(`modal-title-${Math.random().toString(36).substr(2, 9)}`);
+  const descId = useRef(`modal-desc-${Math.random().toString(36).substr(2, 9)}`);
 
   useEffect(() => {
-    // Marcar como montado solo en el cliente
     setIsMounted(true);
   }, []);
+
+  // Focus trap implementation
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+
+    // Store the element that had focus before modal opened
+    previousActiveElement.current = document.activeElement as HTMLElement;
+
+    const modal = modalRef.current;
+    const focusableElements = modal.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    // Focus first element
+    firstFocusable?.focus();
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        // Shift + Tab
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable?.focus();
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable?.focus();
+        }
+      }
+    };
+
+    modal.addEventListener("keydown", handleTabKey);
+
+    return () => {
+      modal.removeEventListener("keydown", handleTabKey);
+      // Restore focus when modal closes
+      previousActiveElement.current?.focus();
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -64,42 +109,37 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
     }
   }, [isOpen, onClose]);
 
-  useEffect(() => {
-    if (isOpen && modalRef.current) {
-      modalRef.current.focus();
-    }
-  }, [isOpen]);
-
-  // 3. LA LÓGICA DEL PORTAL
-  // No renderizar nada si no está abierto o si no estamos en el cliente
   if (!isMounted || !isOpen) {
     return null;
   }
 
-  // Renderizar el modal en el div #modal-root usando un Portal
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in"
       onClick={onClose}
       aria-modal="true"
       role="dialog"
-      tabIndex={-1}
+      aria-labelledby={titleId.current}
+      aria-describedby={descId.current}
       {...props}
     >
       <div
         ref={modalRef}
         className={cn(
-          "bg-card text-card-foreground w-full max-h-[90vh] flex flex-col rounded-lg shadow-2xl border outline-none",
+          "bg-card text-card-foreground w-full max-h-[90vh] flex flex-col rounded-lg shadow-2xl border outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
           className
         )}
         style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
-        tabIndex={0}
+        role="document"
       >
         <div className="flex justify-between items-center p-4 sm:p-6 border-b">
-          <h3 className="text-lg sm:text-xl font-semibold text-foreground">
+          <h2
+            id={titleId.current}
+            className="text-lg sm:text-xl font-semibold text-foreground"
+          >
             {title}
-          </h3>
+          </h2>
           <Button
             variant="ghost"
             size="icon"
@@ -107,15 +147,18 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
             className="rounded-full h-8 w-8"
             aria-label="Cerrar modal"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar">
+        <div
+          id={descId.current}
+          className="p-4 sm:p-6 overflow-y-auto flex-1 custom-scrollbar"
+        >
           {children}
         </div>
       </div>
     </div>,
-    document.getElementById("modal-root") as HTMLElement // El punto de aterrizaje
+    document.getElementById("modal-root") as HTMLElement
   );
 });
 
