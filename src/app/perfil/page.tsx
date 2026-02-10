@@ -37,9 +37,16 @@ import { profileSchema } from "@/lib/schemas/profile";
 export default function PerfilPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUser(data.user);
+      // Check if user logged in with Google
+      if (data.user?.app_metadata?.provider === 'google') {
+        setIsGoogleUser(true);
+      }
+    });
   }, []);
 
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
@@ -231,30 +238,32 @@ export default function PerfilPage() {
           </div>
 
           {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="mail" className="font-semibold">
-              Email
-            </Label>
-            <div className="text-sm text-muted-foreground bg-muted px-4 py-2.5 rounded-md border border-border flex items-center gap-2">
-              <Mail className="h-4 w-4" /> {persona.mail}
+          {!isGoogleUser && (
+            <div className="space-y-2">
+              <Label htmlFor="mail" className="font-semibold">
+                Email
+              </Label>
+              <div className="text-sm text-muted-foreground bg-muted px-4 py-2.5 rounded-md border border-border flex items-center gap-2">
+                <Mail className="h-4 w-4" /> {persona.mail}
+              </div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="mail"
+                  type="email"
+                  placeholder="Ingresa nuevo email..."
+                  value={formData.mail}
+                  onChange={(e) => handleInputChange("mail", e.target.value)}
+                  className={inputClasses("mail")}
+                />
+                <StatusIcon
+                  hasError={!!errors.mail}
+                  hasContent={!!formData.mail}
+                />
+              </div>
+              {errors.mail && <ErrorMessage message={errors.mail} />}
             </div>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="mail"
-                type="email"
-                placeholder="Ingresa nuevo email..."
-                value={formData.mail}
-                onChange={(e) => handleInputChange("mail", e.target.value)}
-                className={inputClasses("mail")}
-              />
-              <StatusIcon
-                hasError={!!errors.mail}
-                hasContent={!!formData.mail}
-              />
-            </div>
-            {errors.mail && <ErrorMessage message={errors.mail} />}
-          </div>
+          )}
 
           {/* Teléfono */}
           <div className="space-y-2">
@@ -286,53 +295,55 @@ export default function PerfilPage() {
           </div>
 
           {/* Contraseña */}
-          <div className="space-y-2 pt-4 border-t border-dashed">
-            <Label htmlFor="contrasenia" className="font-semibold">
-              Nueva Contraseña
-            </Label>
-            <div className="relative">
-              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="contrasenia"
-                type={showPassword ? "text" : "password"}
-                placeholder="Mínimo 8 caracteres"
-                value={formData.contrasenia}
-                onChange={(e) =>
-                  handleInputChange("contrasenia", e.target.value)
-                }
-                className={inputClasses("contrasenia")}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                <StatusIcon
-                  hasError={!!errors.contrasenia}
-                  hasContent={!!formData.contrasenia}
-                  noIcon // Para no chocar con el ojo
+          {!isGoogleUser && (
+            <div className="space-y-2 pt-4 border-t border-dashed">
+              <Label htmlFor="contrasenia" className="font-semibold">
+                Nueva Contraseña
+              </Label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="contrasenia"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 8 caracteres"
+                  value={formData.contrasenia}
+                  onChange={(e) =>
+                    handleInputChange("contrasenia", e.target.value)
+                  }
+                  className={inputClasses("contrasenia")}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-muted-foreground hover:text-foreground mr-1"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                  <StatusIcon
+                    hasError={!!errors.contrasenia}
+                    hasContent={!!formData.contrasenia}
+                    noIcon // Para no chocar con el ojo
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-muted-foreground hover:text-foreground mr-1"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {/* Aviso importante */}
+              <p className="text-xs text-muted-foreground mt-2 flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/10 p-2 rounded border border-yellow-200 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-500">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                Si cambias tu contraseña, deberás volver a iniciar sesión en todos
+                tus dispositivos.
+              </p>
+
+              {errors.contrasenia && (
+                <ErrorMessage message={errors.contrasenia} />
+              )}
             </div>
-
-            {/* Aviso importante */}
-            <p className="text-xs text-muted-foreground mt-2 flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/10 p-2 rounded border border-yellow-200 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-500">
-              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-              Si cambias tu contraseña, deberás volver a iniciar sesión en todos
-              tus dispositivos.
-            </p>
-
-            {errors.contrasenia && (
-              <ErrorMessage message={errors.contrasenia} />
-            )}
-          </div>
+          )}
         </CardContent>
 
         <CardFooter className="p-6 bg-muted/30 border-t border-border flex flex-col sm:flex-row gap-3">
