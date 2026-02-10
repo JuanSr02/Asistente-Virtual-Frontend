@@ -250,7 +250,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-purple-950/40 dark:via-background dark:to-pink-950/40 border-none shadow-md">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-foreground">
-            <MessageSquareQuote className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <MessageSquareQuote className="h-6 w-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
             Experiencias de Examen
           </CardTitle>
           <CardDescription>
@@ -263,129 +263,180 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <FileSearch className="h-5 w-5" /> Buscar Experiencias
+            <FileSearch className="h-5 w-5" aria-hidden="true" /> Buscar Experiencias
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Select value={planSeleccionado} onValueChange={setPlanSeleccionado}>
-            <SelectTrigger>
-              <SelectValue placeholder="1. Selecciona Plan" />
-            </SelectTrigger>
-            <SelectContent>
-              {planes.map((p: any) => (
-                <SelectItem key={p.codigo} value={p.codigo}>
-                  {p.propuesta} ({p.codigo})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={materiaSeleccionada}
-            onValueChange={setMateriaSeleccionada}
-            disabled={!planSeleccionado}
+        <CardContent>
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            role="search"
+            aria-label="Buscar experiencias de examen"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="2. Selecciona Materia" />
-            </SelectTrigger>
-            <SelectContent>
-              {materias?.map((m: any) => (
-                <SelectItem key={m.codigo} value={m.codigo}>
-                  {m.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <div>
+              <label htmlFor="plan-select" className="sr-only">
+                Seleccionar plan de estudio
+              </label>
+              <Select
+                value={planSeleccionado}
+                onValueChange={setPlanSeleccionado}
+              >
+                <SelectTrigger id="plan-select" aria-label="Seleccionar plan de estudio">
+                  <SelectValue placeholder="1. Selecciona Plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {planes.map((p: any) => (
+                    <SelectItem key={p.codigo} value={p.codigo}>
+                      {p.propuesta} ({p.codigo})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex gap-2">
-            <Select
-              value={filtroCalificacion}
-              onValueChange={setFiltroCalificacion}
-              disabled={!materiaSeleccionada}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Nota Mín." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Todas</SelectItem>
-                <SelectItem value="4">4+</SelectItem>
-                <SelectItem value="7">7+</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={filtroTiempo}
-              onValueChange={setFiltroTiempo}
-              disabled={!materiaSeleccionada}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Antigüedad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los tiempos</SelectItem>
-                <SelectItem value="1year">Último año</SelectItem>
-                <SelectItem value="2years">Últimos 2 años</SelectItem>
-                <SelectItem value="5years">Últimos 5 años</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <label htmlFor="materia-select" className="sr-only">
+                Seleccionar materia
+              </label>
+              <Select
+                value={materiaSeleccionada}
+                onValueChange={setMateriaSeleccionada}
+                disabled={!planSeleccionado}
+              >
+                <SelectTrigger
+                  id="materia-select"
+                  aria-label="Seleccionar materia"
+                  aria-disabled={!planSeleccionado}
+                >
+                  <SelectValue placeholder="2. Selecciona Materia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {materias?.map((m: any) => (
+                    <SelectItem key={m.codigo} value={m.codigo}>
+                      {m.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label htmlFor="calificacion-select" className="sr-only">
+                  Filtrar por nota mínima
+                </label>
+                <Select
+                  value={filtroCalificacion}
+                  onValueChange={setFiltroCalificacion}
+                  disabled={!materiaSeleccionada}
+                >
+                  <SelectTrigger
+                    id="calificacion-select"
+                    aria-label="Filtrar por nota mínima"
+                    aria-disabled={!materiaSeleccionada}
+                  >
+                    <SelectValue placeholder="Nota Mín." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Todas</SelectItem>
+                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="7">7+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <label htmlFor="tiempo-select" className="sr-only">
+                  Filtrar por antigüedad
+                </label>
+                <Select
+                  value={filtroTiempo}
+                  onValueChange={setFiltroTiempo}
+                  disabled={!materiaSeleccionada}
+                >
+                  <SelectTrigger
+                    id="tiempo-select"
+                    aria-label="Filtrar por antigüedad"
+                    aria-disabled={!materiaSeleccionada}
+                  >
+                    <SelectValue placeholder="Antigüedad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los tiempos</SelectItem>
+                    <SelectItem value="1year">Último año</SelectItem>
+                    <SelectItem value="2years">Últimos 2 años</SelectItem>
+                    <SelectItem value="5years">Últimos 5 años</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </form>
         </CardContent>
       </Card>
 
       {/* Resultados */}
       {materiaSeleccionada && (
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">
-            Resultados ({experienciasFiltradas.length})
-          </h3>
-          {isLoadingExperienciasMateria ? (
-            <Skeleton className="h-32 w-full" />
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {experienciasFiltradas.map((exp: any) => (
-                <ExperienciaCard key={exp.id} experiencia={exp} />
-              ))}
-              {experienciasFiltradas.length === 0 && (
-                <p className="text-muted-foreground col-span-full">
-                  No se encontraron experiencias con estos filtros.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+        <section aria-label="Resultados de búsqueda">
+          <div className="space-y-4">
+            <h2 className="font-semibold text-lg">
+              Resultados ({experienciasFiltradas.length})
+            </h2>
+            {isLoadingExperienciasMateria ? (
+              <Skeleton className="h-32 w-full" aria-label="Cargando experiencias" />
+            ) : (
+              <div
+                className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+                role="list"
+                aria-label="Lista de experiencias de examen"
+              >
+                {experienciasFiltradas.map((exp: any) => (
+                  <div key={exp.id} role="listitem">
+                    <ExperienciaCard experiencia={exp} />
+                  </div>
+                ))}
+                {experienciasFiltradas.length === 0 && (
+                  <p className="text-muted-foreground col-span-full" role="status">
+                    No se encontraron experiencias con estos filtros.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Mis Experiencias */}
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <div className="flex items-center gap-2">
-            <BookOpenCheck className="h-5 w-5 text-blue-600" />
+            <BookOpenCheck className="h-5 w-5 text-blue-600" aria-hidden="true" />
             <CardTitle>Mis Experiencias</CardTitle>
           </div>
           <Button
             onClick={handleOpenCrear}
             disabled={examenesDisponibles.length === 0}
+            aria-label="Crear nueva experiencia de examen"
           >
-            <PenSquare className="h-4 w-4 mr-2" /> Nueva
+            <PenSquare className="h-4 w-4 mr-2" aria-hidden="true" /> Nueva
           </Button>
         </CardHeader>
         <CardContent>
           {isLoadingMisExperiencias ? (
-            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" aria-label="Cargando mis experiencias" />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" role="list" aria-label="Mis experiencias de examen">
               {misExperiencias.length === 0 && (
-                <p className="text-muted-foreground text-center py-4">
+                <p className="text-muted-foreground text-center py-4" role="status">
                   Aún no has compartido nada.
                 </p>
               )}
               {misExperiencias.map((exp: any) => (
-                <ExperienciaCard
-                  key={exp.id}
-                  experiencia={exp}
-                  isOwner
-                  onEdit={() => handleOpenEditar(exp)}
-                  onDelete={() => handleDelete(exp.id)}
-                />
+                <div key={exp.id} role="listitem">
+                  <ExperienciaCard
+                    experiencia={exp}
+                    isOwner
+                    onEdit={() => handleOpenEditar(exp)}
+                    onDelete={() => handleDelete(exp.id)}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -404,12 +455,12 @@ export default function ExperienciasExamen({ user }: { user: User }) {
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           {!modalData && (
             <div className="space-y-2">
-              <Label>¿Qué final rendiste?</Label>
+              <Label htmlFor="examen-select">¿Qué final rendiste?</Label>
               <Select
                 onValueChange={(v) => setFormData({ ...formData, examenId: v })}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger id="examen-select" aria-required="true">
                   <SelectValue placeholder="Selecciona un examen" />
                 </SelectTrigger>
                 <SelectContent>
@@ -421,7 +472,13 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 </SelectContent>
               </Select>
               {errors.examenId && (
-                <p className="text-red-500 text-xs mt-1">{errors.examenId}</p>
+                <p
+                  className="text-red-500 text-xs mt-1"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {errors.examenId}
+                </p>
               )}
             </div>
           )}
@@ -429,12 +486,13 @@ export default function ExperienciasExamen({ user }: { user: User }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <div className="flex justify-between">
-                <Label>Dificultad Percibida</Label>
-                <span className="text-sm font-bold text-blue-600">
+                <Label htmlFor="dificultad-range">Dificultad Percibida</Label>
+                <span className="text-sm font-bold text-blue-600" aria-live="polite">
                   {formData.dificultad}/10
                 </span>
               </div>
               <Input
+                id="dificultad-range"
                 type="range"
                 min="1"
                 max="10"
@@ -446,18 +504,22 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                   })
                 }
                 className="cursor-pointer"
+                aria-valuemin={1}
+                aria-valuemax={10}
+                aria-valuenow={formData.dificultad}
+                aria-label={`Dificultad percibida: ${formData.dificultad} de 10`}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Modalidad</Label>
+              <Label htmlFor="modalidad-select">Modalidad</Label>
               <Select
                 value={formData.modalidad}
                 onValueChange={(v) =>
                   setFormData({ ...formData, modalidad: v })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="modalidad-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -469,12 +531,14 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             </div>
 
             <div className="space-y-2">
-              <Label>Días de Estudio (aprox.)</Label>
+              <Label htmlFor="dias-estudio">Días de Estudio (aprox.)</Label>
               <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  id="dias-estudio"
                   type="number"
                   min="1"
+                  max="100"
                   className="pl-10"
                   value={formData.diasEstudio}
                   onChange={(e) =>
@@ -483,15 +547,17 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                       diasEstudio: parseInt(e.target.value) || 0,
                     })
                   }
+                  aria-label="Días de estudio aproximados"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Horas por Día (promedio)</Label>
+              <Label htmlFor="horas-diarias">Horas por Día (promedio)</Label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  id="horas-diarias"
                   type="number"
                   min="1"
                   max="24"
@@ -503,15 +569,17 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                       horasDiarias: parseInt(e.target.value) || 0,
                     })
                   }
+                  aria-label="Horas de estudio por día en promedio"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Intentos Previos</Label>
+              <Label htmlFor="intentos-previos">Intentos Previos</Label>
               <div className="relative">
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  id="intentos-previos"
                   type="number"
                   min="0"
                   max="10"
@@ -523,19 +591,20 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                       intentosPrevios: parseInt(e.target.value) || 0,
                     })
                   }
+                  aria-label="Número de intentos previos"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Motivación Principal</Label>
+              <Label htmlFor="motivacion-select">Motivación Principal</Label>
               <Select
                 value={formData.motivacion}
                 onValueChange={(v) =>
                   setFormData({ ...formData, motivacion: v })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="motivacion-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -549,13 +618,17 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Recursos Utilizados</Label>
-            <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium">Recursos Utilizados</legend>
+            <div
+              className="grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border"
+              role="group"
+              aria-label="Selecciona los recursos que utilizaste"
+            >
               {RECURSOS_DISPONIBLES.map((rec) => (
                 <div key={rec} className="flex items-center gap-2">
                   <Checkbox
-                    id={rec}
+                    id={`recurso-${rec}`}
                     checked={formData.recursos.includes(rec)}
                     onCheckedChange={(checked) => {
                       if (checked)
@@ -569,33 +642,42 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                           recursos: formData.recursos.filter((r) => r !== rec),
                         });
                     }}
+                    aria-label={`Recurso: ${rec}`}
                   />
-                  <Label htmlFor={rec} className="cursor-pointer font-normal">
+                  <Label htmlFor={`recurso-${rec}`} className="cursor-pointer font-normal">
                     {rec}
                   </Label>
                 </div>
               ))}
             </div>
             {errors.recursos && (
-              <p className="text-red-500 text-xs mt-1">{errors.recursos}</p>
+              <p
+                className="text-red-500 text-xs mt-1"
+                role="alert"
+                aria-live="polite"
+              >
+                {errors.recursos}
+              </p>
             )}
-          </div>
+          </fieldset>
 
           {showResumenInput && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label>Link o Contacto del Resumen</Label>
+              <Label htmlFor="link-resumen">Link o Contacto del Resumen</Label>
               <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
+                  id="link-resumen"
                   placeholder="https://drive.google.com/... o @instagram / mail"
                   className="pl-10"
                   value={formData.linkResumen}
                   onChange={(e) =>
                     setFormData({ ...formData, linkResumen: e.target.value })
                   }
+                  aria-describedby="link-resumen-help"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p id="link-resumen-help" className="text-xs text-muted-foreground">
                 Si es un link (Drive, Notion), se mostrará un botón. Si es
                 texto, se mostrará como contacto.
               </p>
@@ -644,7 +726,11 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
   const validUrl = getValidUrl(experiencia.linkResumen);
 
   return (
-    <Card className="hover:shadow-md transition-all h-full flex flex-col">
+    <Card
+      className="hover:shadow-md transition-all h-full flex flex-col"
+      role="article"
+      aria-label={`Experiencia de examen: ${isOwner ? experiencia.nombreMateria : ''} Nota ${experiencia.nota}`}
+    >
       <CardHeader className="pb-3 bg-muted/20 border-b">
         <div className="flex justify-between items-start gap-2">
           <div>
@@ -654,13 +740,18 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
                 : `Nota: ${experiencia.nota}`}
             </CardTitle>
             <CardDescription className="flex items-center gap-2 mt-1">
-              <CalendarDays className="h-3 w-3" />
-              {experiencia.fechaExamen}
+              <CalendarDays className="h-3 w-3" aria-hidden="true" />
+              <time dateTime={experiencia.fechaExamen}>
+                {experiencia.fechaExamen}
+              </time>
             </CardDescription>
           </div>
           {isOwner ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">
+              <span
+                className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded"
+                aria-label={`Dificultad percibida: ${experiencia.dificultad} de 10`}
+              >
                 Dificultad: {experiencia.dificultad}/10
               </span>
               <div className="flex gap-1">
@@ -669,22 +760,27 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
                   variant="ghost"
                   className="h-8 w-8"
                   onClick={onEdit}
+                  aria-label={`Editar experiencia de ${experiencia.nombreMateria}`}
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit className="h-4 w-4" aria-hidden="true" />
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
                   className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                   onClick={onDelete}
+                  aria-label={`Eliminar experiencia de ${experiencia.nombreMateria}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-end">
-              <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded">
+              <span
+                className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded"
+                aria-label={`Dificultad percibida: ${experiencia.dificultad} de 10`}
+              >
                 Dificultad: {experiencia.dificultad}/10
               </span>
             </div>
@@ -692,38 +788,38 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
         </div>
       </CardHeader>
       <CardContent className="pt-4 space-y-3 flex-1 text-sm">
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded flex items-center gap-2">
-            <Clock className="h-3 w-3 text-blue-600" />
+        <div className="grid grid-cols-2 gap-2 text-xs" role="list" aria-label="Estadísticas de estudio">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+            <Clock className="h-3 w-3 text-blue-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.diasEstudio}</strong> días de estudio
             </span>
           </div>
-          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded flex items-center gap-2">
-            <BarChart3 className="h-3 w-3 text-purple-600" />
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+            <BarChart3 className="h-3 w-3 text-purple-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.horasDiarias}</strong> hs de estudio/día
             </span>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded flex items-center gap-2">
-            <Hash className="h-3 w-3 text-orange-600" />
+          <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+            <Hash className="h-3 w-3 text-orange-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.intentosPrevios}</strong> intentos previos
             </span>
           </div>
-          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex items-center gap-2 truncate">
-            <Target className="h-3 w-3" />
+          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex items-center gap-2 truncate" role="listitem">
+            <Target className="h-3 w-3" aria-hidden="true" />
             <span className="truncate">Modalidad: {experiencia.modalidad}</span>
           </div>
         </div>
 
         <div className="text-muted-foreground flex gap-2 items-start">
-          <Target className="h-4 w-4 mt-0.5 shrink-0" />
+          <Target className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
           <p className="italic text-xs">Motivación: {experiencia.motivacion}</p>
         </div>
 
         <div className="flex gap-2 items-start">
-          <Book className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+          <Book className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-muted-foreground line-clamp-2 text-xs">
             Recursos: {experiencia.recursos}
           </p>
@@ -736,13 +832,18 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
                 href={validUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full inline-flex justify-center items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 py-1.5 rounded text-xs font-semibold transition-colors"
+                className="w-full inline-flex justify-center items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 py-1.5 rounded text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                aria-label="Ver resumen del examen (se abre en nueva pestaña)"
               >
-                <ExternalLink className="h-3 w-3" /> Ver Resumen
+                <ExternalLink className="h-3 w-3" aria-hidden="true" /> Ver Resumen
               </a>
             ) : (
-              <div className="flex items-center gap-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded text-muted-foreground">
-                <Contact className="h-3 w-3 shrink-0" />
+              <div
+                className="flex items-center gap-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded text-muted-foreground"
+                role="note"
+                aria-label="Información de contacto para el resumen"
+              >
+                <Contact className="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span className="truncate font-medium">
                   {experiencia.linkResumen}
                 </span>
