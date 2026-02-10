@@ -85,7 +85,3 @@ El **Asistente Virtual** es una PWA diseñada para reducir la incertidumbre acad
 5. Abrí un Pull Request.
 
 Desarrollado con ❤️ por Juan Sánchez para la Universidad Nacional de San Luis.
-
----
-
-Si querés, también puedo generar una versión más corta, más formal o con estructura profesional tipo README empresarial.
