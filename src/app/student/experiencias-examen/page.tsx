@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import planesEstudioService from "@/services/planesEstudioService";
 import { useModal } from "@/stores/modal-store";
 import { useConfirm } from "@/components/providers/confirm-dialog-provider";
+import { experienciaSchema } from "@/lib/schemas/experiencia";
 import Modal from "@/components/modals/Modal";
 import {
   Card,
@@ -48,6 +49,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { sharedKeys } from "@/lib/query-keys";
+import { toast } from "sonner";
 
 // --- DATOS ESTÁTICOS ---
 const RECURSOS_DISPONIBLES = [
@@ -75,7 +77,7 @@ const INITIAL_FORM_STATE = {
   horasDiarias: 4,
   intentosPrevios: 0,
   modalidad: "ESCRITO",
-  recursos: [] as string[],
+  recursos: ["Libros"] as string[],
   motivacion: "Para avanzar en la carrera",
   linkResumen: "",
 };
@@ -88,6 +90,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
   const [filtroTiempo, setFiltroTiempo] = useState("all");
 
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // 2. Hooks Globales
   const {
@@ -140,6 +143,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
   // Handlers
   const handleOpenCrear = () => {
     setFormData(INITIAL_FORM_STATE);
+    setErrors({});
     openModal(null, "crear");
   };
 
@@ -155,11 +159,33 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       motivacion: exp.motivacion,
       linkResumen: exp.linkResumen || "",
     });
+    setErrors({});
     openModal(exp, "editar");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar con Zod
+    try {
+      experienciaSchema.parse(formData);
+      setErrors({});
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast.error("Error de validación", {
+          description: "Por favor corrige los errores antes de continuar.",
+        });
+      }
+      return;
+    }
+
     const dto = {
       ...formData,
       recursos: formData.recursos.join(", "),
@@ -173,7 +199,8 @@ export default function ExperienciasExamen({ user }: { user: User }) {
         await crear(dto);
       }
       closeModal();
-    } catch (e) {}
+      setErrors({});
+    } catch (e) { }
   };
 
   const handleDelete = async (id: number) => {
@@ -393,6 +420,9 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.examenId && (
+                <p className="text-red-500 text-xs mt-1">{errors.examenId}</p>
+              )}
             </div>
           )}
 
@@ -484,6 +514,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 <Input
                   type="number"
                   min="0"
+                  max="10"
                   className="pl-10"
                   value={formData.intentosPrevios}
                   onChange={(e) =>
@@ -545,6 +576,9 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 </div>
               ))}
             </div>
+            {errors.recursos && (
+              <p className="text-red-500 text-xs mt-1">{errors.recursos}</p>
+            )}
           </div>
 
           {showResumenInput && (

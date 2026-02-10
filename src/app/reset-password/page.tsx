@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/supabaseClient";
 import { useRouter } from "next/navigation";
+import { resetPasswordSchema } from "@/lib/schemas/reset-password";
 import {
   Card,
   CardContent,
@@ -40,53 +41,51 @@ export default function ResetPassword() {
     confirmPassword: "",
   });
 
-  const validatePassword = (password: string) => {
-    if (password.trim() && password.length < 8) {
-      return "La contraseña debe tener al menos 8 caracteres";
+  const validateForm = () => {
+    try {
+      resetPasswordSchema.parse({
+        newPassword,
+        confirmPassword,
+      });
+      setErrors({ newPassword: "", confirmPassword: "" });
+      return true;
+    } catch (error: any) {
+      if (error.errors) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err: any) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0]] = err.message;
+          }
+        });
+        setErrors({
+          newPassword: fieldErrors.newPassword || "",
+          confirmPassword: fieldErrors.confirmPassword || "",
+        });
+      }
+      return false;
     }
-    return "";
-  };
-
-  const validateConfirmPassword = (password: string, confirm: string) => {
-    if (confirm.trim() && password !== confirm) {
-      return "Las contraseñas no coinciden";
-    }
-    return "";
   };
 
   const handleNewPasswordChange = (value: string) => {
     setNewPassword(value);
-    const passwordError = validatePassword(value);
-    setErrors((prev) => ({ ...prev, newPassword: passwordError }));
-    if (confirmPassword.trim()) {
-      const confirmError = validateConfirmPassword(value, confirmPassword);
-      setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
+    // Limpiar error al escribir
+    if (errors.newPassword) {
+      setErrors((prev) => ({ ...prev, newPassword: "" }));
     }
   };
 
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
-    const confirmError = validateConfirmPassword(newPassword, value);
-    setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
-  };
-
-  const hasValidPasswords = () => {
-    return (
-      newPassword.trim() !== "" &&
-      confirmPassword.trim() !== "" &&
-      !errors.newPassword &&
-      !errors.confirmPassword &&
-      newPassword === confirmPassword
-    );
+    // Limpiar error al escribir
+    if (errors.confirmPassword) {
+      setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+    }
   };
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    const passwordError = validatePassword(newPassword);
-    const confirmError = validateConfirmPassword(newPassword, confirmPassword);
 
-    if (passwordError || confirmError) {
-      setErrors({ newPassword: passwordError, confirmPassword: confirmError });
+    if (!validateForm()) {
       toast.error("Error de validación", {
         description: "Por favor corrige los errores antes de continuar.",
       });
@@ -236,8 +235,8 @@ export default function ResetPassword() {
                     className={getInputClasses(
                       !!errors.confirmPassword,
                       !!confirmPassword &&
-                        !errors.confirmPassword &&
-                        newPassword === confirmPassword
+                      !errors.confirmPassword &&
+                      newPassword === confirmPassword
                     )}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
@@ -283,7 +282,7 @@ export default function ResetPassword() {
             <Button
               type="submit"
               onClick={handleReset}
-              disabled={loading || !hasValidPasswords()}
+              disabled={loading || !newPassword || !confirmPassword}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50"
             >
               {loading ? (
