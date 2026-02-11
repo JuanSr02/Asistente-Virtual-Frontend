@@ -103,7 +103,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
 
   // 3. Hooks de Dominio
   const { data: persona } = usePersona(user.id, user.email);
-  const { historia, planes } = useHistoriaAcademica(persona?.id);
+  const { historia, planes, isLoadingHistoria } = useHistoriaAcademica(persona?.id);
 
   const {
     misExperiencias,
@@ -224,6 +224,39 @@ export default function ExperienciasExamen({ user }: { user: User }) {
     formData.recursos.includes("Resumen de Terceros");
 
   if (!persona) return <Skeleton className="h-96 w-full rounded-xl" />;
+
+  if (isLoadingHistoria) {
+    return (
+      <div className="space-y-6 animate-in fade-in">
+        <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-purple-950/40 dark:via-background dark:to-pink-950/40 border-none shadow-md">
+          <CardHeader>
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96 mt-2" />
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!historia) {
     return (
