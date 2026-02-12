@@ -10,6 +10,7 @@ import {
   BarChart2,
   Info,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 
@@ -74,6 +75,36 @@ export function ResultadosRecomendacion({
             El <strong>Puntaje</strong> te sugiere qué rendir primero combinando
             dos factores: la <strong>probabilidad de aprobar (70%)</strong> y
             qué tan <strong>accesible/fácil</strong> es la materia (30%).
+          </div>
+        </div>
+      )}
+
+      {criterio === "COMBINACION_SUPREMA" && (
+        <div className="bg-purple-50 dark:bg-purple-950/40 p-3 rounded-md border border-purple-100 dark:border-purple-900 flex gap-3 items-start text-sm text-purple-800 dark:text-purple-300">
+          <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block mb-1">
+              Estrategia de Combinación
+            </span>
+            Esta nueva estrategia combina las 3 métricas existentes para
+            recomendarte qué rendir primero, basándose en un "Puntaje" calculado
+            de la siguiente manera:
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+              <li>
+                <strong>Urgencia (40%):</strong> Se basa en la fecha de
+                vencimiento. Cuanto menos tiempo te queda de regularidad, más
+                alto es este puntaje para que no pierdas la materia.
+              </li>
+              <li>
+                <strong>Impacto (40%):</strong> Se basa en las correlativas.
+                Otorga puntos extra si la materia traba muchas otras.
+              </li>
+              <li>
+                <strong>Facilidad (20%):</strong> Se basa en las estadísticas
+                históricas. Suma un "bonus" si la materia tiene alta tasa de
+                aprobación y baja dificultad, para darte victorias rápidas.
+              </li>
+            </ul>
           </div>
         </div>
       )}
@@ -218,6 +249,68 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
           <div className="text-muted-foreground text-[10px]">
             Dificultad promedio
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (criterio === "COMBINACION_SUPREMA") {
+    const estaVencida = final.semanasParaVencimiento < 0;
+    const esCritico = final.semanasParaVencimiento <= 4;
+    const semanasRestantes = Math.max(
+      0,
+      Math.floor(final.semanasParaVencimiento),
+    );
+
+    return (
+      <div className="flex flex-col gap-2 mt-2 animate-in fade-in slide-in-from-top-1">
+        {/* 1. Urgencia: Vencimiento */}
+        <div
+          className={`flex items-start sm:items-center gap-2 text-xs p-2 rounded border ${
+            esCritico
+              ? "text-red-700 bg-red-50 border-red-100 dark:text-red-300 dark:bg-red-900/20 dark:border-red-900"
+              : "text-green-700 bg-green-50 border-green-100 dark:text-green-300 dark:bg-green-900/20 dark:border-green-900"
+          }`}
+        >
+          <Calendar className="h-3.5 w-3.5 mt-0.5 sm:mt-0 flex-shrink-0" />
+          <div className="flex flex-col sm:flex-row sm:gap-1">
+            <span className="font-semibold">
+              {estaVencida ? "Materia Vencida:" : "Vencimiento:"}
+            </span>
+            <span>
+              {estaVencida
+                ? "Regularidad exiprada."
+                : `${final.fechaVencimiento} (${semanasRestantes} semanas restantes)`}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {/* 2. Impacto: Correlativas */}
+          <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-100 dark:border-blue-900">
+            <BookCopy className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>
+              Desbloquea <strong>{final.vecesEsCorrelativa}</strong> materias
+            </span>
+          </div>
+
+          {/* 3. Facilidad: Estadísticas */}
+          {final.estadisticas ? (
+            <div className="flex items-center gap-2 text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 p-2 rounded border border-purple-100 dark:border-purple-900">
+              <BarChart2 className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>
+                Aprobación:{" "}
+                <strong>
+                  {final.estadisticas.porcentajeAprobados?.toFixed(0)}%
+                </strong>
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded border border-muted">
+              <Info className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>Datos estadísticos no disponibles</span>
+            </div>
+          )}
         </div>
       </div>
     );
