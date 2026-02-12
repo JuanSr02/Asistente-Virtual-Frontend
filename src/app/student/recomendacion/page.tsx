@@ -219,6 +219,9 @@ export default function Recomendacion({ user }: { user: User }) {
                     <SelectItem value="ESTADISTICAS">
                       Estadisticas (Dificultad)
                     </SelectItem>
+                    <SelectItem value="COMBINACION_SUPREMA">
+                      Combinacion de los 3
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
