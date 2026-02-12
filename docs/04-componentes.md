@@ -169,7 +169,7 @@ import {
 **Ubicación**: `src/components/ui/toast.tsx`
 
 ```typescript
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 
 const { toast } = useToast();
 
@@ -431,6 +431,7 @@ import { ClientLayout } from '@/components/layout/client-layout';
 ```
 
 **Incluye**:
+
 - QueryClientProvider (TanStack Query)
 - ThemeProvider (next-themes)
 - Toaster (sonner)
@@ -486,7 +487,7 @@ interface ComponentProps {
   title: string;
   description?: string;
   onAction: () => void;
-  variant?: 'default' | 'primary' | 'secondary';
+  variant?: "default" | "primary" | "secondary";
   className?: string;
 }
 
@@ -494,7 +495,7 @@ export function Component({
   title,
   description,
   onAction,
-  variant = 'default',
+  variant = "default",
   className,
 }: ComponentProps) {
   // ...
@@ -622,7 +623,7 @@ describe('Button', () => {
   it('debe llamar onClick cuando se hace clic', () => {
     const handleClick = jest.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     fireEvent.click(screen.getByText('Click me'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });

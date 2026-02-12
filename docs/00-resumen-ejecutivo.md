@@ -7,9 +7,10 @@
 **Autor**: Juan Sánchez  
 **Institución**: Universidad Nacional de San Luis  
 **Año**: 2026  
-**Licencia**: MIT  
+**Licencia**: MIT
 
 **URLs**:
+
 - 🌐 Producción: [https://asistenteestudiantil.vercel.app](https://asistenteestudiantil.vercel.app)
 - 🔙 Backend: [GitHub - Backend Repository](https://github.com/JuanSr02/Asistente-Virtual-Backend)
 - 💻 Frontend: [GitHub - Frontend Repository](https://github.com/JuanSr02/Asistente-Virtual-Frontend)
@@ -68,6 +69,7 @@ El **Asistente Virtual UNSL** es una plataforma web integral diseñada para opti
 ### 1. Módulo de Estudiantes
 
 **Funcionalidades**:
+
 - ✅ Carga de historia académica (PDF/Excel del SIU Guaraní)
 - ✅ Sugerencias inteligentes de finales basadas en:
   - Correlativas futuras
@@ -79,6 +81,7 @@ El **Asistente Virtual UNSL** es una plataforma web integral diseñada para opti
 - ✅ Dashboard personal con métricas
 
 **Tecnologías**:
+
 - Hooks personalizados con TanStack Query
 - Validación con Zod
 - Visualización con Recharts
@@ -87,12 +90,14 @@ El **Asistente Virtual UNSL** es una plataforma web integral diseñada para opti
 ### 2. Módulo de Administración
 
 **Funcionalidades**:
+
 - ✅ Gestión de planes de estudio
 - ✅ Analíticas globales del sistema
 - ✅ Estadísticas por carrera y materia
 - ✅ Gestión de administradores
 
 **Tecnologías**:
+
 - Protected routes con verificación de rol
 - Gráficos avanzados con Recharts
 - Exportación de datos
@@ -100,6 +105,7 @@ El **Asistente Virtual UNSL** es una plataforma web integral diseñada para opti
 ### 3. Sistema de Autenticación
 
 **Funcionalidades**:
+
 - ✅ Email/Password authentication
 - ✅ Google OAuth 2.0
 - ✅ Reset de contraseña
@@ -107,6 +113,7 @@ El **Asistente Virtual UNSL** es una plataforma web integral diseñada para opti
 - ✅ Gestión de sesiones
 
 **Tecnologías**:
+
 - Supabase Auth
 - JWT tokens
 - Axios interceptors para inyección de tokens
@@ -226,6 +233,7 @@ Protected Routes → Acceso permitido
 **Base URL**: `https://asistente-virtual-backend-wj8t.onrender.com`
 
 #### Endpoints de Estudiante
+
 - `GET /api/shared/finales/{userId}` - Materias para rendir
 - `GET /api/shared/historia-academica/{userId}` - Historia académica
 - `POST /api/shared/historia-academica/{userId}/cargar` - Cargar historia
@@ -234,6 +242,7 @@ Protected Routes → Acceso permitido
 - `POST /api/shared/inscripciones` - Inscribirse a mesa
 
 #### Endpoints de Experiencias
+
 - `GET /api/shared/experiencias/por-materia/{materiaId}` - Experiencias de materia
 - `GET /api/shared/experiencias/por-estudiante/{userId}` - Mis experiencias
 - `POST /api/shared/experiencias` - Crear experiencia
@@ -241,6 +250,7 @@ Protected Routes → Acceso permitido
 - `DELETE /api/shared/experiencias/{id}` - Eliminar experiencia
 
 #### Endpoints de Admin
+
 - `GET /api/shared/estadisticas/generales` - Estadísticas globales
 - `GET /api/shared/estadisticas/carrera/{planId}` - Stats por carrera
 - `POST /api/admin/planes-estudio/carga` - Cargar plan de estudio
@@ -318,14 +328,14 @@ Production Live ✅
 ✅ **Performance**: Optimizaciones avanzadas implementadas  
 ✅ **Escalabilidad**: Diseño modular y separación de concerns  
 ✅ **Developer Experience**: Herramientas y convenciones claras  
-✅ **User Experience**: UI intuitiva y responsive  
+✅ **User Experience**: UI intuitiva y responsive
 
 ### Áreas de Mejora
 
 ⚠️ **Testing**: No implementado actualmente - prioridad para próximas iteraciones  
 ⚠️ **Monitoring**: Sistema de monitoreo básico - puede expandirse con herramientas avanzadas  
 ⚠️ **Offline**: Funcionalidad PWA básica - puede mejorarse el soporte offline  
-⚠️ **Documentación de Componentes**: Algunos componentes necesitan documentación más detallada  
+⚠️ **Documentación de Componentes**: Algunos componentes necesitan documentación más detallada
 
 ---
 
@@ -334,7 +344,7 @@ Production Live ✅
 **Desarrollador**: Juan Sánchez  
 **Email**: juanma2002123@gmail.com  
 **GitHub**: [@JuanSr02](https://github.com/JuanSr02)  
-**Universidad**: Universidad Nacional de San Luis  
+**Universidad**: Universidad Nacional de San Luis
 
 ---
 

@@ -154,6 +154,7 @@ Asistente-Virtual-Frontend/
 Contiene las rutas de la aplicación siguiendo el **App Router** de Next.js 16.
 
 **Estructura de rutas**:
+
 - Cada carpeta representa una ruta
 - `page.tsx` define el componente de la página
 - `layout.tsx` define el layout compartido
@@ -162,21 +163,27 @@ Contiene las rutas de la aplicación siguiendo el **App Router** de Next.js 16.
 **Módulos principales**:
 
 #### `admin/`
+
 Módulo completo de administración con:
+
 - Dashboard de estadísticas
 - Gestión de planes de estudio
 - Analíticas por carrera
 - CRUD de administradores
 
 #### `student/`
+
 Módulo de funcionalidades para estudiantes:
+
 - Historia académica
 - Recomendaciones de finales
 - Inscripciones a mesas
 - Experiencias de examen
 
 #### `auth/`
+
 Sistema de autenticación:
+
 - Login
 - Registro
 - Reset de contraseña
@@ -188,28 +195,38 @@ Sistema de autenticación:
 Componentes React organizados por categoría.
 
 #### `charts/`
+
 Componentes de visualización de datos con Recharts:
+
 - Gráficos de barras
 - Gráficos de líneas
 - Gráficos circulares
 
 #### `layout/`
+
 Componentes de estructura:
+
 - `client-layout.tsx`: Layout del cliente con providers
 
 #### `modals/`
+
 Componentes de modales reutilizables:
+
 - Modal de confirmación
 - Modales de formularios
 
 #### `student/`
+
 Componentes específicos del módulo de estudiantes:
+
 - Cards de experiencias
 - Tablas de historia académica
 - Cards de recomendaciones
 
 #### `ui/`
+
 Componentes base de UI (ShadCN):
+
 - Botones, inputs, selects
 - Cards, dialogs, dropdowns
 - Toasts, tooltips
@@ -222,15 +239,18 @@ Componentes base de UI (ShadCN):
 Hooks personalizados para lógica reutilizable.
 
 #### `domain/`
+
 Hooks de dominio que encapsulan lógica de negocio:
+
 - **useExperiencias**: CRUD de experiencias de examen
 - **useHistoriaAcademica**: Gestión de historia académica
 - **useInscripciones**: Inscripciones a mesas
 - **usePlanesEstudio**: Planes de estudio
 - **useRecomendaciones**: Sugerencias de finales
-- **useEstadisticas***: Estadísticas varias
+- **useEstadisticas\***: Estadísticas varias
 
 #### Hooks generales:
+
 - **use-toast**: Gestión de notificaciones
 - **use-mobile**: Detección de dispositivos móviles
 - **useUserRole**: Gestión de roles de usuario
@@ -242,21 +262,28 @@ Hooks de dominio que encapsulan lógica de negocio:
 Librerías, configuraciones y utilidades.
 
 #### `schemas/`
+
 Schemas de validación con Zod:
+
 - Validación de formularios
 - Type-safe data validation
 
 #### `supabase/`
+
 Configuración de Supabase:
+
 - Cliente para componentes del cliente
 - Cliente para componentes del servidor
 
 #### `types/`
+
 Tipos TypeScript compartidos:
+
 - Interfaces de dominio
 - Types de API responses
 
 #### Archivos principales:
+
 - **axios-client.ts**: Cliente HTTP configurado
 - **config.ts**: Configuración centralizada (URLs, constantes)
 - **query-client.ts**: Configuración de TanStack Query
@@ -272,6 +299,7 @@ Servicios que encapsulan llamadas a APIs.
 **Patrón Repository**: Cada servicio actúa como un repositorio.
 
 **Servicios implementados**:
+
 - `estadisticasService.ts`: Estadísticas y analíticas
 - `experienciaService.ts`: CRUD de experiencias
 - `historiaAcademicaService.ts`: Historia académica
@@ -324,32 +352,42 @@ Archivos estáticos servidos directamente.
 ## Archivos de Configuración
 
 ### `next.config.js`
+
 Configuración de Next.js:
+
 - PWA con next-pwa
 - Webpack customization
 - Optimizaciones de desarrollo
 
 ### `tailwind.config.ts`
+
 Configuración de Tailwind:
+
 - Tema personalizado
 - Colores extendidos
 - Animaciones custom
 - Plugins
 
 ### `tsconfig.json`
+
 Configuración de TypeScript:
+
 - Strict mode
 - Path aliases (`@/*`)
 - Compiler options
 
 ### `components.json`
+
 Configuración de ShadCN UI:
+
 - Ruta de componentes
 - Aliases
 - Tema base
 
 ### `package.json`
+
 Metadatos del proyecto:
+
 - Dependencias
 - Scripts
 - Configuración de herramientas
@@ -359,7 +397,9 @@ Metadatos del proyecto:
 ## Patrones de Organización
 
 ### 1. **Colocation**
+
 Los archivos relacionados se mantienen cerca:
+
 ```
 student/
 ├── experiencias/
@@ -369,14 +409,18 @@ student/
 ```
 
 ### 2. **Separation of Concerns**
+
 Separación clara entre:
+
 - Presentación (components)
 - Lógica (hooks, services)
 - Estado (stores)
 - Configuración (lib)
 
 ### 3. **Feature-based Structure**
+
 Organización por features/módulos:
+
 - `student/`: Todo lo relacionado con estudiantes
 - `admin/`: Todo lo relacionado con administración
 
@@ -401,12 +445,12 @@ Organización por features/módulos:
 
 ```typescript
 // ✅ Correcto - usando alias
-import { Button } from '@/components/ui/button';
-import { useUserRole } from '@/hooks/useUserRole';
-import { API_ROUTES } from '@/lib/config';
+import { Button } from "@/components/ui/button";
+import { useUserRole } from "@/hooks/useUserRole";
+import { API_ROUTES } from "@/lib/config";
 
 // ❌ Incorrecto - ruta relativa larga
-import { Button } from '../../../components/ui/button';
+import { Button } from "../../../components/ui/button";
 ```
 
 ---

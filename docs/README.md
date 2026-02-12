@@ -95,6 +95,7 @@ pnpm format       # Formatear código con Prettier
 ## 👥 Roles de Usuario
 
 ### 🎓 Estudiante
+
 - Gestión de historia académica
 - Sugerencias de finales
 - Inscripción a mesas de examen
@@ -102,6 +103,7 @@ pnpm format       # Formatear código con Prettier
 - Dashboard personal
 
 ### 🛠️ Administrador
+
 - Gestión de planes de estudio
 - Analíticas globales
 - Estadísticas por carrera

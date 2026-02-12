@@ -132,22 +132,26 @@
 ## Documentos por Categoría
 
 ### 📋 Información General
+
 - README.md
 - 00-resumen-ejecutivo.md
 - 16-glosario.md
 
 ### 🏗️ Arquitectura y Diseño
+
 - 01-arquitectura.md
 - 02-stack-tecnologico.md
 - 03-estructura-proyecto.md
 - 11-diagramas.md
 
 ### 💻 Desarrollo
+
 - 05-servicios-api.md
 - 07-autenticacion.md
 - 12-guia-desarrollo.md
 
 ### 🚀 Deployment y Configuración
+
 - 10-configuracion-deployment.md
 
 ---
@@ -156,28 +160,28 @@
 
 ### ¿Cómo hacer...?
 
-| Tarea | Documento |
-|-------|-----------|
-| Configurar el proyecto localmente | 12-guia-desarrollo.md |
-| Agregar un nuevo servicio API | 05-servicios-api.md |
-| Implementar autenticación | 07-autenticacion.md |
-| Crear un componente | 12-guia-desarrollo.md |
-| Hacer deploy a producción | 10-configuracion-deployment.md |
-| Entender la arquitectura | 01-arquitectura.md |
-| Ver diagramas del sistema | 11-diagramas.md |
-| Buscar un término técnico | 16-glosario.md |
+| Tarea                             | Documento                      |
+| --------------------------------- | ------------------------------ |
+| Configurar el proyecto localmente | 12-guia-desarrollo.md          |
+| Agregar un nuevo servicio API     | 05-servicios-api.md            |
+| Implementar autenticación         | 07-autenticacion.md            |
+| Crear un componente               | 12-guia-desarrollo.md          |
+| Hacer deploy a producción         | 10-configuracion-deployment.md |
+| Entender la arquitectura          | 01-arquitectura.md             |
+| Ver diagramas del sistema         | 11-diagramas.md                |
+| Buscar un término técnico         | 16-glosario.md                 |
 
 ### ¿Dónde está...?
 
-| Información | Documento |
-|-------------|-----------|
-| Variables de entorno | 10-configuracion-deployment.md |
-| Estructura de carpetas | 03-estructura-proyecto.md |
-| Lista de dependencias | 02-stack-tecnologico.md |
-| Endpoints de API | 05-servicios-api.md |
-| Flujos de autenticación | 07-autenticacion.md |
-| Convenciones de código | 12-guia-desarrollo.md |
-| Métricas del proyecto | 00-resumen-ejecutivo.md |
+| Información             | Documento                      |
+| ----------------------- | ------------------------------ |
+| Variables de entorno    | 10-configuracion-deployment.md |
+| Estructura de carpetas  | 03-estructura-proyecto.md      |
+| Lista de dependencias   | 02-stack-tecnologico.md        |
+| Endpoints de API        | 05-servicios-api.md            |
+| Flujos de autenticación | 07-autenticacion.md            |
+| Convenciones de código  | 12-guia-desarrollo.md          |
+| Métricas del proyecto   | 00-resumen-ejecutivo.md        |
 
 ---
 
@@ -209,6 +213,7 @@
 ### Reportar Errores
 
 Si encuentras errores en la documentación:
+
 1. Crear issue en GitHub
 2. Etiquetar como "documentation"
 3. Describir el error y la ubicación
@@ -223,9 +228,11 @@ Todos los documentos siguen este formato:
 # 🎯 Título del Documento
 
 ## Sección 1
+
 Contenido...
 
 ## Sección 2
+
 Contenido...
 
 ---

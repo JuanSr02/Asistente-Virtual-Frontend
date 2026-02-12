@@ -70,7 +70,7 @@ export default function EstadisticasMateria() {
 
   const { estadisticas, isLoading, isError } = useEstadisticasMateria(
     materia,
-    periodo
+    periodo,
   );
 
   return (

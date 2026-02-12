@@ -100,11 +100,11 @@ import { supabase } from '@/supabaseClient';
 
 export default async function HistoriaPage() {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   if (!session) {
     redirect('/auth/login');
   }
-  
+
   return <HistoriaContent />;
 }
 ```
@@ -118,18 +118,18 @@ import { supabase } from '@/supabaseClient';
 
 export default async function AdminPage() {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   if (!session) {
     redirect('/auth/login');
   }
-  
+
   const user = session.user;
   const rol = user.user_metadata?.rol;
-  
+
   if (rol !== 'ADMINISTRADOR') {
     redirect('/dashboard');
   }
-  
+
   return <AdminContent />;
 }
 ```
@@ -138,26 +138,28 @@ export default async function AdminPage() {
 
 ```typescript
 // hooks/useProtectedRoute.ts
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/supabaseClient';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/supabaseClient";
 
 export const useProtectedRoute = (requiredRole?: string) => {
   const router = useRouter();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
-        router.push('/auth/login');
+        router.push("/auth/login");
         return;
       }
-      
+
       if (requiredRole) {
         const userRole = session.user.user_metadata?.rol;
         if (userRole !== requiredRole) {
-          router.push('/dashboard');
+          router.push("/dashboard");
         }
       }
     };
@@ -176,7 +178,7 @@ import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 export default function AdminPage() {
   useProtectedRoute('ADMINISTRADOR');
-  
+
   return <div>Contenido de admin</div>;
 }
 ```
@@ -305,7 +307,7 @@ import Link from 'next/link';
 </Link>
 
 // Con className
-<Link 
+<Link
   href="/student/recomendaciones"
   className="text-blue-600 hover:underline"
 >
@@ -327,19 +329,19 @@ import { useRouter } from 'next/navigation';
 
 function Component() {
   const router = useRouter();
-  
+
   const handleNavigate = () => {
     router.push('/student/historia');
   };
-  
+
   const handleBack = () => {
     router.back();
   };
-  
+
   const handleRefresh = () => {
     router.refresh();
   };
-  
+
   return (
     <div>
       <button onClick={handleNavigate}>Ir a Historia</button>
@@ -359,18 +361,18 @@ import { usePathname } from 'next/navigation';
 
 function Navigation() {
   const pathname = usePathname();
-  
+
   const isActive = (path: string) => pathname === path;
-  
+
   return (
     <nav>
-      <Link 
+      <Link
         href="/student/historia"
         className={isActive('/student/historia') ? 'active' : ''}
       >
         Historia
       </Link>
-      <Link 
+      <Link
         href="/student/recomendaciones"
         className={isActive('/student/recomendaciones') ? 'active' : ''}
       >
@@ -390,10 +392,10 @@ import { useSearchParams } from 'next/navigation';
 
 function SearchComponent() {
   const searchParams = useSearchParams();
-  
+
   const query = searchParams.get('q');
   const page = searchParams.get('page') || '1';
-  
+
   return (
     <div>
       <p>Búsqueda: {query}</p>
@@ -419,7 +421,7 @@ interface PageProps {
 
 export default function MateriaPage({ params }: PageProps) {
   const { id } = params;
-  
+
   return <div>Materia ID: {id}</div>;
 }
 ```
@@ -437,7 +439,7 @@ interface PageProps {
 
 export default function MateriaDetailPage({ params }: PageProps) {
   const { planId, materiaId } = params;
-  
+
   return (
     <div>
       <p>Plan: {planId}</p>
@@ -460,7 +462,7 @@ interface PageProps {
 export default function DocsPage({ params }: PageProps) {
   const { slug } = params;
   // slug = ['getting-started', 'installation']
-  
+
   return <div>Path: {slug.join('/')}</div>;
 }
 ```
@@ -543,7 +545,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const materia = await fetchMateria(params.id);
-  
+
   return {
     title: `${materia.nombre} | Asistente Virtual`,
     description: `Información sobre ${materia.nombre}`,
@@ -566,11 +568,11 @@ import { redirect } from 'next/navigation';
 
 export default async function Page() {
   const session = await getSession();
-  
+
   if (!session) {
     redirect('/auth/login');
   }
-  
+
   return <div>Contenido</div>;
 }
 ```
@@ -585,7 +587,7 @@ import { useEffect } from 'react';
 
 export default function Page() {
   const router = useRouter();
-  
+
   useEffect(() => {
     const checkAuth = async () => {
       const session = await getSession();
@@ -593,10 +595,10 @@ export default function Page() {
         router.push('/auth/login');
       }
     };
-    
+
     checkAuth();
   }, [router]);
-  
+
   return <div>Contenido</div>;
 }
 ```

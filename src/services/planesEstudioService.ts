@@ -40,7 +40,7 @@ const planesEstudioService = {
   eliminarPlan: async (codigoPlan: string): Promise<void> => {
     try {
       await api.delete(
-        `${API_ROUTES.ADMIN.ELIMINAR_PLAN}?codigo=${codigoPlan}`
+        `${API_ROUTES.ADMIN.ELIMINAR_PLAN}?codigo=${codigoPlan}`,
       );
     } catch (error) {
       console.error("Error al eliminar plan de estudio:", error);
@@ -51,7 +51,7 @@ const planesEstudioService = {
   obtenerMateriasPorPlan: async (codigoPlan: string): Promise<any[]> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.SHARED.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`
+        `${API_ROUTES.SHARED.MATERIAS_POR_PLAN}?codigoPlan=${codigoPlan}`,
       );
       return response.data;
     } catch (error) {

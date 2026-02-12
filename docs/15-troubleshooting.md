@@ -90,6 +90,7 @@ lsof -ti:3000 | xargs kill -9
 **Problema**: Diferencia entre renderizado servidor/cliente.
 
 **Causas comunes**:
+
 - Usar `window` o `document` en Server Component
 - Fechas sin formato consistente
 - Random values sin seed
@@ -108,11 +109,11 @@ export default function Component() {
 
 export default function Component() {
   const [randomValue, setRandomValue] = useState(0);
-  
+
   useEffect(() => {
     setRandomValue(Math.random());
   }, []);
-  
+
   return <div>{randomValue}</div>;
 }
 
@@ -138,7 +139,7 @@ const userName = user.name;
 const userName = user?.name;
 
 // ✅ Bueno - con default
-const userName = user?.name ?? 'Invitado';
+const userName = user?.name ?? "Invitado";
 
 // ✅ Bueno - verificar antes
 if (user && user.name) {
@@ -153,6 +154,7 @@ if (user && user.name) {
 **Problema**: Loop infinito de renders.
 
 **Causas comunes**:
+
 - setState en render
 - useEffect sin dependencias correctas
 
@@ -169,11 +171,11 @@ function Component() {
 // ✅ Bueno
 function Component() {
   const [count, setCount] = useState(0);
-  
+
   useEffect(() => {
     setCount(count + 1);
   }, []); // Solo una vez
-  
+
   return <div>{count}</div>;
 }
 
@@ -217,8 +219,8 @@ interface User {
 }
 
 const user: User = {
-  id: '123',
-  name: 'Juan',
+  id: "123",
+  name: "Juan",
   age: 25,
 };
 
@@ -236,7 +238,7 @@ const data = response.data as User;
 
 ```typescript
 // ❌ Malo
-const user: any = { name: 'Juan' };
+const user: any = { name: "Juan" };
 console.log(user.age); // No error, pero undefined
 
 // ✅ Bueno - definir tipo completo
@@ -245,7 +247,7 @@ interface User {
   age?: number; // Opcional
 }
 
-const user: User = { name: 'Juan' };
+const user: User = { name: "Juan" };
 console.log(user.age); // TypeScript sabe que puede ser undefined
 
 // ✅ Bueno - extender tipo
@@ -272,19 +274,18 @@ axiosClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Refrescar token
       const { data } = await supabase.auth.refreshSession();
-      
+
       if (data.session) {
         // Reintentar request
-        error.config.headers.Authorization = 
-          `Bearer ${data.session.access_token}`;
+        error.config.headers.Authorization = `Bearer ${data.session.access_token}`;
         return axiosClient.request(error.config);
       } else {
         // Redirigir a login
-        window.location.href = '/auth/login';
+        window.location.href = "/auth/login";
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 ```
 
@@ -301,9 +302,9 @@ axiosClient.interceptors.response.use(
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 if (!emailRegex.test(email)) {
   toast({
-    title: 'Error',
-    description: 'Email inválido',
-    variant: 'destructive',
+    title: "Error",
+    description: "Email inválido",
+    variant: "destructive",
   });
   return;
 }
@@ -311,9 +312,9 @@ if (!emailRegex.test(email)) {
 // Verificar longitud de contraseña
 if (password.length < 6) {
   toast({
-    title: 'Error',
-    description: 'La contraseña debe tener al menos 6 caracteres',
-    variant: 'destructive',
+    title: "Error",
+    description: "La contraseña debe tener al menos 6 caracteres",
+    variant: "destructive",
   });
   return;
 }
@@ -354,13 +355,13 @@ return <UserDisplay user={data} />;
 ```typescript
 // ❌ Malo - query siempre intenta ejecutar
 const { data } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
 });
 
 // ✅ Bueno - solo ejecutar si userId existe
 const { data } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
   enabled: !!userId, // Solo si userId tiene valor
 });
@@ -634,15 +635,15 @@ module.exports = {
 
 ```typescript
 // Solo en desarrollo
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug:', data);
+if (process.env.NODE_ENV === "development") {
+  console.log("Debug:", data);
 }
 
 // Con contexto
-console.log('User data:', { userId, userName, userEmail });
+console.log("User data:", { userId, userName, userEmail });
 
 // Con trace
-console.trace('Function called from:');
+console.trace("Function called from:");
 ```
 
 ---

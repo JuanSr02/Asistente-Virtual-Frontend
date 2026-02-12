@@ -51,6 +51,6 @@ export const useUIStore = create<UIState>()(
         statsParams: state.statsParams,
         inscripcionParams: state.inscripcionParams,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -72,7 +72,7 @@ export default function Auth() {
       if (showForgotPassword) {
         const { error } = await supabase.auth.resetPasswordForEmail(
           formData.email,
-          { redirectTo: `${window.location.origin}/reset-password` }
+          { redirectTo: `${window.location.origin}/reset-password` },
         );
         if (error) throw error;
         toast.success("¡Revisa tu email para restablecer tu contraseña!");
@@ -86,7 +86,7 @@ export default function Auth() {
 
         if (userExists) {
           toast.warning(
-            "Este email ya está registrado. Por favor inicia sesión."
+            "Este email ya está registrado. Por favor inicia sesión.",
           );
           setLoading(false);
           return;
@@ -105,7 +105,7 @@ export default function Auth() {
 
         if (data.user && data.user.identities?.length === 0) {
           toast.warning(
-            "Este email ya está registrado. Por favor inicia sesión."
+            "Este email ya está registrado. Por favor inicia sesión.",
           );
         } else {
           toast.success("¡Cuenta creada! Revisa tu email para confirmar.");

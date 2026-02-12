@@ -11,6 +11,7 @@ El proyecto implementa múltiples estrategias de optimización para garantizar u
 ### Core Web Vitals
 
 **Objetivos**:
+
 - **LCP (Largest Contentful Paint)**: < 2.5s
 - **FID (First Input Delay)**: < 100ms
 - **CLS (Cumulative Layout Shift)**: < 0.1
@@ -43,6 +44,7 @@ import Image from 'next/image';
 ```
 
 **Beneficios**:
+
 - Lazy loading automático
 - Responsive images
 - WebP/AVIF automático
@@ -74,6 +76,7 @@ export default function RootLayout({ children }) {
 ```
 
 **Beneficios**:
+
 - Self-hosting automático
 - Zero layout shift
 - Preload automático
@@ -118,7 +121,7 @@ const AdminPanel = dynamic(
 // Renderizado en servidor, no envía JS al cliente
 export default async function Page() {
   const data = await fetchData();
-  
+
   return (
     <div>
       <h1>{data.title}</h1>
@@ -132,7 +135,7 @@ export default async function Page() {
 
 export default function InteractivePage() {
   const [count, setCount] = useState(0);
-  
+
   return (
     <button onClick={() => setCount(count + 1)}>
       Count: {count}
@@ -142,6 +145,7 @@ export default function InteractivePage() {
 ```
 
 **Beneficios**:
+
 - Menos JavaScript al cliente
 - Mejor performance inicial
 - SEO mejorado
@@ -287,7 +291,7 @@ function VirtualList({ items }) {
 
 ```typescript
 const { data } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
   staleTime: 5 * 60 * 1000, // 5 minutos
 });
@@ -297,7 +301,7 @@ const { data } = useQuery({
 
 ```typescript
 const { data } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
   cacheTime: 10 * 60 * 1000, // 10 minutos
 });
@@ -316,7 +320,7 @@ const handleMouseEnter = () => {
   });
 };
 
-<Link 
+<Link
   href="/user/123"
   onMouseEnter={handleMouseEnter}
 >
@@ -329,7 +333,7 @@ const handleMouseEnter = () => {
 ```typescript
 // Solo seleccionar datos necesarios
 const { data: userName } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
   select: (user) => user.name, // Solo retorna el nombre
 });
@@ -343,10 +347,10 @@ const { data: userName } = useQuery({
 
 ```typescript
 // ✅ Bueno - importar solo lo necesario
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 // ❌ Malo - importar todo
-import * as UI from '@/components/ui';
+import * as UI from "@/components/ui";
 ```
 
 ### 2. Package Optimization
@@ -356,9 +360,9 @@ import * as UI from '@/components/ui';
 module.exports = {
   experimental: {
     optimizePackageImports: [
-      '@supabase/supabase-js',
-      'lucide-react',
-      'recharts',
+      "@supabase/supabase-js",
+      "lucide-react",
+      "recharts",
     ],
   },
 };
@@ -378,6 +382,7 @@ pnpm analyze
 ### 1. Compression
 
 Vercel habilita automáticamente:
+
 - Gzip
 - Brotli
 
@@ -388,7 +393,7 @@ Vercel habilita automáticamente:
 export async function GET() {
   return new Response(JSON.stringify(data), {
     headers: {
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });
 }
@@ -397,6 +402,7 @@ export async function GET() {
 ### 3. CDN
 
 Vercel Edge Network:
+
 - Distribución global
 - Cache en edge
 - Latencia reducida
@@ -410,9 +416,7 @@ Vercel Edge Network:
 ```javascript
 // tailwind.config.ts
 module.exports = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   // Solo incluye clases usadas
 };
 ```
@@ -424,7 +428,7 @@ module.exports = {
 module.exports = {
   plugins: {
     cssnano: {
-      preset: 'default',
+      preset: "default",
     },
   },
 };
@@ -501,6 +505,7 @@ function ScrollComponent() {
 ### 1. Indexing
 
 Asegurar índices en Supabase:
+
 - Campos de búsqueda frecuente
 - Foreign keys
 - Campos de ordenamiento
@@ -510,26 +515,26 @@ Asegurar índices en Supabase:
 ```typescript
 // ✅ Bueno - select específico
 const { data } = await supabase
-  .from('estudiantes')
-  .select('id, nombre, email')
-  .eq('id', userId)
+  .from("estudiantes")
+  .select("id, nombre, email")
+  .eq("id", userId)
   .single();
 
 // ❌ Malo - select *
 const { data } = await supabase
-  .from('estudiantes')
-  .select('*')
-  .eq('id', userId);
+  .from("estudiantes")
+  .select("*")
+  .eq("id", userId);
 ```
 
 ### 3. Pagination
 
 ```typescript
 const { data } = await supabase
-  .from('experiencias')
-  .select('*')
+  .from("experiencias")
+  .select("*")
   .range(0, 9) // Primeros 10 resultados
-  .order('created_at', { ascending: false });
+  .order("created_at", { ascending: false });
 ```
 
 ---

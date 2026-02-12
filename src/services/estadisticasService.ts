@@ -64,14 +64,14 @@ const estadisticasService = {
    */
   obtenerEstadisticasPorCarrera: async (
     codigoPlan: string,
-    periodo: string
+    periodo: string,
   ): Promise<EstadisticasCarreraDTO> => {
     try {
       const response = await api.get(
         API_ROUTES.SHARED.ESTADISTICAS_POR_CARRERA,
         {
           params: { plan: codigoPlan, periodo },
-        }
+        },
       );
       return response.data;
     } catch (error) {
@@ -85,14 +85,14 @@ const estadisticasService = {
    */
   obtenerEstadisticasMateriaPorPeriodo: async (
     codigoMateria: string,
-    periodo: string
+    periodo: string,
   ): Promise<EstadisticasMateriaDTO> => {
     try {
       const response = await api.get(
         `${API_ROUTES.SHARED.ESTADISTICAS_MATERIA}${codigoMateria}`,
         {
           params: { periodo },
-        }
+        },
       );
       return response.data;
     } catch (error) {

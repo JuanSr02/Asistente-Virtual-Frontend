@@ -27,7 +27,7 @@ export function useUserRole(user: User | null): {
         setLoading(true);
         // Consultamos la tabla 'persona' que es la fuente de verdad
         const persona = await personaService.obtenerPersonaPorSupabaseId(
-          user.id
+          user.id,
         );
 
         if (persona) {
@@ -36,14 +36,14 @@ export function useUserRole(user: User | null): {
         } else {
           // Fallback: Intentar por email si no tiene ID vinculado aun
           const personaByEmail = await personaService.obtenerPersonaPorEmail(
-            user.email!
+            user.email!,
           );
           if (personaByEmail) {
             setRole(personaByEmail.rol_usuario as UserRole);
           } else {
             // Si no existe en persona, por defecto es ESTUDIANTE (o null si prefieres bloquear)
             console.warn(
-              "Usuario no encontrado en tabla persona, asignando rol por defecto."
+              "Usuario no encontrado en tabla persona, asignando rol por defecto.",
             );
             setRole("ESTUDIANTE");
           }

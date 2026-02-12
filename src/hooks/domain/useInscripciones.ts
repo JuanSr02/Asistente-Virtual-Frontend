@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export function useInscripciones(
   personaId: number | undefined,
-  tieneHistoria: boolean
+  tieneHistoria: boolean,
 ) {
   const queryClient = useQueryClient();
   const personaKey = personaId?.toString() || "0";
@@ -45,7 +45,7 @@ export function useInscripciones(
         const unicas = materiasABuscar.filter(
           (m: any, index: number, self: any[]) =>
             index ===
-            self.findIndex((t) => t.codigo === m.codigo && t.plan === m.plan)
+            self.findIndex((t) => t.codigo === m.codigo && t.plan === m.plan),
         );
 
         if (unicas.length > 0) {
@@ -116,7 +116,7 @@ export function useInscripciones(
   const materiasFiltradas =
     disponiblesQuery.data?.filter((materia) => {
       const yaInscripto = misInscripcionesQuery.data?.some(
-        (ins: any) => ins.materiaCodigo === materia.codigo
+        (ins: any) => ins.materiaCodigo === materia.codigo,
       );
       return !yaInscripto;
     }) || [];

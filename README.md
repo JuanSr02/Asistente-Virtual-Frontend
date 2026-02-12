@@ -22,21 +22,21 @@ El **Asistente Virtual** es una PWA diseñada para reducir la incertidumbre acad
 
 ### 👨‍🎓 Funcionalidades para Estudiantes
 
-* **Sugerencias Inteligentes:** Algoritmo que analiza historia académica real considerando:
+- **Sugerencias Inteligentes:** Algoritmo que analiza historia académica real considerando:
+  - Correlativas futuras.
+  - Vencimiento de regularidades.
+  - Estadísticas de dificultad y aprobación.
 
-  * Correlativas futuras.
-  * Vencimiento de regularidades.
-  * Estadísticas de dificultad y aprobación.
-* **Procesamiento de Analíticos:** Carga automática de archivos PDF/Excel del SIU Guaraní.
-* **Experiencias de Examen:** Sistema colaborativo con modalidad, dificultad, recursos y tips.
-* **Inscripción Social (no oficial):** Permite coordinar mesas, ver quién rinde y compartir contacto.
-* **Dashboard Personal:** Métricas visuales de rendimiento y progreso.
+- **Procesamiento de Analíticos:** Carga automática de archivos PDF/Excel del SIU Guaraní.
+- **Experiencias de Examen:** Sistema colaborativo con modalidad, dificultad, recursos y tips.
+- **Inscripción Social (no oficial):** Permite coordinar mesas, ver quién rinde y compartir contacto.
+- **Dashboard Personal:** Métricas visuales de rendimiento y progreso.
 
 ### 🛠️ Funciones para Administradores
 
-* Gestión integral de **planes de estudio** y materias.
-* Analíticas globales: tasas de aprobación, deserción y materias críticas.
-* Estadísticas detalladas por carrera.
+- Gestión integral de **planes de estudio** y materias.
+- Analíticas globales: tasas de aprobación, deserción y materias críticas.
+- Estadísticas detalladas por carrera.
 
 ---
 
@@ -44,35 +44,33 @@ El **Asistente Virtual** es una PWA diseñada para reducir la incertidumbre acad
 
 ### Frontend
 
-* **Next.js 16 (App Router)**
-* **TypeScript**
-* **Tailwind CSS + ShadCN UI + Radix UI**
-* **Zustand** (estado global)
-* **TanStack Query v5** (caché y server state)
-* **Recharts**, Lucide React
-* **PWA** via next-pwa
-* **Axios** como cliente HTTP
+- **Next.js 16 (App Router)**
+- **TypeScript**
+- **Tailwind CSS + ShadCN UI + Radix UI**
+- **Zustand** (estado global)
+- **TanStack Query v5** (caché y server state)
+- **Recharts**, Lucide React
+- **PWA** via next-pwa
+- **Axios** como cliente HTTP
 
 ### Backend
 
 #### 🔧 API Principal (Custom Backend)
 
-* **Java Spring Boot**
-* **API REST propia** alojada en el repo:
+- **Java Spring Boot**
+- **API REST propia** alojada en el repo:
   [https://github.com/JuanSr02/Asistente-Virtual-Backend](https://github.com/JuanSr02/Asistente-Virtual-Backend)
-* Procesa lógica avanzada:
-
-  * Parsing del historial académico.
-  * Algoritmos de recomendación.
-  * Endpoints optimizados para análisis y estadísticas.
+- Procesa lógica avanzada:
+  - Parsing del historial académico.
+  - Algoritmos de recomendación.
+  - Endpoints optimizados para análisis y estadísticas.
 
 #### 🗄️ BaaS de Soporte
 
-* **Supabase**
-
-  * Autenticación (Email/Password + Google OAuth)
-  * Base de Datos PostgreSQL
-  * Storage opcional
+- **Supabase**
+  - Autenticación (Email/Password + Google OAuth)
+  - Base de Datos PostgreSQL
+  - Storage opcional
 
 ---
 

@@ -5,7 +5,9 @@ import DashboardClient from "./dashboard-client";
 export default async function Dashboard() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/auth");
@@ -19,17 +21,17 @@ export default async function Dashboard() {
 
   // Lógica de fallback similar a tu hook, pero en servidor
   let role = persona?.rol_usuario || "ESTUDIANTE";
-  
+
   // Si no se encontró por ID, intentamos por email (migración)
   if (!persona && user.email) {
-      const { data: personaByEmail } = await supabase
-        .from("persona")
-        .select("rol_usuario")
-        .eq("mail", user.email)
-        .single();
-      if (personaByEmail) {
-          role = personaByEmail.rol_usuario;
-      }
+    const { data: personaByEmail } = await supabase
+      .from("persona")
+      .select("rol_usuario")
+      .eq("mail", user.email)
+      .single();
+    if (personaByEmail) {
+      role = personaByEmail.rol_usuario;
+    }
   }
 
   // 3. Renderizamos el cliente con los datos ya listos (Zero CLS, Zero Loading Spinners iniciales)

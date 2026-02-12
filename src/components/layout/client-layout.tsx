@@ -48,7 +48,10 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
               aria-live="polite"
               aria-label="Cargando aplicación"
             >
-              <Loader2 className="w-10 h-10 text-primary animate-spin" aria-hidden="true" />
+              <Loader2
+                className="w-10 h-10 text-primary animate-spin"
+                aria-hidden="true"
+              />
               <span className="sr-only">Cargando...</span>
             </div>
           ) : (
@@ -61,7 +64,11 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                 Saltar al contenido principal
               </a>
 
-              <main id="main-content" className="flex-1 flex flex-col" role="main">
+              <main
+                id="main-content"
+                className="flex-1 flex flex-col"
+                role="main"
+              >
                 {children}
               </main>
 
@@ -85,7 +92,10 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                     >
                       Términos y Condiciones
                     </Link>
-                    <span className="hidden sm:inline text-muted-foreground/50" aria-hidden="true">
+                    <span
+                      className="hidden sm:inline text-muted-foreground/50"
+                      aria-hidden="true"
+                    >
                       |
                     </span>
                     <Link

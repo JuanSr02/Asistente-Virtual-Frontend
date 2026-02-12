@@ -27,16 +27,19 @@ Usuario → Login Form → Supabase Auth → JWT Token
 ## Métodos de Autenticación Soportados
 
 ### 1. **Email/Password**
+
 - Registro con email y contraseña
 - Confirmación de email (opcional)
 - Login tradicional
 
 ### 2. **Google OAuth**
+
 - Autenticación con cuenta de Google
 - Flujo OAuth 2.0
 - Datos de perfil automáticos
 
 ### 3. **Reset de Contraseña**
+
 - Solicitud de reset por email
 - Token de recuperación seguro
 - Actualización de contraseña
@@ -50,7 +53,7 @@ Usuario → Login Form → Supabase Auth → JWT Token
 **Ubicación**: `src/supabaseClient.ts`
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -74,15 +77,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```typescript
 // Ejemplo de registro
 const { data, error } = await supabase.auth.signUp({
-  email: 'usuario@example.com',
-  password: 'password123',
+  email: "usuario@example.com",
+  password: "password123",
   options: {
     data: {
-      nombre: 'Juan',
-      apellido: 'Pérez',
-      rol: 'ESTUDIANTE'
-    }
-  }
+      nombre: "Juan",
+      apellido: "Pérez",
+      rol: "ESTUDIANTE",
+    },
+  },
 });
 ```
 
@@ -91,16 +94,16 @@ const { data, error } = await supabase.auth.signUp({
 ```typescript
 // Login con email/password
 const { data, error } = await supabase.auth.signInWithPassword({
-  email: 'usuario@example.com',
-  password: 'password123'
+  email: "usuario@example.com",
+  password: "password123",
 });
 
 // Login con Google OAuth
 const { data, error } = await supabase.auth.signInWithOAuth({
-  provider: 'google',
+  provider: "google",
   options: {
-    redirectTo: `${window.location.origin}/auth/callback`
-  }
+    redirectTo: `${window.location.origin}/auth/callback`,
+  },
 });
 ```
 
@@ -115,15 +118,15 @@ const { error } = await supabase.auth.signOut();
 ```typescript
 // Solicitar reset
 const { error } = await supabase.auth.resetPasswordForEmail(
-  'usuario@example.com',
+  "usuario@example.com",
   {
-    redirectTo: `${window.location.origin}/reset-password`
-  }
+    redirectTo: `${window.location.origin}/reset-password`,
+  },
 );
 
 // Actualizar contraseña
 const { error } = await supabase.auth.updateUser({
-  password: 'nueva-password'
+  password: "nueva-password",
 });
 ```
 
@@ -134,7 +137,9 @@ const { error } = await supabase.auth.updateUser({
 ### Obtener Sesión Actual
 
 ```typescript
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 
 if (session) {
   const user = session.user;
@@ -146,14 +151,14 @@ if (session) {
 
 ```typescript
 supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN') {
-    console.log('Usuario autenticado', session);
+  if (event === "SIGNED_IN") {
+    console.log("Usuario autenticado", session);
   }
-  if (event === 'SIGNED_OUT') {
-    console.log('Usuario cerró sesión');
+  if (event === "SIGNED_OUT") {
+    console.log("Usuario cerró sesión");
   }
-  if (event === 'TOKEN_REFRESHED') {
-    console.log('Token renovado', session);
+  if (event === "TOKEN_REFRESHED") {
+    console.log("Token renovado", session);
   }
 });
 ```
@@ -161,6 +166,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 ### Auto-refresh de Tokens
 
 Supabase maneja automáticamente la renovación de tokens:
+
 - **Access Token**: Válido por 1 hora
 - **Refresh Token**: Válido por 30 días
 - **Auto-refresh**: Automático antes de expiración
@@ -182,14 +188,14 @@ axiosClient.interceptors.request.use(
       const token = data.session?.access_token;
 
       if (token) {
-        config.headers.set('Authorization', `Bearer ${token}`);
+        config.headers.set("Authorization", `Bearer ${token}`);
       }
     } catch (error) {
-      console.error('Error inyectando token:', error);
+      console.error("Error inyectando token:", error);
     }
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error),
 );
 ```
 
@@ -200,11 +206,11 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      console.warn('Sesión expirada o token inválido');
+      console.warn("Sesión expirada o token inválido");
       // Redirigir a login si es necesario
     }
     return Promise.reject(error);
-  }
+  },
 );
 ```
 
@@ -220,6 +226,7 @@ axiosClient.interceptors.response.use(
 ### Almacenamiento de Rol
 
 El rol se almacena en:
+
 - **Supabase Auth Metadata**: `user.user_metadata.rol`
 - **Base de Datos**: Tabla `personas` o `estudiantes`
 
@@ -229,25 +236,27 @@ El rol se almacena en:
 
 ```typescript
 export const useUserRole = () => {
-  const [role, setRole] = useState<'ESTUDIANTE' | 'ADMINISTRADOR' | null>(null);
+  const [role, setRole] = useState<"ESTUDIANTE" | "ADMINISTRADOR" | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (user) {
-        const userRole = user.user_metadata?.rol || 'ESTUDIANTE';
+        const userRole = user.user_metadata?.rol || "ESTUDIANTE";
         setRole(userRole);
       }
-      
+
       setLoading(false);
     };
 
     fetchRole();
   }, []);
 
-  return { role, loading, isAdmin: role === 'ADMINISTRADOR' };
+  return { role, loading, isAdmin: role === "ADMINISTRADOR" };
 };
 ```
 
@@ -263,11 +272,11 @@ Las rutas protegidas verifican la sesión antes de renderizar:
 // Ejemplo en page.tsx
 export default async function ProtectedPage() {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   if (!session) {
     redirect('/auth/login');
   }
-  
+
   return <PageContent />;
 }
 ```
@@ -288,6 +297,7 @@ return <AdminContent />;
 ### Rutas Públicas vs Privadas
 
 #### Rutas Públicas
+
 - `/` - Landing page
 - `/auth/login` - Login
 - `/auth/register` - Registro
@@ -295,6 +305,7 @@ return <AdminContent />;
 - `/terminos-condiciones` - Términos y condiciones
 
 #### Rutas Privadas (Requieren Autenticación)
+
 - `/dashboard` - Dashboard general
 - `/perfil` - Perfil de usuario
 - `/student/*` - Todas las rutas de estudiante
@@ -317,6 +328,7 @@ return <AdminContent />;
 ### Validación de Passwords
 
 Requisitos mínimos (configurables en Supabase):
+
 - Mínimo 6 caracteres
 - Se recomienda: mayúsculas, minúsculas, números y símbolos
 
@@ -358,25 +370,25 @@ Requisitos mínimos (configurables en Supabase):
 try {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
-    password
+    password,
   });
-  
+
   if (error) {
-    if (error.message.includes('Invalid login credentials')) {
-      toast.error('Credenciales inválidas');
-    } else if (error.message.includes('Email not confirmed')) {
-      toast.error('Por favor, confirma tu email');
+    if (error.message.includes("Invalid login credentials")) {
+      toast.error("Credenciales inválidas");
+    } else if (error.message.includes("Email not confirmed")) {
+      toast.error("Por favor, confirma tu email");
     } else {
-      toast.error('Error al iniciar sesión');
+      toast.error("Error al iniciar sesión");
     }
     return;
   }
-  
+
   // Login exitoso
-  router.push('/dashboard');
+  router.push("/dashboard");
 } catch (error) {
-  console.error('Error inesperado:', error);
-  toast.error('Error inesperado');
+  console.error("Error inesperado:", error);
+  toast.error("Error inesperado");
 }
 ```
 
@@ -387,6 +399,7 @@ try {
 ### LocalStorage
 
 Supabase almacena automáticamente la sesión en `localStorage`:
+
 - **Key**: `supabase.auth.token`
 - **Contenido**: Session data + tokens
 - **Persistencia**: Automática entre recargas
@@ -396,14 +409,14 @@ Supabase almacena automáticamente la sesión en `localStorage`:
 ```typescript
 // Al cargar la aplicación
 useEffect(() => {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // Sesión recuperada o renovada
-        setUser(session?.user);
-      }
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      // Sesión recuperada o renovada
+      setUser(session?.user);
     }
-  );
+  });
 
   return () => subscription.unsubscribe();
 }, []);
@@ -431,14 +444,14 @@ Password: admin123
 
 ```typescript
 // Mock de Supabase Auth
-jest.mock('@/supabaseClient', () => ({
+jest.mock("@/supabaseClient", () => ({
   supabase: {
     auth: {
       signInWithPassword: jest.fn(),
       signOut: jest.fn(),
       getSession: jest.fn(),
-    }
-  }
+    },
+  },
 }));
 ```
 
@@ -449,6 +462,7 @@ jest.mock('@/supabaseClient', () => ({
 ### Exportar Usuarios
 
 Supabase permite exportar usuarios desde el dashboard:
+
 1. Ir a Authentication → Users
 2. Exportar como CSV
 3. Incluye: email, created_at, metadata
@@ -456,6 +470,7 @@ Supabase permite exportar usuarios desde el dashboard:
 ### Políticas de Seguridad (RLS)
 
 Row Level Security configurado en Supabase:
+
 - Los usuarios solo pueden ver/editar sus propios datos
 - Los administradores tienen acceso completo
 

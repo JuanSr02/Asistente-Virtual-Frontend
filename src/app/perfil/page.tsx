@@ -42,7 +42,7 @@ export default function PerfilPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUser(data.user);
-      if (data.user?.app_metadata?.provider === 'google') {
+      if (data.user?.app_metadata?.provider === "google") {
         setIsGoogleUser(true);
       }
     });
@@ -50,13 +50,13 @@ export default function PerfilPage() {
 
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     currentUser?.id,
-    currentUser?.email
+    currentUser?.email,
   );
 
   const { actualizarPerfil, isUpdating, eliminarCuenta, isDeleting } =
     usePerfil(
       persona?.id?.toString() || "0",
-      persona?.rol_usuario || "ESTUDIANTE"
+      persona?.rol_usuario || "ESTUDIANTE",
     );
 
   const { confirm } = useConfirm();
@@ -105,7 +105,7 @@ export default function PerfilPage() {
 
   const hasValidChanges = useMemo(() => {
     const hasAnyContent = Object.values(formData).some(
-      (val) => val.trim() !== ""
+      (val) => val.trim() !== "",
     );
     if (!hasAnyContent) return false;
 
@@ -144,8 +144,7 @@ export default function PerfilPage() {
         telefono: "",
         contrasenia: "",
       });
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   const handleEliminar = async () => {
@@ -321,8 +320,8 @@ export default function PerfilPage() {
 
               <p className="text-xs text-muted-foreground mt-2 flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/10 p-2 rounded border border-yellow-200 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-500">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                Si cambias tu contraseña, deberás volver a iniciar sesión en todos
-                tus dispositivos.
+                Si cambias tu contraseña, deberás volver a iniciar sesión en
+                todos tus dispositivos.
               </p>
 
               {errors.contrasenia && (

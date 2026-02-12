@@ -20,11 +20,11 @@ const historiaAcademicaService = {
    * Verifica si un estudiante tiene historia académica cargada
    */
   verificarHistoriaAcademica: async (
-    personaId: number
+    personaId: number,
   ): Promise<HistoriaAcademica | null> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${personaId}`
+        `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${personaId}`,
       );
       return response.data;
     } catch (error) {
@@ -39,7 +39,7 @@ const historiaAcademicaService = {
   cargarHistoriaAcademica: async (
     file: File,
     estudianteId: number,
-    codigoPlan: string
+    codigoPlan: string,
   ): Promise<HistoriaAcademicaResponseDTO> => {
     try {
       const formData = new FormData();
@@ -53,7 +53,7 @@ const historiaAcademicaService = {
       const response = await api.post(
         API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA + estudianteId + "/carga",
         formData,
-        config
+        config,
       );
       return response.data;
     } catch (error) {
