@@ -48,11 +48,11 @@ export interface ExamenDisponibleDTO {
 
 const experienciaService = {
   obtenerExperienciasPorMateria: async (
-    codigoMateria: string
+    codigoMateria: string,
   ): Promise<ExperienciaResponseDTO[]> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.SHARED.EXPERIENCIAS_POR_MATERIA}/${codigoMateria}`
+        `${API_ROUTES.SHARED.EXPERIENCIAS_POR_MATERIA}/${codigoMateria}`,
       );
       return response.data;
     } catch (error) {
@@ -62,11 +62,11 @@ const experienciaService = {
   },
 
   obtenerExperienciasPorEstudiante: async (
-    idEstudiante: number
+    idEstudiante: number,
   ): Promise<ExperienciaResponseDTO[]> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.SHARED.EXPERIENCIAS_POR_ESTUDIANTE}/${idEstudiante}`
+        `${API_ROUTES.SHARED.EXPERIENCIAS_POR_ESTUDIANTE}/${idEstudiante}`,
       );
       return response.data;
     } catch (error) {
@@ -76,11 +76,11 @@ const experienciaService = {
   },
 
   obtenerExamenesPorEstudiante: async (
-    idEstudiante: number
+    idEstudiante: number,
   ): Promise<ExamenDisponibleDTO[]> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.SHARED.EXAMENES_POR_ESTUDIANTE}/${idEstudiante}`
+        `${API_ROUTES.SHARED.EXAMENES_POR_ESTUDIANTE}/${idEstudiante}`,
       );
       return response.data;
     } catch (error) {
@@ -90,12 +90,12 @@ const experienciaService = {
   },
 
   crearExperiencia: async (
-    experienciaDTO: ExperienciaDTO
+    experienciaDTO: ExperienciaDTO,
   ): Promise<ExperienciaResponseDTO> => {
     try {
       const response = await api.post(
         API_ROUTES.SHARED.EXPERIENCIAS,
-        experienciaDTO
+        experienciaDTO,
       );
       return response.data;
     } catch (error) {
@@ -106,12 +106,12 @@ const experienciaService = {
 
   actualizarExperiencia: async (
     id: number,
-    dto: ActualizarExperienciaDTO
+    dto: ActualizarExperienciaDTO,
   ): Promise<ExperienciaResponseDTO> => {
     try {
       const response = await api.patch(
         `${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`,
-        dto
+        dto,
       );
       return response.data;
     } catch (error) {

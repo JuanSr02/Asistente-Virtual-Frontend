@@ -133,7 +133,8 @@ Usuario → Login Form → Supabase Auth → JWT Token → Axios Interceptor →
 
 ### 1. **Next.js 16 con App Router**
 
-**Razón**: 
+**Razón**:
+
 - Mejor rendimiento con React Server Components
 - Routing basado en sistema de archivos
 - Optimización automática de imágenes y fuentes
@@ -142,12 +143,14 @@ Usuario → Login Form → Supabase Auth → JWT Token → Axios Interceptor →
 ### 2. **Dual Backend (Spring Boot + Supabase)**
 
 **Razón**:
+
 - **Spring Boot**: Lógica de negocio compleja (algoritmos de recomendación, procesamiento de datos académicos)
 - **Supabase**: Autenticación robusta, base de datos en tiempo real, storage
 
 ### 3. **TanStack Query para Server State**
 
 **Razón**:
+
 - Cache inteligente y automático
 - Sincronización de datos en segundo plano
 - Optimistic updates
@@ -156,6 +159,7 @@ Usuario → Login Form → Supabase Auth → JWT Token → Axios Interceptor →
 ### 4. **Zustand para Client State**
 
 **Razón**:
+
 - API simple y minimalista
 - No requiere providers
 - Excelente rendimiento
@@ -164,6 +168,7 @@ Usuario → Login Form → Supabase Auth → JWT Token → Axios Interceptor →
 ### 5. **TypeScript Estricto**
 
 **Razón**:
+
 - Type safety en todo el proyecto
 - Mejor experiencia de desarrollo (IntelliSense)
 - Detección temprana de errores
@@ -178,8 +183,12 @@ Los servicios actúan como repositorios que abstraen la lógica de acceso a dato
 ```typescript
 // Ejemplo: historiaAcademicaService.ts
 export const historiaAcademicaService = {
-  obtenerHistoria: async (userId: string) => { /* ... */ },
-  cargarHistoria: async (userId: string, file: File) => { /* ... */ },
+  obtenerHistoria: async (userId: string) => {
+    /* ... */
+  },
+  cargarHistoria: async (userId: string, file: File) => {
+    /* ... */
+  },
   // ...
 };
 ```
@@ -203,7 +212,7 @@ TanStack Query implementa el patrón observer para sincronización de datos:
 ```typescript
 // Los componentes "observan" las queries
 const { data } = useQuery({
-  queryKey: ['estudiante', userId],
+  queryKey: ["estudiante", userId],
   queryFn: () => fetchEstudiante(userId),
 });
 ```

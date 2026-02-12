@@ -37,6 +37,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
 ```
 
 **¿Dónde obtener las credenciales?**
+
 1. Ir a [Supabase Dashboard](https://app.supabase.com/)
 2. Seleccionar tu proyecto
 3. Settings → API
@@ -93,33 +94,36 @@ src/
 ## 🔑 Conceptos Clave
 
 ### App Router (Next.js 16)
+
 - Cada carpeta en `src/app/` es una ruta
 - `page.tsx` = Componente de la página
 - `layout.tsx` = Layout compartido
 - `'use client'` = Componente del cliente
 
 ### TanStack Query
+
 ```typescript
 // Obtener datos
 const { data, isLoading } = useQuery({
-  queryKey: ['estudiante', userId],
+  queryKey: ["estudiante", userId],
   queryFn: () => fetchEstudiante(userId),
 });
 
 // Mutar datos
 const { mutate } = useMutation({
   mutationFn: createEstudiante,
-  onSuccess: () => queryClient.invalidateQueries(['estudiante']),
+  onSuccess: () => queryClient.invalidateQueries(["estudiante"]),
 });
 ```
 
 ### Zustand
+
 ```typescript
 // Usar store
 const { isOpen, openModal } = useModalStore();
 
 // Actualizar estado
-openModal('crear-experiencia', { materiaId: '123' });
+openModal("crear-experiencia", { materiaId: "123" });
 ```
 
 ---
@@ -154,7 +158,7 @@ export function MiComponente({ titulo, onClick }: MiComponenteProps) {
 
 ```typescript
 // src/services/miService.ts
-import axiosClient from '@/lib/axios-client';
+import axiosClient from "@/lib/axios-client";
 
 export const miService = {
   obtenerDatos: async (id: string) => {
@@ -163,7 +167,7 @@ export const miService = {
   },
 
   crearDato: async (dato: any) => {
-    const { data } = await axiosClient.post('/api/datos', dato);
+    const { data } = await axiosClient.post("/api/datos", dato);
     return data;
   },
 };
@@ -175,12 +179,12 @@ export const miService = {
 
 ```typescript
 // src/hooks/domain/useMisDatos.ts
-import { useQuery } from '@tanstack/react-query';
-import { miService } from '@/services/miService';
+import { useQuery } from "@tanstack/react-query";
+import { miService } from "@/services/miService";
 
 export const useMisDatos = (userId: string) => {
   return useQuery({
-    queryKey: ['mis-datos', userId],
+    queryKey: ["mis-datos", userId],
     queryFn: () => miService.obtenerDatos(userId),
     enabled: !!userId,
   });
@@ -216,6 +220,7 @@ export default function MiRutaPage() {
 ## 🐛 Debugging Rápido
 
 ### Ver queries en tiempo real
+
 ```typescript
 // TanStack Query DevTools ya está incluido
 // Abrir en desarrollo: http://localhost:3000
@@ -223,14 +228,16 @@ export default function MiRutaPage() {
 ```
 
 ### Console logging
+
 ```typescript
 // Solo en desarrollo
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug:', data);
+if (process.env.NODE_ENV === "development") {
+  console.log("Debug:", data);
 }
 ```
 
 ### React DevTools
+
 - Instalar extensión de navegador
 - Inspeccionar componentes y props
 - Ver hooks y estado
@@ -254,30 +261,40 @@ Para información detallada, consultar:
 ## ❓ Preguntas Frecuentes
 
 ### ¿Cómo agregar un componente de ShadCN?
+
 ```bash
 npx shadcn-ui@latest add button
 npx shadcn-ui@latest add card
 ```
 
 ### ¿Cómo hacer un commit?
+
 ```bash
 git add .
 git commit -m "feat: agregar nueva funcionalidad"
 ```
 
 ### ¿Cómo hacer deploy?
+
 ```bash
 # Push a main para deploy automático en Vercel
 git push origin main
 ```
 
 ### ¿Dónde están las rutas de API?
+
 ```typescript
 // src/lib/config.ts
 export const API_ROUTES = {
-  SHARED: { /* ... */ },
-  ESTUDIANTE: { /* ... */ },
-  ADMIN: { /* ... */ },
+  SHARED: {
+    /* ... */
+  },
+  ESTUDIANTE: {
+    /* ... */
+  },
+  ADMIN: {
+    /* ... */
+  },
 };
 ```
 
@@ -288,20 +305,23 @@ export const API_ROUTES = {
 ### Errores Comunes
 
 **Error: "Module not found"**
+
 ```bash
 rm -rf node_modules
 pnpm install
 ```
 
 **Error: "Type error"**
+
 ```bash
 pnpm type-check
 ```
 
 **Error: "Hydration mismatch"**
+
 ```typescript
 // Agregar 'use client' al componente
-'use client';
+"use client";
 ```
 
 ---

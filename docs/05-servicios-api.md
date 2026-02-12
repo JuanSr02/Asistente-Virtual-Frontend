@@ -29,9 +29,9 @@ Componentes React
 **Ubicación**: `src/lib/axios-client.ts`
 
 ```typescript
-import axios, { AxiosInstance } from 'axios';
-import { API_BASE_URL, AXIOS_CONFIG } from '@/lib/config';
-import { supabase } from '@/supabaseClient';
+import axios, { AxiosInstance } from "axios";
+import { API_BASE_URL, AXIOS_CONFIG } from "@/lib/config";
+import { supabase } from "@/supabaseClient";
 
 const axiosClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -43,13 +43,13 @@ axiosClient.interceptors.request.use(
   async (config) => {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
-    
+
     if (token) {
-      config.headers.set('Authorization', `Bearer ${token}`);
+      config.headers.set("Authorization", `Bearer ${token}`);
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Interceptor de Response: Manejo de errores
@@ -57,10 +57,10 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('Sesión expirada');
+      console.warn("Sesión expirada");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosClient;
@@ -73,7 +73,7 @@ export default axiosClient;
 **Ubicación**: `src/lib/config.ts`
 
 ```typescript
-export const API_BASE_URL = 
+export const API_BASE_URL =
   "https://asistente-virtual-backend-wj8t.onrender.com";
 
 export const API_ROUTES = {
@@ -108,26 +108,23 @@ export const API_ROUTES = {
 **Ubicación**: `src/services/estadisticasService.ts`
 
 ```typescript
-import axiosClient from '@/lib/axios-client';
-import { API_ROUTES } from '@/lib/config';
+import axiosClient from "@/lib/axios-client";
+import { API_ROUTES } from "@/lib/config";
 
 export const estadisticasService = {
   // Obtener estadísticas generales
   obtenerEstadisticasGenerales: async () => {
     const { data } = await axiosClient.get(
-      API_ROUTES.SHARED.ESTADISTICAS_GENERALES
+      API_ROUTES.SHARED.ESTADISTICAS_GENERALES,
     );
     return data;
   },
 
   // Obtener estadísticas por carrera
-  obtenerEstadisticasPorCarrera: async (
-    planId: string, 
-    periodo: string
-  ) => {
+  obtenerEstadisticasPorCarrera: async (planId: string, periodo: string) => {
     const { data } = await axiosClient.get(
       `${API_ROUTES.SHARED.ESTADISTICAS_POR_CARRERA}/${planId}`,
-      { params: { periodo } }
+      { params: { periodo } },
     );
     return data;
   },
@@ -135,11 +132,11 @@ export const estadisticasService = {
   // Obtener estadísticas de una materia
   obtenerEstadisticasMateria: async (
     codigoMateria: string,
-    periodo: string
+    periodo: string,
   ) => {
     const { data } = await axiosClient.get(
       `${API_ROUTES.SHARED.ESTADISTICAS_MATERIA}${codigoMateria}`,
-      { params: { periodo } }
+      { params: { periodo } },
     );
     return data;
   },
@@ -147,7 +144,7 @@ export const estadisticasService = {
   // Recalcular estadísticas (Admin)
   recalcularEstadisticas: async () => {
     const { data } = await axiosClient.post(
-      API_ROUTES.SHARED.RECALCULAR_ESTADISTICAS
+      API_ROUTES.SHARED.RECALCULAR_ESTADISTICAS,
     );
     return data;
   },
@@ -165,7 +162,7 @@ export const experienciaService = {
   // Obtener experiencias por materia
   obtenerExperienciasPorMateria: async (materiaId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.EXPERIENCIAS_POR_MATERIA}/${materiaId}`
+      `${API_ROUTES.SHARED.EXPERIENCIAS_POR_MATERIA}/${materiaId}`,
     );
     return data;
   },
@@ -173,7 +170,7 @@ export const experienciaService = {
   // Obtener experiencias del estudiante
   obtenerExperienciasPorEstudiante: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.EXPERIENCIAS_POR_ESTUDIANTE}/${userId}`
+      `${API_ROUTES.SHARED.EXPERIENCIAS_POR_ESTUDIANTE}/${userId}`,
     );
     return data;
   },
@@ -182,19 +179,16 @@ export const experienciaService = {
   crearExperiencia: async (experiencia: ExperienciaCreate) => {
     const { data } = await axiosClient.post(
       API_ROUTES.SHARED.EXPERIENCIAS,
-      experiencia
+      experiencia,
     );
     return data;
   },
 
   // Actualizar experiencia
-  actualizarExperiencia: async (
-    id: string, 
-    experiencia: ExperienciaUpdate
-  ) => {
+  actualizarExperiencia: async (id: string, experiencia: ExperienciaUpdate) => {
     const { data } = await axiosClient.put(
       `${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`,
-      experiencia
+      experiencia,
     );
     return data;
   },
@@ -202,7 +196,7 @@ export const experienciaService = {
   // Eliminar experiencia
   eliminarExperiencia: async (id: string) => {
     const { data } = await axiosClient.delete(
-      `${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`
+      `${API_ROUTES.SHARED.EXPERIENCIAS}/${id}`,
     );
     return data;
   },
@@ -210,7 +204,7 @@ export const experienciaService = {
   // Obtener exámenes disponibles para crear experiencia
   obtenerExamenesDisponibles: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.EXAMENES_POR_ESTUDIANTE}/${userId}`
+      `${API_ROUTES.SHARED.EXAMENES_POR_ESTUDIANTE}/${userId}`,
     );
     return data;
   },
@@ -228,7 +222,7 @@ export const historiaAcademicaService = {
   // Obtener historia académica
   obtenerHistoria: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${userId}`
+      `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${userId}`,
     );
     return data;
   },
@@ -236,16 +230,16 @@ export const historiaAcademicaService = {
   // Cargar historia desde archivo (PDF/Excel)
   cargarHistoria: async (userId: string, file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const { data } = await axiosClient.post(
       `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${userId}/cargar`,
       formData,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return data;
   },
@@ -253,7 +247,7 @@ export const historiaAcademicaService = {
   // Eliminar historia académica
   eliminarHistoria: async (userId: string) => {
     const { data } = await axiosClient.delete(
-      `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${userId}`
+      `${API_ROUTES.ESTUDIANTE.HISTORIA_ACADEMICA}${userId}`,
     );
     return data;
   },
@@ -271,7 +265,7 @@ export const inscripcionService = {
   // Obtener materias disponibles para inscripción
   obtenerMateriasParaInscripcion: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR}/${userId}`
+      `${API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR}/${userId}`,
     );
     return data;
   },
@@ -279,7 +273,7 @@ export const inscripcionService = {
   // Obtener mis inscripciones
   obtenerMisInscripciones: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.INSCRIPCIONES}/estudiante/${userId}`
+      `${API_ROUTES.SHARED.INSCRIPCIONES}/estudiante/${userId}`,
     );
     return data;
   },
@@ -288,7 +282,7 @@ export const inscripcionService = {
   inscribirseAMesa: async (inscripcion: InscripcionCreate) => {
     const { data } = await axiosClient.post(
       API_ROUTES.SHARED.INSCRIPCIONES,
-      inscripcion
+      inscripcion,
     );
     return data;
   },
@@ -296,7 +290,7 @@ export const inscripcionService = {
   // Cancelar inscripción
   cancelarInscripcion: async (inscripcionId: string) => {
     const { data } = await axiosClient.delete(
-      `${API_ROUTES.SHARED.INSCRIPCIONES}/${inscripcionId}`
+      `${API_ROUTES.SHARED.INSCRIPCIONES}/${inscripcionId}`,
     );
     return data;
   },
@@ -305,7 +299,7 @@ export const inscripcionService = {
   obtenerInscriptosMesa: async (materiaId: string, turno: string) => {
     const { data } = await axiosClient.get(
       `${API_ROUTES.SHARED.INSCRIPCIONES}/mesa`,
-      { params: { materiaId, turno } }
+      { params: { materiaId, turno } },
     );
     return data;
   },
@@ -313,11 +307,11 @@ export const inscripcionService = {
   // Actualizar visibilidad de contacto
   actualizarVisibilidadContacto: async (
     inscripcionId: string,
-    visible: boolean
+    visible: boolean,
   ) => {
     const { data } = await axiosClient.patch(
       `${API_ROUTES.SHARED.INSCRIPCIONES}/${inscripcionId}/visibilidad`,
-      { visible }
+      { visible },
     );
     return data;
   },
@@ -334,16 +328,14 @@ export const inscripcionService = {
 export const planesEstudioService = {
   // Obtener todos los planes
   obtenerPlanes: async () => {
-    const { data } = await axiosClient.get(
-      API_ROUTES.SHARED.PLANES_ESTUDIO
-    );
+    const { data } = await axiosClient.get(API_ROUTES.SHARED.PLANES_ESTUDIO);
     return data;
   },
 
   // Obtener materias de un plan
   obtenerMateriasPorPlan: async (planId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.MATERIAS_POR_PLAN}/${planId}`
+      `${API_ROUTES.SHARED.MATERIAS_POR_PLAN}/${planId}`,
     );
     return data;
   },
@@ -351,16 +343,16 @@ export const planesEstudioService = {
   // Cargar plan de estudio (Admin)
   cargarPlan: async (file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const { data } = await axiosClient.post(
       API_ROUTES.ADMIN.CARGAR_PLAN,
       formData,
       {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return data;
   },
@@ -368,7 +360,7 @@ export const planesEstudioService = {
   // Eliminar plan (Admin)
   eliminarPlan: async (planId: string) => {
     const { data } = await axiosClient.delete(
-      `${API_ROUTES.ADMIN.ELIMINAR_PLAN}/${planId}`
+      `${API_ROUTES.ADMIN.ELIMINAR_PLAN}/${planId}`,
     );
     return data;
   },
@@ -386,11 +378,11 @@ export const recomendacionService = {
   // Obtener recomendaciones de finales
   obtenerRecomendaciones: async (
     userId: string,
-    criterio: 'CORRELATIVAS' | 'VENCIMIENTO' | 'DIFICULTAD' | 'FUTURO'
+    criterio: "CORRELATIVAS" | "VENCIMIENTO" | "DIFICULTAD" | "FUTURO",
   ) => {
     const { data } = await axiosClient.get(
       `/api/shared/recomendaciones/${userId}`,
-      { params: { criterio } }
+      { params: { criterio } },
     );
     return data;
   },
@@ -408,7 +400,7 @@ export const perfilService = {
   // Obtener perfil del usuario
   obtenerPerfil: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.ACTUALIZAR_ESTUDIANTE}/${userId}`
+      `${API_ROUTES.SHARED.ACTUALIZAR_ESTUDIANTE}/${userId}`,
     );
     return data;
   },
@@ -417,7 +409,7 @@ export const perfilService = {
   actualizarPerfil: async (userId: string, perfil: PerfilUpdate) => {
     const { data } = await axiosClient.put(
       `${API_ROUTES.SHARED.ACTUALIZAR_ESTUDIANTE}/${userId}`,
-      perfil
+      perfil,
     );
     return data;
   },
@@ -425,7 +417,7 @@ export const perfilService = {
   // Eliminar cuenta
   eliminarCuenta: async (userId: string) => {
     const { data } = await axiosClient.delete(
-      `${API_ROUTES.SHARED.ELIMINAR_ESTUDIANTE}/${userId}`
+      `${API_ROUTES.SHARED.ELIMINAR_ESTUDIANTE}/${userId}`,
     );
     return data;
   },
@@ -443,7 +435,7 @@ export const personaService = {
   // Obtener datos de persona
   obtenerPersona: async (userId: string) => {
     const { data } = await axiosClient.get(
-      `${API_ROUTES.SHARED.OBTENER_PERSONA}/${userId}`
+      `${API_ROUTES.SHARED.OBTENER_PERSONA}/${userId}`,
     );
     return data;
   },
@@ -460,18 +452,15 @@ export const personaService = {
 export const materiaService = {
   // Obtener detalles de una materia
   obtenerMateria: async (materiaId: string) => {
-    const { data } = await axiosClient.get(
-      `/api/shared/materias/${materiaId}`
-    );
+    const { data } = await axiosClient.get(`/api/shared/materias/${materiaId}`);
     return data;
   },
 
   // Buscar materias
   buscarMaterias: async (query: string) => {
-    const { data } = await axiosClient.get(
-      '/api/shared/materias/buscar',
-      { params: { q: query } }
-    );
+    const { data } = await axiosClient.get("/api/shared/materias/buscar", {
+      params: { q: query },
+    });
     return data;
   },
 };
@@ -492,14 +481,14 @@ export interface ExperienciaCreate {
   materiaId: string;
   turno: string;
   anio: number;
-  modalidad: 'PRESENCIAL' | 'VIRTUAL';
+  modalidad: "PRESENCIAL" | "VIRTUAL";
   dificultad: 1 | 2 | 3 | 4 | 5;
   recursos: string;
   tips: string;
 }
 
 export interface ExperienciaUpdate {
-  modalidad?: 'PRESENCIAL' | 'VIRTUAL';
+  modalidad?: "PRESENCIAL" | "VIRTUAL";
   dificultad?: 1 | 2 | 3 | 4 | 5;
   recursos?: string;
   tips?: string;
@@ -571,14 +560,14 @@ export interface PerfilUpdate {
 export const ejemploService = {
   metodo: async () => {
     try {
-      const { data } = await axiosClient.get('/endpoint');
+      const { data } = await axiosClient.get("/endpoint");
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         const message = error.response?.data?.message;
-        
-        throw new Error(message || 'Error en la petición');
+
+        throw new Error(message || "Error en la petición");
       }
       throw error;
     }
@@ -595,22 +584,22 @@ export const ejemploService = {
 ### Mocking de Axios
 
 ```typescript
-import axiosClient from '@/lib/axios-client';
+import axiosClient from "@/lib/axios-client";
 
-jest.mock('@/lib/axios-client');
+jest.mock("@/lib/axios-client");
 const mockedAxios = axiosClient as jest.Mocked<typeof axiosClient>;
 
-describe('experienciaService', () => {
-  it('debe obtener experiencias por materia', async () => {
-    const mockData = [{ id: '1', materia: 'Test' }];
+describe("experienciaService", () => {
+  it("debe obtener experiencias por materia", async () => {
+    const mockData = [{ id: "1", materia: "Test" }];
     mockedAxios.get.mockResolvedValue({ data: mockData });
 
-    const result = await experienciaService
-      .obtenerExperienciasPorMateria('123');
+    const result =
+      await experienciaService.obtenerExperienciasPorMateria("123");
 
     expect(result).toEqual(mockData);
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      expect.stringContaining('123')
+      expect.stringContaining("123"),
     );
   });
 });
@@ -621,18 +610,23 @@ describe('experienciaService', () => {
 ## Mejores Prácticas
 
 ### 1. **Centralización de URLs**
+
 Todas las URLs en `config.ts`, no hardcodeadas.
 
 ### 2. **Type Safety**
+
 Todos los servicios con tipos TypeScript.
 
 ### 3. **Error Handling**
+
 Manejo consistente de errores en todos los servicios.
 
 ### 4. **Interceptors**
+
 Lógica común (auth, logging) en interceptors.
 
 ### 5. **Separación de Concerns**
+
 Un servicio por dominio/entidad.
 
 ---

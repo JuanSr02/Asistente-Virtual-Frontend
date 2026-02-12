@@ -35,13 +35,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
 ```typescript
 // 🌐 API
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 
+  process.env.NEXT_PUBLIC_API_URL ||
   "https://asistente-virtual-backend-wj8t.onrender.com";
 
 export const API_ROUTES = {
-  ADMIN: { /* ... */ },
-  SHARED: { /* ... */ },
-  ESTUDIANTE: { /* ... */ },
+  ADMIN: {
+    /* ... */
+  },
+  SHARED: {
+    /* ... */
+  },
+  ESTUDIANTE: {
+    /* ... */
+  },
 };
 
 // ⚙️ App config
@@ -340,26 +346,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Type check
         run: pnpm type-check
-      
+
       - name: Lint
         run: pnpm lint
-      
+
       - name: Build
         run: pnpm build
         env:
@@ -443,9 +449,9 @@ import dynamic from 'next/dynamic';
 // Lazy load de componentes pesados
 const HeavyComponent = dynamic(
   () => import('./HeavyComponent'),
-  { 
+  {
     loading: () => <p>Cargando...</p>,
-    ssr: false 
+    ssr: false
   }
 );
 ```

@@ -55,7 +55,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
         setResolvePromise(() => resolve);
       });
     },
-    []
+    [],
   );
 
   const handleConfirm = async () => {

@@ -10,6 +10,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ## [1.0.1] - 2026-02-10
 
 ### 🔄 Cambiado
+
 - Revisión completa de exactitud de la documentación
 - Eliminadas referencias a testing no implementado
 - Corregidas inconsistencias en descripciones técnicas
@@ -22,12 +23,14 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 ### ✨ Agregado
 
 #### Documentación Principal
+
 - **README.md**: Índice principal con enlaces a todos los documentos
 - **00-resumen-ejecutivo.md**: Resumen técnico ejecutivo del proyecto completo
 - **INDICE-VISUAL.md**: Mapa visual de navegación de la documentación
 - **CHANGELOG.md**: Este archivo de registro de cambios
 
 #### Arquitectura y Diseño
+
 - **01-arquitectura.md**: Documentación completa de la arquitectura del sistema
   - Diagrama de arquitectura de alto nivel
   - Patrones de arquitectura implementados
@@ -53,6 +56,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Path aliases y rutas de importación
 
 #### Desarrollo
+
 - **05-servicios-api.md**: Servicios y API
   - Cliente HTTP (Axios) con interceptors
   - 9 servicios implementados documentados
@@ -82,6 +86,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Debugging
 
 #### Deployment
+
 - **10-configuracion-deployment.md**: Configuración y deployment
   - Variables de entorno
   - Configuración local
@@ -93,6 +98,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Optimizaciones de producción
 
 #### Diagramas
+
 - **11-diagramas.md**: Diagramas del sistema
   - 13+ diagramas en formato Mermaid y ASCII
   - Diagrama de arquitectura general
@@ -110,6 +116,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
   - Diagrama de deployment
 
 #### Referencia
+
 - **16-glosario.md**: Glosario técnico completo
   - Términos generales (API, BaaS, CDN, CORS, JWT, OAuth, PWA, etc.)
   - Tecnologías frontend
@@ -180,6 +187,7 @@ El versionado sigue el formato: `[MAJOR.MINOR.PATCH]`
 ### [1.1.0] - Planificado
 
 #### ✨ Por Agregar
+
 - [ ] **04-componentes.md**: Documentación detallada de componentes
 - [ ] **06-estado-global.md**: Gestión de estado con Zustand y TanStack Query
 - [ ] **08-rutas-navegacion.md**: Sistema de rutas y navegación
@@ -189,6 +197,7 @@ El versionado sigue el formato: `[MAJOR.MINOR.PATCH]`
 - [ ] **15-troubleshooting.md**: Solución de problemas comunes
 
 #### 🔄 Por Actualizar
+
 - [ ] Agregar más ejemplos de código
 - [ ] Expandir sección de testing
 - [ ] Agregar capturas de pantalla

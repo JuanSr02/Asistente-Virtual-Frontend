@@ -5,12 +5,12 @@ import { studentKeys } from "@/lib/query-keys";
 export function useRecomendaciones(
   personaId: number | undefined, // CAMBIO: Recibe número
   criterio: string,
-  tieneHistoria: boolean
+  tieneHistoria: boolean,
 ) {
   const query = useQuery({
     queryKey: studentKeys.recomendaciones(
       personaId?.toString() || "0",
-      criterio
+      criterio,
     ),
     queryFn: () =>
       // Ya no hacemos parseInt porque personaId es number

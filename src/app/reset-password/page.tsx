@@ -128,7 +128,7 @@ export default function ResetPassword() {
         ? "border-red-500 focus-visible:ring-red-500 dark:border-red-700"
         : hasContent
           ? "border-green-500 focus-visible:ring-green-500 dark:border-green-600"
-          : "focus-visible:ring-blue-400 dark:focus-visible:ring-blue-800"
+          : "focus-visible:ring-blue-400 dark:focus-visible:ring-blue-800",
     );
   };
 
@@ -179,7 +179,7 @@ export default function ResetPassword() {
                     onChange={(e) => handleNewPasswordChange(e.target.value)}
                     className={getInputClasses(
                       !!errors.newPassword,
-                      !!newPassword
+                      !!newPassword,
                     )}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">
@@ -235,8 +235,8 @@ export default function ResetPassword() {
                     className={getInputClasses(
                       !!errors.confirmPassword,
                       !!confirmPassword &&
-                      !errors.confirmPassword &&
-                      newPassword === confirmPassword
+                        !errors.confirmPassword &&
+                        newPassword === confirmPassword,
                     )}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3">

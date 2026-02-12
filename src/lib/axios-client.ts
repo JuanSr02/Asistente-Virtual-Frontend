@@ -25,7 +25,7 @@ axiosClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error),
 );
 
 axiosClient.interceptors.response.use(
@@ -35,7 +35,7 @@ axiosClient.interceptors.response.use(
       console.warn("Sesión expirada o token inválido detectado por Axios.");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosClient;

@@ -19,6 +19,7 @@ Deployment: Vercel + Render
 ### Core Framework
 
 #### **Next.js 16.1.6**
+
 - **Versión**: 16.1.6
 - **Características utilizadas**:
   - App Router (nueva arquitectura)
@@ -30,6 +31,7 @@ Deployment: Vercel + Render
 - **Configuración**: `next.config.js`
 
 #### **React 18.3.1**
+
 - **Características**:
   - Concurrent Rendering
   - Automatic Batching
@@ -38,6 +40,7 @@ Deployment: Vercel + Render
 - **React DOM**: 18.3.1
 
 #### **TypeScript 5.8.3**
+
 - **Configuración estricta**: `tsconfig.json`
 - **Características**:
   - Type checking completo
@@ -49,6 +52,7 @@ Deployment: Vercel + Render
 ### Estilos y UI
 
 #### **Tailwind CSS 3.4.17**
+
 - **Plugins**:
   - `tailwindcss-animate`: Animaciones predefinidas
   - `@tailwindcss/container-queries`: Container queries
@@ -59,6 +63,7 @@ Deployment: Vercel + Render
   - Shadows y spacing custom
 
 #### **ShadCN UI**
+
 - **Componentes utilizados**:
   - Button, Card, Dialog, Dropdown
   - Input, Label, Select, Checkbox
@@ -69,6 +74,7 @@ Deployment: Vercel + Render
   - Copy-paste friendly
 
 #### **Radix UI**
+
 - **Primitivos utilizados**:
   - `@radix-ui/react-alert-dialog`: ^1.1.14
   - `@radix-ui/react-checkbox`: ^1.3.2
@@ -80,10 +86,12 @@ Deployment: Vercel + Render
   - `@radix-ui/react-tooltip`: ^1.2.7
 
 #### **Lucide React 0.454.0**
+
 - **Iconos**: Librería de iconos moderna y ligera
 - **Uso**: Más de 100 iconos utilizados en el proyecto
 
 #### **Google Fonts - Inter**
+
 - **Fuente principal**: Inter
 - **Optimización**: Next.js Font Optimization
 
@@ -92,6 +100,7 @@ Deployment: Vercel + Render
 ### Estado y Data Fetching
 
 #### **Zustand 5.0.9**
+
 - **Uso**: Estado global del cliente
 - **Stores implementados**:
   - `modal-store.ts`: Gestión de modales
@@ -103,6 +112,7 @@ Deployment: Vercel + Render
   - DevTools integration
 
 #### **TanStack Query 5.90.11**
+
 - **Uso**: Server state management
 - **Características utilizadas**:
   - Query caching
@@ -117,6 +127,7 @@ Deployment: Vercel + Render
 ### HTTP Client y API
 
 #### **Axios 1.10.0**
+
 - **Configuración**: `src/lib/axios-client.ts`
 - **Interceptors**:
   - Request: Inyección automática de JWT token
@@ -128,6 +139,7 @@ Deployment: Vercel + Render
 ### Autenticación
 
 #### **Supabase**
+
 - **Paquetes**:
   - `@supabase/supabase-js`: ^2.50.0
   - `@supabase/ssr`: ^0.8.0
@@ -144,6 +156,7 @@ Deployment: Vercel + Render
 ### Validación
 
 #### **Zod 4.1.13**
+
 - **Uso**: Validación de schemas y tipos
 - **Ubicación**: `src/lib/schemas/`
 - **Características**:
@@ -157,17 +170,21 @@ Deployment: Vercel + Render
 ### Utilidades
 
 #### **class-variance-authority 0.7.1**
+
 - **Uso**: Gestión de variantes de componentes
 - **Ejemplo**: Variantes de botones, cards, etc.
 
 #### **clsx 2.1.1**
+
 - **Uso**: Composición condicional de clases CSS
 
 #### **tailwind-merge 2.6.0**
+
 - **Uso**: Merge inteligente de clases Tailwind
 - **Función**: `cn()` utility en `src/lib/utils.ts`
 
 #### **input-otp 1.4.2**
+
 - **Uso**: Componente de input OTP
 - **Características**: Accesible y personalizable
 
@@ -176,6 +193,7 @@ Deployment: Vercel + Render
 ### Gráficos y Visualización
 
 #### **Recharts 2.15.4**
+
 - **Uso**: Gráficos y visualizaciones de datos
 - **Componentes utilizados**:
   - BarChart
@@ -189,6 +207,7 @@ Deployment: Vercel + Render
 ### PWA
 
 #### **next-pwa 5.6.0**
+
 - **Configuración**: `next.config.js`
 - **Características**:
   - Service Worker automático
@@ -202,6 +221,7 @@ Deployment: Vercel + Render
 ### Temas
 
 #### **next-themes 0.4.6**
+
 - **Uso**: Sistema de temas (light/dark)
 - **Características**:
   - Persistencia automática
@@ -213,6 +233,7 @@ Deployment: Vercel + Render
 ### Notificaciones
 
 #### **Sonner 1.7.4**
+
 - **Uso**: Toast notifications elegantes
 - **Características**:
   - Animaciones suaves
@@ -224,6 +245,7 @@ Deployment: Vercel + Render
 ### Analytics
 
 #### **@vercel/analytics 1.6.1**
+
 - **Uso**: Analytics de Vercel
 - **Métricas**:
   - Page views
@@ -237,6 +259,7 @@ Deployment: Vercel + Render
 ### Linting y Formatting
 
 #### **ESLint 9.29.0**
+
 - **Configuración**: `eslint.config.js`
 - **Plugins**:
   - `@typescript-eslint/eslint-plugin`: ^8.35.0
@@ -246,6 +269,7 @@ Deployment: Vercel + Render
   - `eslint-plugin-prettier`: ^5.5.1
 
 #### **Prettier 3.6.0**
+
 - **Plugins**:
   - `prettier-plugin-tailwindcss`: ^0.6.13
 - **Configuración**: `.prettierrc`
@@ -255,11 +279,13 @@ Deployment: Vercel + Render
 ### Build Tools
 
 #### **PostCSS 8.5.6**
+
 - **Plugins**:
   - `autoprefixer`: ^10.4.21
   - `cssnano`: ^7.0.7 (minificación CSS)
 
 #### **@next/bundle-analyzer 15.3.4**
+
 - **Uso**: Análisis de tamaño de bundles
 - **Script**: `pnpm analyze`
 
@@ -268,10 +294,12 @@ Deployment: Vercel + Render
 ### Git Hooks
 
 #### **Husky 9.1.7**
+
 - **Hooks configurados**:
   - Pre-commit: Lint y format
 
 #### **lint-staged 15.5.2**
+
 - **Configuración**: `package.json`
 - **Acciones**:
   - Prettier en archivos modificados
@@ -284,6 +312,7 @@ Deployment: Vercel + Render
 ### API Principal
 
 #### **Spring Boot (Java)**
+
 - **Repositorio**: [Asistente-Virtual-Backend](https://github.com/JuanSr02/Asistente-Virtual-Backend)
 - **URL**: `https://asistente-virtual-backend-wj8t.onrender.com`
 - **Funcionalidades**:
@@ -295,6 +324,7 @@ Deployment: Vercel + Render
 ### BaaS (Backend as a Service)
 
 #### **Supabase**
+
 - **Servicios utilizados**:
   - Authentication (Email + Google OAuth)
   - PostgreSQL Database
@@ -306,6 +336,7 @@ Deployment: Vercel + Render
 ## 🚀 Deployment y Hosting
 
 ### **Vercel**
+
 - **Frontend hosting**
 - **Características**:
   - Edge Network (CDN global)
@@ -315,6 +346,7 @@ Deployment: Vercel + Render
   - Serverless Functions
 
 ### **Render**
+
 - **Backend hosting** (Spring Boot)
 - **Características**:
   - Auto-deploy desde GitHub
@@ -326,6 +358,7 @@ Deployment: Vercel + Render
 ## 📦 Gestión de Paquetes
 
 ### **pnpm 8.0.0+**
+
 - **Razones de elección**:
   - Más rápido que npm/yarn
   - Ahorro de espacio en disco
@@ -337,6 +370,7 @@ Deployment: Vercel + Render
 ## 🌐 Navegadores Soportados
 
 ### Producción
+
 ```
 > 0.3%
 not ie 11
@@ -345,6 +379,7 @@ not op_mini all
 ```
 
 ### Desarrollo
+
 ```
 last 1 chrome version
 last 1 firefox version
@@ -355,14 +390,14 @@ last 1 safari version
 
 ## 📊 Comparativa de Versiones
 
-| Tecnología | Versión Actual | Última Estable | Estado |
-|-----------|----------------|----------------|--------|
-| Next.js | 16.1.6 | 16.x | ✅ Actualizado |
-| React | 18.3.1 | 18.3.x | ✅ Actualizado |
-| TypeScript | 5.8.3 | 5.8.x | ✅ Actualizado |
-| Tailwind | 3.4.17 | 3.4.x | ✅ Actualizado |
-| TanStack Query | 5.90.11 | 5.x | ✅ Actualizado |
-| Zustand | 5.0.9 | 5.x | ✅ Actualizado |
+| Tecnología     | Versión Actual | Última Estable | Estado         |
+| -------------- | -------------- | -------------- | -------------- |
+| Next.js        | 16.1.6         | 16.x           | ✅ Actualizado |
+| React          | 18.3.1         | 18.3.x         | ✅ Actualizado |
+| TypeScript     | 5.8.3          | 5.8.x          | ✅ Actualizado |
+| Tailwind       | 3.4.17         | 3.4.x          | ✅ Actualizado |
+| TanStack Query | 5.90.11        | 5.x            | ✅ Actualizado |
+| Zustand        | 5.0.9          | 5.x            | ✅ Actualizado |
 
 ---
 

@@ -15,10 +15,10 @@ El proyecto utiliza hooks personalizados para encapsular lógica reutilizable, s
 Gestiona la historia académica del estudiante.
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { historiaAcademicaService } from '@/services/historiaAcademicaService';
-import { studentKeys } from '@/lib/query-keys';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { historiaAcademicaService } from "@/services/historiaAcademicaService";
+import { studentKeys } from "@/lib/query-keys";
+import { useToast } from "@/hooks/use-toast";
 
 export const useHistoriaAcademica = (userId: string) => {
   const queryClient = useQueryClient();
@@ -37,15 +37,15 @@ export const useHistoriaAcademica = (userId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.historia(userId));
       toast({
-        title: 'Éxito',
-        description: 'Historia académica cargada correctamente',
+        title: "Éxito",
+        description: "Historia académica cargada correctamente",
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'No se pudo cargar la historia académica',
-        variant: 'destructive',
+        title: "Error",
+        description: "No se pudo cargar la historia académica",
+        variant: "destructive",
       });
     },
   });
@@ -85,9 +85,9 @@ export const useExperiencias = (userId: string) => {
     mutationFn: experienciaService.crearExperiencia,
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
-      toast({ title: 'Experiencia creada' });
+      toast({ title: "Experiencia creada" });
     },
   });
 
@@ -97,9 +97,9 @@ export const useExperiencias = (userId: string) => {
       experienciaService.actualizarExperiencia(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
-      toast({ title: 'Experiencia actualizada' });
+      toast({ title: "Experiencia actualizada" });
     },
   });
 
@@ -108,9 +108,9 @@ export const useExperiencias = (userId: string) => {
     mutationFn: experienciaService.eliminarExperiencia,
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
-      toast({ title: 'Experiencia eliminada' });
+      toast({ title: "Experiencia eliminada" });
     },
   });
 
@@ -160,7 +160,7 @@ export const useInscripciones = (userId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.misInscripciones(userId));
       queryClient.invalidateQueries(studentKeys.materiasInscripcion(userId));
-      toast({ title: 'Inscripción realizada' });
+      toast({ title: "Inscripción realizada" });
     },
   });
 
@@ -169,7 +169,7 @@ export const useInscripciones = (userId: string) => {
     mutationFn: inscripcionService.cancelarInscripcion,
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.misInscripciones(userId));
-      toast({ title: 'Inscripción cancelada' });
+      toast({ title: "Inscripción cancelada" });
     },
   });
 
@@ -196,11 +196,12 @@ Obtiene recomendaciones de finales.
 ```typescript
 export const useRecomendaciones = (
   userId: string,
-  criterio: 'CORRELATIVAS' | 'VENCIMIENTO' | 'DIFICULTAD' | 'FUTURO'
+  criterio: "CORRELATIVAS" | "VENCIMIENTO" | "DIFICULTAD" | "FUTURO",
 ) => {
   return useQuery({
     queryKey: studentKeys.recomendaciones(userId, criterio),
-    queryFn: () => recomendacionService.obtenerRecomendaciones(userId, criterio),
+    queryFn: () =>
+      recomendacionService.obtenerRecomendaciones(userId, criterio),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
@@ -232,7 +233,7 @@ export const usePlanesEstudio = () => {
     mutationFn: planesEstudioService.cargarPlan,
     onSuccess: () => {
       queryClient.invalidateQueries(sharedKeys.planes());
-      toast({ title: 'Plan de estudio cargado' });
+      toast({ title: "Plan de estudio cargado" });
     },
   });
 
@@ -241,7 +242,7 @@ export const usePlanesEstudio = () => {
     mutationFn: planesEstudioService.eliminarPlan,
     onSuccess: () => {
       queryClient.invalidateQueries(sharedKeys.planes());
-      toast({ title: 'Plan de estudio eliminado' });
+      toast({ title: "Plan de estudio eliminado" });
     },
   });
 
@@ -304,7 +305,7 @@ Obtiene estadísticas de una materia.
 ```typescript
 export const useEstadisticasMateria = (
   codigoMateria: string,
-  periodo: string
+  periodo: string,
 ) => {
   return useQuery({
     queryKey: adminKeys.stats.materia(codigoMateria, periodo),
@@ -338,7 +339,7 @@ export const usePerfil = (userId: string) => {
     mutationFn: (data: any) => perfilService.actualizarPerfil(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.persona(userId));
-      toast({ title: 'Perfil actualizado' });
+      toast({ title: "Perfil actualizado" });
     },
   });
 
@@ -380,21 +381,21 @@ export const usePersona = (userId: string) => {
 Gestiona notificaciones toast.
 
 ```typescript
-import { toast as sonnerToast } from 'sonner';
+import { toast as sonnerToast } from "sonner";
 
 export const useToast = () => {
   const toast = ({
     title,
     description,
-    variant = 'default',
+    variant = "default",
     duration = 3000,
   }: {
     title: string;
     description?: string;
-    variant?: 'default' | 'destructive';
+    variant?: "default" | "destructive";
     duration?: number;
   }) => {
-    if (variant === 'destructive') {
+    if (variant === "destructive") {
       sonnerToast.error(title, {
         description,
         duration,
@@ -417,14 +418,14 @@ export const useToast = () => {
 const { toast } = useToast();
 
 toast({
-  title: 'Éxito',
-  description: 'Operación completada',
+  title: "Éxito",
+  description: "Operación completada",
 });
 
 toast({
-  title: 'Error',
-  description: 'Algo salió mal',
-  variant: 'destructive',
+  title: "Error",
+  description: "Algo salió mal",
+  variant: "destructive",
 });
 ```
 
@@ -437,7 +438,7 @@ toast({
 Detecta si el dispositivo es móvil.
 
 ```typescript
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -448,9 +449,9 @@ export const useMobile = () => {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   return isMobile;
@@ -478,22 +479,24 @@ return (
 Obtiene el rol del usuario autenticado.
 
 ```typescript
-import { useState, useEffect } from 'react';
-import { supabase } from '@/supabaseClient';
+import { useState, useEffect } from "react";
+import { supabase } from "@/supabaseClient";
 
 export const useUserRole = () => {
-  const [role, setRole] = useState<'ESTUDIANTE' | 'ADMINISTRADOR' | null>(null);
+  const [role, setRole] = useState<"ESTUDIANTE" | "ADMINISTRADOR" | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (user) {
-        const userRole = user.user_metadata?.rol || 'ESTUDIANTE';
+        const userRole = user.user_metadata?.rol || "ESTUDIANTE";
         setRole(userRole);
       }
-      
+
       setLoading(false);
     };
 
@@ -503,8 +506,8 @@ export const useUserRole = () => {
   return {
     role,
     loading,
-    isAdmin: role === 'ADMINISTRADOR',
-    isStudent: role === 'ESTUDIANTE',
+    isAdmin: role === "ADMINISTRADOR",
+    isStudent: role === "ESTUDIANTE",
   };
 };
 ```
@@ -532,7 +535,7 @@ return (
 Hook para confirmaciones.
 
 ```typescript
-import { useState } from 'react';
+import { useState } from "react";
 
 export const useConfirm = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -574,7 +577,7 @@ const { isOpen, confirm, handleConfirm, handleCancel } = useConfirm();
 
 const handleDelete = async () => {
   const confirmed = await confirm();
-  
+
   if (confirmed) {
     // Eliminar
   }
@@ -583,7 +586,7 @@ const handleDelete = async () => {
 return (
   <>
     <Button onClick={handleDelete}>Eliminar</Button>
-    
+
     <ConfirmModal
       isOpen={isOpen}
       onConfirm={handleConfirm}
@@ -659,10 +662,10 @@ export const useWebSocket = (url: string) => {
 
 ```typescript
 // ✅ Bueno
-const useUserProfile = (userId: string) => { };
+const useUserProfile = (userId: string) => {};
 
 // ❌ Malo
-const useData = (id: string) => { };
+const useData = (id: string) => {};
 ```
 
 ### 2. Retornar Objetos

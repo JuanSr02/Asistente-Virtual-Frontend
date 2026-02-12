@@ -28,14 +28,14 @@ const recomendacionService = {
    */
   obtenerFinalesParaRendir: async (
     estudianteId: number,
-    orden: string = "CORRELATIVAS"
+    orden: string = "CORRELATIVAS",
   ): Promise<FinalDTO[]> => {
     try {
       const response = await api.get(
         API_ROUTES.ESTUDIANTE.FINALES_PARA_RENDIR + "/" + estudianteId,
         {
           params: { orden },
-        }
+        },
       );
       return response.data;
     } catch (error) {

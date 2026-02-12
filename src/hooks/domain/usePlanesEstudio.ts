@@ -20,14 +20,14 @@ export function usePlanesEstudio() {
     mutationFn: planesEstudioService.cargarPlan,
     onSuccess: (data) => {
       toast.success(
-        `Plan cargado: ${data.propuesta} ${data.codigo} (${data.cantidadMaterias} materias)`
+        `Plan cargado: ${data.propuesta} ${data.codigo} (${data.cantidadMaterias} materias)`,
       );
       queryClient.invalidateQueries({ queryKey: sharedKeys.planes() });
     },
     onError: (error: any) => {
       toast.error(
         error?.response?.data?.message ||
-          "No se pudo cargar el plan de estudio."
+          "No se pudo cargar el plan de estudio.",
       );
       console.error(error);
     },

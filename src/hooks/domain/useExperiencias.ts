@@ -32,7 +32,7 @@ export function useExperiencias(userId: string, materiaId?: string) {
       // Filtramos los que ya tienen experiencia cargada (optimistic check)
       const misExps = misExperienciasQuery.data || [];
       const idsConExperiencia = new Set(
-        misExps.map((e: any) => e.examenId || e.id)
+        misExps.map((e: any) => e.examenId || e.id),
       );
       // Nota: Ajustar campo según tu DTO real, a veces es el mismo ID de tabla cruzada
 

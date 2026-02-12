@@ -8,7 +8,7 @@ export function useEstadisticasMateria(materiaCodigo: string, periodo: string) {
     queryFn: () =>
       estadisticasService.obtenerEstadisticasMateriaPorPeriodo(
         materiaCodigo,
-        periodo
+        periodo,
       ),
     enabled: !!materiaCodigo, // Solo si hay materia seleccionada
     staleTime: 1000 * 60 * 30,

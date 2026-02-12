@@ -11,7 +11,7 @@ const materiaService = {
    * Obtiene múltiples materias por sus códigos y planes de estudio
    */
   obtenerMateriasPorCodigos: async (
-    materias: { codigo: string; plan: string }[]
+    materias: { codigo: string; plan: string }[],
   ): Promise<Materia[]> => {
     try {
       if (!materias || materias.length === 0) {
@@ -38,7 +38,7 @@ const materiaService = {
         } catch (error) {
           console.error(
             `Error al consultar materia ${materia.codigo}-${materia.plan}:`,
-            error
+            error,
           );
           return null;
         }
@@ -46,7 +46,7 @@ const materiaService = {
 
       const resultados = await Promise.all(promesasConsultas);
       const materiasEncontradas = resultados.filter(
-        (materia) => materia !== null
+        (materia) => materia !== null,
       ) as Materia[];
 
       return materiasEncontradas;

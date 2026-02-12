@@ -103,7 +103,9 @@ export default function ExperienciasExamen({ user }: { user: User }) {
 
   // 3. Hooks de Dominio
   const { data: persona } = usePersona(user.id, user.email);
-  const { historia, planes, isLoadingHistoria } = useHistoriaAcademica(persona?.id);
+  const { historia, planes, isLoadingHistoria } = useHistoriaAcademica(
+    persona?.id,
+  );
 
   const {
     misExperiencias,
@@ -166,18 +168,15 @@ export default function ExperienciasExamen({ user }: { user: User }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-
     // Validar con Zod
     try {
       experienciaSchema.parse(formData);
       setErrors({});
     } catch (error: any) {
-
       // Zod usa 'issues' no 'errors'
       if (error.issues) {
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err: any) => {
-
           if (err.path[0]) {
             fieldErrors[err.path[0]] = err.message;
           }
@@ -188,7 +187,6 @@ export default function ExperienciasExamen({ user }: { user: User }) {
 
       return;
     }
-
 
     const dto = {
       ...formData,
@@ -204,7 +202,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       }
       closeModal();
       setErrors({});
-    } catch (e) { }
+    } catch (e) {}
   };
 
   const handleDelete = async (id: number) => {
@@ -270,7 +268,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
           <Button
             onClick={() =>
               window.dispatchEvent(
-                new CustomEvent("changeTab", { detail: "recomendacion" })
+                new CustomEvent("changeTab", { detail: "recomendacion" }),
               )
             }
           >
@@ -287,7 +285,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       <Card className="bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-purple-950/40 dark:via-background dark:to-pink-950/40 border-none shadow-md">
         <CardHeader>
           <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-foreground">
-            <MessageSquareQuote className="h-6 w-6 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+            <MessageSquareQuote
+              className="h-6 w-6 text-purple-600 dark:text-purple-400"
+              aria-hidden="true"
+            />
             Experiencias de Examen
           </CardTitle>
           <CardDescription>
@@ -300,7 +301,8 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <FileSearch className="h-5 w-5" aria-hidden="true" /> Buscar Experiencias
+            <FileSearch className="h-5 w-5" aria-hidden="true" /> Buscar
+            Experiencias
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -317,7 +319,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                 value={planSeleccionado}
                 onValueChange={setPlanSeleccionado}
               >
-                <SelectTrigger id="plan-select" aria-label="Seleccionar plan de estudio">
+                <SelectTrigger
+                  id="plan-select"
+                  aria-label="Seleccionar plan de estudio"
+                >
                   <SelectValue placeholder="1. Selecciona Plan" />
                 </SelectTrigger>
                 <SelectContent>
@@ -417,7 +422,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
               Resultados ({experienciasFiltradas.length})
             </h2>
             {isLoadingExperienciasMateria ? (
-              <Skeleton className="h-32 w-full" aria-label="Cargando experiencias" />
+              <Skeleton
+                className="h-32 w-full"
+                aria-label="Cargando experiencias"
+              />
             ) : (
               <div
                 className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
@@ -430,7 +438,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                   </div>
                 ))}
                 {experienciasFiltradas.length === 0 && (
-                  <p className="text-muted-foreground col-span-full" role="status">
+                  <p
+                    className="text-muted-foreground col-span-full"
+                    role="status"
+                  >
                     No se encontraron experiencias con estos filtros.
                   </p>
                 )}
@@ -444,7 +455,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <div className="flex items-center gap-2">
-            <BookOpenCheck className="h-5 w-5 text-blue-600" aria-hidden="true" />
+            <BookOpenCheck
+              className="h-5 w-5 text-blue-600"
+              aria-hidden="true"
+            />
             <CardTitle>Mis Experiencias</CardTitle>
           </div>
           {!isLoadingMisExperiencias && examenesDisponibles.length > 0 && (
@@ -458,11 +472,21 @@ export default function ExperienciasExamen({ user }: { user: User }) {
         </CardHeader>
         <CardContent>
           {isLoadingMisExperiencias ? (
-            <Skeleton className="h-20 w-full" aria-label="Cargando mis experiencias" />
+            <Skeleton
+              className="h-20 w-full"
+              aria-label="Cargando mis experiencias"
+            />
           ) : (
-            <div className="space-y-3" role="list" aria-label="Mis experiencias de examen">
+            <div
+              className="space-y-3"
+              role="list"
+              aria-label="Mis experiencias de examen"
+            >
               {misExperiencias.length === 0 && (
-                <p className="text-muted-foreground text-center py-4" role="status">
+                <p
+                  className="text-muted-foreground text-center py-4"
+                  role="status"
+                >
                   Aún no has compartido nada.
                 </p>
               )}
@@ -525,7 +549,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label htmlFor="dificultad-range">Dificultad Percibida</Label>
-                <span className="text-sm font-bold text-blue-600" aria-live="polite">
+                <span
+                  className="text-sm font-bold text-blue-600"
+                  aria-live="polite"
+                >
                   {formData.dificultad}/10
                 </span>
               </div>
@@ -571,7 +598,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <div className="space-y-2">
               <Label htmlFor="dias-estudio">Días de Estudio (aprox.)</Label>
               <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <CalendarDays
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="dias-estudio"
                   type="number"
@@ -593,7 +623,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <div className="space-y-2">
               <Label htmlFor="horas-diarias">Horas por Día (promedio)</Label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <Clock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="horas-diarias"
                   type="number"
@@ -615,7 +648,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <div className="space-y-2">
               <Label htmlFor="intentos-previos">Intentos Previos</Label>
               <div className="relative">
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <Hash
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="intentos-previos"
                   type="number"
@@ -656,11 +692,18 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             </div>
           </div>
 
-          <div className="space-y-3" role="group" aria-labelledby="recursos-legend">
-            <span id="recursos-legend" className="text-sm font-medium">Recursos Utilizados</span>
+          <div
+            className="space-y-3"
+            role="group"
+            aria-labelledby="recursos-legend"
+          >
+            <span id="recursos-legend" className="text-sm font-medium">
+              Recursos Utilizados
+            </span>
             <div
-              className={`grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border transition-colors ${errors.recursos ? "border-red-500 bg-red-50/50" : ""
-                }`}
+              className={`grid grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg border transition-colors ${
+                errors.recursos ? "border-red-500 bg-red-50/50" : ""
+              }`}
               aria-invalid={!!errors.recursos}
               aria-describedby={errors.recursos ? "recursos-error" : undefined}
             >
@@ -690,7 +733,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                     }}
                     aria-label={`Recurso: ${rec}`}
                   />
-                  <Label htmlFor={`recurso-${rec}`} className="cursor-pointer font-normal">
+                  <Label
+                    htmlFor={`recurso-${rec}`}
+                    className="cursor-pointer font-normal"
+                  >
                     {rec}
                   </Label>
                 </div>
@@ -712,7 +758,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
               <Label htmlFor="link-resumen">Link o Contacto del Resumen</Label>
               <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                <LinkIcon
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   id="link-resumen"
                   placeholder="https://drive.google.com/... o @instagram / mail"
@@ -724,7 +773,10 @@ export default function ExperienciasExamen({ user }: { user: User }) {
                   aria-describedby="link-resumen-help"
                 />
               </div>
-              <p id="link-resumen-help" className="text-xs text-muted-foreground">
+              <p
+                id="link-resumen-help"
+                className="text-xs text-muted-foreground"
+              >
                 Si es un link (Drive, Notion), se mostrará un botón. Si es
                 texto, se mostrará como contacto.
               </p>
@@ -776,7 +828,7 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
     <Card
       className="hover:shadow-md transition-all h-full flex flex-col"
       role="article"
-      aria-label={`Experiencia de examen: ${isOwner ? experiencia.nombreMateria : ''} Nota ${experiencia.nota}`}
+      aria-label={`Experiencia de examen: ${isOwner ? experiencia.nombreMateria : ""} Nota ${experiencia.nota}`}
     >
       <CardHeader className="pb-3 bg-muted/20 border-b">
         <div className="flex justify-between items-start gap-2">
@@ -835,26 +887,42 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
         </div>
       </CardHeader>
       <CardContent className="pt-4 space-y-3 flex-1 text-sm">
-        <div className="grid grid-cols-2 gap-2 text-xs" role="list" aria-label="Estadísticas de estudio">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+        <div
+          className="grid grid-cols-2 gap-2 text-xs"
+          role="list"
+          aria-label="Estadísticas de estudio"
+        >
+          <div
+            className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded flex items-center gap-2"
+            role="listitem"
+          >
             <Clock className="h-3 w-3 text-blue-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.diasEstudio}</strong> días de estudio
             </span>
           </div>
-          <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+          <div
+            className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded flex items-center gap-2"
+            role="listitem"
+          >
             <BarChart3 className="h-3 w-3 text-purple-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.horasDiarias}</strong> hs de estudio/día
             </span>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded flex items-center gap-2" role="listitem">
+          <div
+            className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded flex items-center gap-2"
+            role="listitem"
+          >
             <Hash className="h-3 w-3 text-orange-600" aria-hidden="true" />
             <span>
               <strong>{experiencia.intentosPrevios}</strong> intentos previos
             </span>
           </div>
-          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex items-center gap-2 truncate" role="listitem">
+          <div
+            className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex items-center gap-2 truncate"
+            role="listitem"
+          >
             <Target className="h-3 w-3" aria-hidden="true" />
             <span className="truncate">Modalidad: {experiencia.modalidad}</span>
           </div>
@@ -866,7 +934,10 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
         </div>
 
         <div className="flex gap-2 items-start">
-          <Book className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Book
+            className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
           <p className="text-muted-foreground line-clamp-2 text-xs">
             Recursos: {experiencia.recursos}
           </p>
@@ -882,7 +953,8 @@ function ExperienciaCard({ experiencia, isOwner, onEdit, onDelete }: any) {
                 className="w-full inline-flex justify-center items-center gap-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 py-1.5 rounded text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 aria-label="Ver resumen del examen (se abre en nueva pestaña)"
               >
-                <ExternalLink className="h-3 w-3" aria-hidden="true" /> Ver Resumen
+                <ExternalLink className="h-3 w-3" aria-hidden="true" /> Ver
+                Resumen
               </a>
             ) : (
               <div

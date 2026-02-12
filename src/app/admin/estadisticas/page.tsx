@@ -27,7 +27,6 @@ interface TabItem {
 }
 
 export default function Estadisticas() {
-  
   const [activeTab, setActiveTab] = useState("generales");
 
   const tabs: TabItem[] = [

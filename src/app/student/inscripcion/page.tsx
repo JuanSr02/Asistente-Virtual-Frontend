@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useInscripciones } from "@/hooks/domain/useInscripciones";
@@ -9,6 +9,7 @@ import { useModal } from "@/stores/modal-store";
 import { useConfirm } from "@/components/providers/confirm-dialog-provider";
 import inscripcionService from "@/services/inscripcionService";
 import { MateriasDisponibles } from "@/components/student/inscripcion/MateriasDisponibles";
+import { useUIStore } from "@/stores/ui-store";
 import { MisInscripciones } from "@/components/student/inscripcion/MisInscripciones";
 import Modal from "@/components/modals/Modal";
 import {
@@ -37,7 +38,13 @@ import {
 import { toast } from "sonner";
 
 // Type definitions for exam sessions (mesas)
-type Mesa = "FEBRERO" | "MARZO" | "JULIO" | "AGOSTO" | "NOVIEMBRE" | "DICIEMBRE";
+type Mesa =
+  | "FEBRERO"
+  | "MARZO"
+  | "JULIO"
+  | "AGOSTO"
+  | "NOVIEMBRE"
+  | "DICIEMBRE";
 
 const MESES_MAP: Record<Mesa, number> = {
   FEBRERO: 2,
@@ -51,7 +58,7 @@ const MESES_MAP: Record<Mesa, number> = {
 export default function Inscripcion({ user }: { user: User }) {
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
-    user.email
+    user.email,
   );
   const { historia, isLoadingHistoria } = useHistoriaAcademica(persona?.id);
   const {
@@ -64,11 +71,27 @@ export default function Inscripcion({ user }: { user: User }) {
     isDandoseDeBaja,
   } = useInscripciones(persona?.id, !!historia);
 
+  const { inscripcionParams, setInscripcionParams } = useUIStore();
+
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<any | null>(
-    null
+    null,
   );
   const [mesaSeleccionada, setMesaSeleccionada] = useState<Mesa | "">("");
   const [showConfirmacionAlta, setShowConfirmacionAlta] = useState(false); // Local para el alta
+
+  // Efecto para auto-seleccionar materia desde recomendación
+  useEffect(() => {
+    if (inscripcionParams && materiasDisponibles.length > 0) {
+      const materia = materiasDisponibles.find(
+        (m) => m.codigo === inscripcionParams.materiaCodigo,
+      );
+      if (materia) {
+        setMateriaSeleccionada(materia);
+        // Limpiamos para no re-seleccionar si el usuario cambia manualmente y luego vuelve
+        setInscripcionParams(null);
+      }
+    }
+  }, [inscripcionParams, materiasDisponibles, setInscripcionParams]);
 
   // Hooks Globales
   const {
@@ -95,7 +118,7 @@ export default function Inscripcion({ user }: { user: User }) {
   const calcularAnio = (mesa: Mesa | string) => {
     const hoy = new Date();
     const mesActual = hoy.getMonth() + 1;
-    const mesMesa = (mesa in MESES_MAP) ? MESES_MAP[mesa as Mesa] : 12;
+    const mesMesa = mesa in MESES_MAP ? MESES_MAP[mesa as Mesa] : 12;
     return mesMesa < mesActual ? hoy.getFullYear() + 1 : hoy.getFullYear();
   };
 
@@ -107,7 +130,7 @@ export default function Inscripcion({ user }: { user: User }) {
 
     return inscripciones.filter((ins) => {
       const turno = ins.turno as string;
-      const mesMesa = (turno in MESES_MAP) ? MESES_MAP[turno as Mesa] : 12;
+      const mesMesa = turno in MESES_MAP ? MESES_MAP[turno as Mesa] : 12;
 
       const anioMesa = ins.anio;
 
@@ -130,7 +153,7 @@ export default function Inscripcion({ user }: { user: User }) {
       const inscriptos = await inscripcionService.obtenerInscriptos(
         inscripcion.materiaCodigo,
         inscripcion.anio,
-        inscripcion.turno
+        inscripcion.turno,
       );
       setInscriptosConsulta(inscriptos || []);
     } catch (err) {
@@ -163,7 +186,7 @@ export default function Inscripcion({ user }: { user: User }) {
       setMateriaSeleccionada(null);
       setMesaSeleccionada("");
       setShowConfirmacionAlta(false);
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const handleBaja = async (id: number) => {
@@ -195,7 +218,7 @@ export default function Inscripcion({ user }: { user: User }) {
         <Button
           onClick={() =>
             window.dispatchEvent(
-              new CustomEvent("changeTab", { detail: "recomendacion" })
+              new CustomEvent("changeTab", { detail: "recomendacion" }),
             )
           }
         >
@@ -243,7 +266,9 @@ export default function Inscripcion({ user }: { user: User }) {
             <CardContent className="space-y-4">
               <Select
                 value={mesaSeleccionada}
-                onValueChange={(value) => setMesaSeleccionada(value as Mesa | "")}
+                onValueChange={(value) =>
+                  setMesaSeleccionada(value as Mesa | "")
+                }
                 disabled={!materiaSeleccionada}
               >
                 <SelectTrigger>

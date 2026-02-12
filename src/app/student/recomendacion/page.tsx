@@ -43,7 +43,7 @@ export default function Recomendacion({ user }: { user: User }) {
 
   const { data: persona, isLoading: isLoadingPersona } = usePersona(
     user.id,
-    user.email
+    user.email,
   );
 
   const {

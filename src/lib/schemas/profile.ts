@@ -18,7 +18,7 @@ export const profileSchema = z.object({
     .string()
     .regex(
       /^[\d\s\-\+\(\)]*$/,
-      "Formato inválido (solo números, +, -, espacios)"
+      "Formato inválido (solo números, +, -, espacios)",
     )
     .optional(),
   contrasenia: z

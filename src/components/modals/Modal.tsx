@@ -38,8 +38,12 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const titleId = useRef(`modal-title-${Math.random().toString(36).substr(2, 9)}`);
-  const descId = useRef(`modal-desc-${Math.random().toString(36).substr(2, 9)}`);
+  const titleId = useRef(
+    `modal-title-${Math.random().toString(36).substr(2, 9)}`,
+  );
+  const descId = useRef(
+    `modal-desc-${Math.random().toString(36).substr(2, 9)}`,
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -54,7 +58,7 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
 
     const modal = modalRef.current;
     const focusableElements = modal.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     const firstFocusable = focusableElements[0];
     const lastFocusable = focusableElements[focusableElements.length - 1];
@@ -127,7 +131,7 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
         ref={modalRef}
         className={cn(
           "bg-card text-card-foreground w-full max-h-[90vh] flex flex-col rounded-lg shadow-2xl border outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-          className
+          className,
         )}
         style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
@@ -158,7 +162,7 @@ const Modal: FC<CombinedModalProps> = memo(function Modal({
         </div>
       </div>
     </div>,
-    document.getElementById("modal-root") as HTMLElement
+    document.getElementById("modal-root") as HTMLElement,
   );
 });
 

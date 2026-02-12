@@ -38,14 +38,14 @@ graph TB
     UI --> Cache
     Cache --> Services
     Services --> Axios
-    
+
     Axios --> SpringBoot
     Axios --> Auth
-    
+
     SpringBoot --> Controllers
     Controllers --> BusinessLogic
     BusinessLogic --> DB1
-    
+
     Auth --> DB2
     Auth --> Storage
 
@@ -71,9 +71,9 @@ sequenceDiagram
     S->>S: Valida credenciales
     S-->>L: Retorna JWT Token + Session
     L->>L: Guarda sesión en localStorage
-    
+
     Note over U,API: Usuario autenticado
-    
+
     U->>A: Hace request a API
     A->>S: Obtiene token actual
     S-->>A: Retorna access_token
@@ -98,9 +98,9 @@ graph LR
     D -->|Data| C
     C -->|Data| B
     B -->|Cache + Return| A
-    
+
     B -->|Cache Hit| A
-    
+
     style B fill:#f59e0b,color:#000
     style A fill:#3b82f6,color:#fff
     style E fill:#22c55e,color:#fff
@@ -143,27 +143,27 @@ graph LR
 ```mermaid
 graph TD
     Root[/ - Landing Page]
-    
+
     Root --> Auth[/auth]
     Auth --> Login[/auth/login]
     Auth --> Register[/auth/register]
-    
+
     Root --> Dashboard[/dashboard]
-    
+
     Root --> Student[/student]
     Student --> Historia[/student/historia]
     Student --> Recomendaciones[/student/recomendaciones]
     Student --> Inscripciones[/student/inscripciones]
     Student --> Experiencias[/student/experiencias]
-    
+
     Root --> Admin[/admin]
     Admin --> AdminDash[/admin/dashboard]
     Admin --> Planes[/admin/planes]
     Admin --> Stats[/admin/estadisticas]
-    
+
     Root --> Perfil[/perfil]
     Root --> EstadisticasM[/estadisticasMateria]
-    
+
     style Root fill:#3b82f6,color:#fff
     style Student fill:#22c55e,color:#fff
     style Admin fill:#ef4444,color:#fff
@@ -209,30 +209,30 @@ graph TB
     A[Usuario solicita recomendaciones] --> B[useRecomendaciones Hook]
     B --> C[recomendacionService]
     C --> D[Spring Boot API]
-    
+
     D --> E[Obtiene Historia Académica]
     D --> F[Obtiene Planes de Estudio]
     D --> G[Obtiene Estadísticas]
-    
+
     E --> H[Algoritmo de Recomendación]
     F --> H
     G --> H
-    
+
     H --> I{Evalúa Criterios}
-    
+
     I -->|Correlativas| J[Materias habilitadas]
     I -->|Vencimientos| K[Regularidades próximas a vencer]
     I -->|Dificultad| L[Estadísticas de aprobación]
     I -->|Futuro| M[Correlativas futuras]
-    
+
     J --> N[Lista Priorizada]
     K --> N
     L --> N
     M --> N
-    
+
     N --> O[Response al Frontend]
     O --> P[Renderiza Recomendaciones]
-    
+
     style H fill:#f59e0b,color:#000
     style N fill:#22c55e,color:#fff
 ```
@@ -310,24 +310,24 @@ stateDiagram-v2
     Idle --> Fetching: Query Triggered
     Fetching --> Success: Data Received
     Fetching --> Error: Request Failed
-    
+
     Success --> Stale: staleTime Expired
     Stale --> Fetching: Refetch Triggered
-    
+
     Success --> Fresh: Within staleTime
     Fresh --> Stale: Time Passes
-    
+
     Error --> Idle: Reset
     Error --> Fetching: Retry
-    
+
     Success --> [*]: Component Unmount
     Error --> [*]: Component Unmount
-    
+
     note right of Success
         Data en cache
         UI actualizada
     end note
-    
+
     note right of Stale
         Data disponible
         Refetch en background
@@ -455,14 +455,18 @@ sequenceDiagram
 ## Notas Técnicas
 
 ### Diagramas Mermaid
+
 Los diagramas en formato Mermaid pueden ser renderizados en:
+
 - GitHub (automáticamente)
 - GitLab
 - Editores como VS Code (con extensión)
 - Herramientas online: [Mermaid Live Editor](https://mermaid.live/)
 
 ### Actualización de Diagramas
+
 Los diagramas deben actualizarse cuando:
+
 - Se agreguen nuevos módulos o servicios
 - Cambien flujos de datos importantes
 - Se modifique la arquitectura general

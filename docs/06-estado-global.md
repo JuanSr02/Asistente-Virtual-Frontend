@@ -3,6 +3,7 @@
 ## Visión General
 
 El proyecto utiliza una estrategia dual para la gestión de estado:
+
 - **Zustand**: Para estado del cliente (UI, modales, preferencias)
 - **TanStack Query**: Para estado del servidor (datos de API, cache)
 
@@ -43,14 +44,14 @@ El proyecto utiliza una estrategia dual para la gestión de estado:
 Gestiona el estado de modales en la aplicación.
 
 ```typescript
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface ModalStore {
   // Estado
   isOpen: boolean;
   modalType: string | null;
   modalData: any;
-  
+
   // Acciones
   openModal: (type: string, data?: any) => void;
   closeModal: () => void;
@@ -60,18 +61,20 @@ export const useModalStore = create<ModalStore>((set) => ({
   isOpen: false,
   modalType: null,
   modalData: null,
-  
-  openModal: (type, data) => set({
-    isOpen: true,
-    modalType: type,
-    modalData: data,
-  }),
-  
-  closeModal: () => set({
-    isOpen: false,
-    modalType: null,
-    modalData: null,
-  }),
+
+  openModal: (type, data) =>
+    set({
+      isOpen: true,
+      modalType: type,
+      modalData: data,
+    }),
+
+  closeModal: () =>
+    set({
+      isOpen: false,
+      modalType: null,
+      modalData: null,
+    }),
 }));
 ```
 
@@ -82,15 +85,15 @@ import { useModalStore } from '@/stores/modal-store';
 
 function Component() {
   const { isOpen, modalType, openModal, closeModal } = useModalStore();
-  
+
   const handleOpenModal = () => {
     openModal('crear-experiencia', { materiaId: '123' });
   };
-  
+
   return (
     <div>
       <Button onClick={handleOpenModal}>Abrir Modal</Button>
-      
+
       {isOpen && modalType === 'crear-experiencia' && (
         <CrearExperienciaModal onClose={closeModal} />
       )}
@@ -106,38 +109,39 @@ function Component() {
 Gestiona el estado de la interfaz de usuario.
 
 ```typescript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface UIStore {
   // Estado
   sidebarOpen: boolean;
-  theme: 'light' | 'dark' | 'system';
-  
+  theme: "light" | "dark" | "system";
+
   // Acciones
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
 }
 
 export const useUIStore = create<UIStore>()(
   persist(
     (set) => ({
       sidebarOpen: true,
-      theme: 'system',
-      
-      toggleSidebar: () => set((state) => ({
-        sidebarOpen: !state.sidebarOpen
-      })),
-      
+      theme: "system",
+
+      toggleSidebar: () =>
+        set((state) => ({
+          sidebarOpen: !state.sidebarOpen,
+        })),
+
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      
+
       setTheme: (theme) => set({ theme }),
     }),
     {
-      name: 'ui-storage', // Nombre en localStorage
-    }
-  )
+      name: "ui-storage", // Nombre en localStorage
+    },
+  ),
 );
 ```
 
@@ -148,7 +152,7 @@ import { useUIStore } from '@/stores/ui-store';
 
 function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
-  
+
   return (
     <aside className={sidebarOpen ? 'open' : 'closed'}>
       <Button onClick={toggleSidebar}>Toggle</Button>
@@ -167,7 +171,7 @@ function Sidebar() {
 **Ubicación**: `src/lib/query-client.ts`
 
 ```typescript
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -189,34 +193,33 @@ Organización centralizada de query keys.
 
 ```typescript
 export const sharedKeys = {
-  all: ['shared'] as const,
-  planes: () => [...sharedKeys.all, 'planes'] as const,
+  all: ["shared"] as const,
+  planes: () => [...sharedKeys.all, "planes"] as const,
   materiasPorPlan: (plan: string) =>
-    [...sharedKeys.all, 'materias', plan] as const,
+    [...sharedKeys.all, "materias", plan] as const,
 };
 
 export const studentKeys = {
-  all: ['student'] as const,
-  persona: (userId: string) =>
-    [...studentKeys.all, 'persona', userId] as const,
+  all: ["student"] as const,
+  persona: (userId: string) => [...studentKeys.all, "persona", userId] as const,
   historia: (userId: string) =>
-    [...studentKeys.all, 'historia', userId] as const,
+    [...studentKeys.all, "historia", userId] as const,
   recomendaciones: (userId: string, criterio: string) =>
-    [...studentKeys.all, 'recomendaciones', userId, criterio] as const,
+    [...studentKeys.all, "recomendaciones", userId, criterio] as const,
   experiencias: {
     misExperiencias: (userId: string) =>
-      [...studentKeys.all, 'experiencias', 'mias', userId] as const,
+      [...studentKeys.all, "experiencias", "mias", userId] as const,
     porMateria: (materiaId: string) =>
-      [...studentKeys.all, 'experiencias', 'materia', materiaId] as const,
+      [...studentKeys.all, "experiencias", "materia", materiaId] as const,
   },
 };
 
 export const adminKeys = {
-  all: ['admin'] as const,
+  all: ["admin"] as const,
   stats: {
-    general: () => [...adminKeys.all, 'stats', 'general'] as const,
+    general: () => [...adminKeys.all, "stats", "general"] as const,
     carrera: (plan: string, periodo: string) =>
-      [...adminKeys.all, 'stats', 'carrera', plan, periodo] as const,
+      [...adminKeys.all, "stats", "carrera", plan, periodo] as const,
   },
 };
 ```
@@ -230,10 +233,10 @@ export const adminKeys = {
 **Ubicación**: `src/hooks/domain/useHistoriaAcademica.ts`
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { historiaAcademicaService } from '@/services/historiaAcademicaService';
-import { studentKeys } from '@/lib/query-keys';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { historiaAcademicaService } from "@/services/historiaAcademicaService";
+import { studentKeys } from "@/lib/query-keys";
+import { useToast } from "@/hooks/use-toast";
 
 export const useHistoriaAcademica = (userId: string) => {
   const queryClient = useQueryClient();
@@ -253,15 +256,15 @@ export const useHistoriaAcademica = (userId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.historia(userId));
       toast({
-        title: 'Éxito',
-        description: 'Historia académica cargada correctamente',
+        title: "Éxito",
+        description: "Historia académica cargada correctamente",
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'No se pudo cargar la historia académica',
-        variant: 'destructive',
+        title: "Error",
+        description: "No se pudo cargar la historia académica",
+        variant: "destructive",
       });
     },
   });
@@ -272,8 +275,8 @@ export const useHistoriaAcademica = (userId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.historia(userId));
       toast({
-        title: 'Éxito',
-        description: 'Historia académica eliminada',
+        title: "Éxito",
+        description: "Historia académica eliminada",
       });
     },
   });
@@ -284,11 +287,11 @@ export const useHistoriaAcademica = (userId: string) => {
     isLoading: historiaQuery.isLoading,
     isError: historiaQuery.isError,
     error: historiaQuery.error,
-    
+
     // Mutations
     cargarHistoria: cargarHistoriaMutation.mutate,
     isCargarLoading: cargarHistoriaMutation.isLoading,
-    
+
     eliminarHistoria: eliminarHistoriaMutation.mutate,
     isEliminarLoading: eliminarHistoriaMutation.isLoading,
   };
@@ -329,10 +332,10 @@ function HistoriaPage() {
 **Ubicación**: `src/hooks/domain/useExperiencias.ts`
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { experienciaService } from '@/services/experienciaService';
-import { studentKeys } from '@/lib/query-keys';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { experienciaService } from "@/services/experienciaService";
+import { studentKeys } from "@/lib/query-keys";
+import { useToast } from "@/hooks/use-toast";
 
 export const useExperiencias = (userId: string) => {
   const queryClient = useQueryClient();
@@ -350,11 +353,11 @@ export const useExperiencias = (userId: string) => {
     mutationFn: experienciaService.crearExperiencia,
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
       toast({
-        title: 'Éxito',
-        description: 'Experiencia creada correctamente',
+        title: "Éxito",
+        description: "Experiencia creada correctamente",
       });
     },
   });
@@ -365,11 +368,11 @@ export const useExperiencias = (userId: string) => {
       experienciaService.actualizarExperiencia(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
       toast({
-        title: 'Éxito',
-        description: 'Experiencia actualizada',
+        title: "Éxito",
+        description: "Experiencia actualizada",
       });
     },
   });
@@ -379,11 +382,11 @@ export const useExperiencias = (userId: string) => {
     mutationFn: experienciaService.eliminarExperiencia,
     onSuccess: () => {
       queryClient.invalidateQueries(
-        studentKeys.experiencias.misExperiencias(userId)
+        studentKeys.experiencias.misExperiencias(userId),
       );
       toast({
-        title: 'Éxito',
-        description: 'Experiencia eliminada',
+        title: "Éxito",
+        description: "Experiencia eliminada",
       });
     },
   });
@@ -392,12 +395,12 @@ export const useExperiencias = (userId: string) => {
     // Queries
     experiencias: misExperienciasQuery.data,
     isLoading: misExperienciasQuery.isLoading,
-    
+
     // Mutations
     crear: crearMutation.mutate,
     actualizar: actualizarMutation.mutate,
     eliminar: eliminarMutation.mutate,
-    
+
     // Loading states
     isCreando: crearMutation.isLoading,
     isActualizando: actualizarMutation.isLoading,
@@ -438,8 +441,8 @@ export const useInscripciones = (userId: string) => {
       queryClient.invalidateQueries(studentKeys.misInscripciones(userId));
       queryClient.invalidateQueries(studentKeys.materiasInscripcion(userId));
       toast({
-        title: 'Éxito',
-        description: 'Inscripción realizada correctamente',
+        title: "Éxito",
+        description: "Inscripción realizada correctamente",
       });
     },
   });
@@ -450,8 +453,8 @@ export const useInscripciones = (userId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries(studentKeys.misInscripciones(userId));
       toast({
-        title: 'Éxito',
-        description: 'Inscripción cancelada',
+        title: "Éxito",
+        description: "Inscripción cancelada",
       });
     },
   });
@@ -461,11 +464,11 @@ export const useInscripciones = (userId: string) => {
     inscripciones: misInscripcionesQuery.data,
     materiasDisponibles: materiasDisponiblesQuery.data,
     isLoading: misInscripcionesQuery.isLoading,
-    
+
     // Mutations
     inscribirse: inscribirseMutation.mutate,
     cancelar: cancelarMutation.mutate,
-    
+
     // Loading states
     isInscribiendo: inscribirseMutation.isLoading,
     isCancelando: cancelarMutation.isLoading,
@@ -484,24 +487,24 @@ const actualizarMutation = useMutation({
   mutationFn: updateData,
   onMutate: async (newData) => {
     // Cancelar queries en progreso
-    await queryClient.cancelQueries(['data']);
-    
+    await queryClient.cancelQueries(["data"]);
+
     // Snapshot del valor anterior
-    const previousData = queryClient.getQueryData(['data']);
-    
+    const previousData = queryClient.getQueryData(["data"]);
+
     // Actualizar optimísticamente
-    queryClient.setQueryData(['data'], newData);
-    
+    queryClient.setQueryData(["data"], newData);
+
     // Retornar contexto con snapshot
     return { previousData };
   },
   onError: (err, newData, context) => {
     // Revertir en caso de error
-    queryClient.setQueryData(['data'], context.previousData);
+    queryClient.setQueryData(["data"], context.previousData);
   },
   onSettled: () => {
     // Refetch después de error o éxito
-    queryClient.invalidateQueries(['data']);
+    queryClient.invalidateQueries(["data"]);
   },
 });
 ```
@@ -509,18 +512,13 @@ const actualizarMutation = useMutation({
 ### 2. Infinite Queries
 
 ```typescript
-const {
-  data,
-  fetchNextPage,
-  hasNextPage,
-  isFetchingNextPage,
-} = useInfiniteQuery({
-  queryKey: ['experiencias'],
-  queryFn: ({ pageParam = 1 }) =>
-    fetchExperiencias({ page: pageParam }),
-  getNextPageParam: (lastPage) =>
-    lastPage.hasMore ? lastPage.nextPage : undefined,
-});
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+  useInfiniteQuery({
+    queryKey: ["experiencias"],
+    queryFn: ({ pageParam = 1 }) => fetchExperiencias({ page: pageParam }),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.nextPage : undefined,
+  });
 ```
 
 ### 3. Dependent Queries
@@ -528,13 +526,13 @@ const {
 ```typescript
 // Query 1: Obtener usuario
 const { data: user } = useQuery({
-  queryKey: ['user', userId],
+  queryKey: ["user", userId],
   queryFn: () => fetchUser(userId),
 });
 
 // Query 2: Obtener datos del usuario (depende de Query 1)
 const { data: userData } = useQuery({
-  queryKey: ['userData', user?.id],
+  queryKey: ["userData", user?.id],
   queryFn: () => fetchUserData(user!.id),
   enabled: !!user, // Solo ejecutar si user existe
 });
@@ -558,6 +556,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 ```
 
 **Características**:
+
 - Ver todas las queries activas
 - Inspeccionar cache
 - Forzar refetch
@@ -579,7 +578,7 @@ const { data } = useQuery({
 
 // ❌ Malo
 const { data } = useQuery({
-  queryKey: ['historia', userId],
+  queryKey: ["historia", userId],
   queryFn: () => fetchHistoria(userId),
 });
 ```
@@ -589,9 +588,11 @@ const { data } = useQuery({
 ```typescript
 // Después de crear una experiencia, invalidar queries relacionadas
 onSuccess: () => {
-  queryClient.invalidateQueries(studentKeys.experiencias.misExperiencias(userId));
+  queryClient.invalidateQueries(
+    studentKeys.experiencias.misExperiencias(userId),
+  );
   queryClient.invalidateQueries(studentKeys.experiencias.porMateria(materiaId));
-}
+};
 ```
 
 ### 3. Manejar Estados de Carga

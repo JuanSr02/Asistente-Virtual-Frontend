@@ -26,19 +26,18 @@ export interface InscripcionResponseDTO {
   estudianteEmail: string;
 }
 
-
 const inscripcionService = {
   /**
    * Obtiene las materias que puede rendir un estudiante para inscribirse
    */
   obtenerMateriasParaInscripcion: async (
-    estudianteId: number
+    estudianteId: number,
   ): Promise<MateriaParaInscripcion[]> => {
     try {
       const response = await api.get(
         API_ROUTES.ESTUDIANTE.OBTENER_INSCRIPCIONES_POSIBLES +
           estudianteId +
-          "/inscripciones"
+          "/inscripciones",
       );
       return response.data;
     } catch (error) {
@@ -51,7 +50,7 @@ const inscripcionService = {
    * Crea una nueva inscripción
    */
   crearInscripcion: async (
-    dto: RegistroInscripcionDTO
+    dto: RegistroInscripcionDTO,
   ): Promise<InscripcionResponseDTO> => {
     try {
       const response = await api.post(API_ROUTES.SHARED.INSCRIPCIONES, dto);
@@ -80,7 +79,7 @@ const inscripcionService = {
   obtenerInscriptos: async (
     codigoMateria: string,
     anio: number,
-    turno: string
+    turno: string,
   ): Promise<InscripcionResponseDTO[]> => {
     try {
       const response = await api.get(API_ROUTES.SHARED.INSCRIPCIONES, {
@@ -97,11 +96,11 @@ const inscripcionService = {
    * Obtiene las inscripciones de un estudiante específico
    */
   obtenerInscripcionesEstudiante: async (
-    estudianteId: number
+    estudianteId: number,
   ): Promise<InscripcionResponseDTO[]> => {
     try {
       const response = await api.get(
-        `${API_ROUTES.SHARED.INSCRIPCIONES}/estudiante/${estudianteId}`
+        `${API_ROUTES.SHARED.INSCRIPCIONES}/estudiante/${estudianteId}`,
       );
       return response.data;
     } catch (error) {

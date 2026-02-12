@@ -10,7 +10,7 @@ const perfilService = {
   actualizarPerfil: async (
     id: number,
     datos: ActualizarPerfilDTO,
-    rolUsuario: string
+    rolUsuario: string,
   ): Promise<any> => {
     try {
       const endpoint =

@@ -35,7 +35,7 @@ export function MetricCard({
       className={cn(
         "border-l-4 shadow-sm hover:shadow-md transition-shadow",
         colorStyles[color],
-        className
+        className,
       )}
     >
       <CardContent className="p-4 sm:p-5 flex items-center gap-4">

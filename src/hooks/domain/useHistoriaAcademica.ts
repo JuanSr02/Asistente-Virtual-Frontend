@@ -15,7 +15,7 @@ export function useHistoriaAcademica(personaId?: number | null) {
     queryFn: async () => {
       if (!personaId) return null;
       return await historiaAcademicaService.verificarHistoriaAcademica(
-        personaId
+        personaId,
       );
     },
     enabled: !!personaId, // Solo ejecuta si tenemos el ID numérico
@@ -43,7 +43,7 @@ export function useHistoriaAcademica(personaId?: number | null) {
       return await historiaAcademicaService.cargarHistoriaAcademica(
         file,
         personaId, // Usamos el ID numérico real
-        planCodigo
+        planCodigo,
       );
     },
     onSuccess: (data) => {
@@ -70,7 +70,7 @@ export function useHistoriaAcademica(personaId?: number | null) {
       if (personaId) {
         queryClient.setQueryData(
           studentKeys.historia(personaId.toString()),
-          null
+          null,
         );
         queryClient.invalidateQueries({ queryKey: studentKeys.all });
       }

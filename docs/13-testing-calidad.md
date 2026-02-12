@@ -19,16 +19,16 @@ Linter para identificar y reportar patrones problemáticos en el código.
 ```javascript
 module.exports = {
   extends: [
-    'next/core-web-vitals',
-    'plugin:@typescript-eslint/recommended',
-    'prettier',
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
   ],
-  plugins: ['@typescript-eslint', 'prettier'],
+  plugins: ["@typescript-eslint", "prettier"],
   rules: {
-    'prettier/prettier': 'error',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "no-console": ["warn", { allow: ["warn", "error"] }],
   },
 };
 ```
@@ -111,22 +111,22 @@ pnpm type-check
 
 ```javascript
 // jest.config.js
-const nextJest = require('next/jest');
+const nextJest = require("next/jest");
 
 const createJestConfig = nextJest({
-  dir: './',
+  dir: "./",
 });
 
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  testEnvironment: "jest-environment-jsdom",
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   collectCoverageFrom: [
-    'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.{js,jsx,ts,tsx}',
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/*.stories.{js,jsx,ts,tsx}",
   ],
 };
 
@@ -153,7 +153,7 @@ describe('Button', () => {
   it('debe llamar onClick cuando se hace clic', () => {
     const handleClick = jest.fn();
     render(<Button onClick={handleClick}>Click me</Button>);
-    
+
     fireEvent.click(screen.getByText('Click me'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -229,36 +229,34 @@ describe('useHistoriaAcademica', () => {
 
 ```typescript
 // experienciaService.test.ts
-import axiosClient from '@/lib/axios-client';
-import { experienciaService } from '@/services/experienciaService';
+import axiosClient from "@/lib/axios-client";
+import { experienciaService } from "@/services/experienciaService";
 
-jest.mock('@/lib/axios-client');
+jest.mock("@/lib/axios-client");
 const mockedAxios = axiosClient as jest.Mocked<typeof axiosClient>;
 
-describe('experienciaService', () => {
+describe("experienciaService", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('debe obtener experiencias por materia', async () => {
-    const mockData = [
-      { id: '1', materia: 'Test', dificultad: 3 },
-    ];
+  it("debe obtener experiencias por materia", async () => {
+    const mockData = [{ id: "1", materia: "Test", dificultad: 3 }];
     mockedAxios.get.mockResolvedValue({ data: mockData });
 
-    const result = await experienciaService
-      .obtenerExperienciasPorMateria('123');
+    const result =
+      await experienciaService.obtenerExperienciasPorMateria("123");
 
     expect(result).toEqual(mockData);
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      expect.stringContaining('123')
+      expect.stringContaining("123"),
     );
   });
 
-  it('debe crear experiencia', async () => {
+  it("debe crear experiencia", async () => {
     const newExperiencia = {
-      estudianteId: '1',
-      materiaId: '2',
+      estudianteId: "1",
+      materiaId: "2",
       dificultad: 4,
     };
     mockedAxios.post.mockResolvedValue({ data: newExperiencia });
@@ -268,16 +266,16 @@ describe('experienciaService', () => {
     expect(result).toEqual(newExperiencia);
     expect(mockedAxios.post).toHaveBeenCalledWith(
       expect.any(String),
-      newExperiencia
+      newExperiencia,
     );
   });
 
-  it('debe manejar errores correctamente', async () => {
-    mockedAxios.get.mockRejectedValue(new Error('Network error'));
+  it("debe manejar errores correctamente", async () => {
+    mockedAxios.get.mockRejectedValue(new Error("Network error"));
 
     await expect(
-      experienciaService.obtenerExperienciasPorMateria('123')
-    ).rejects.toThrow('Network error');
+      experienciaService.obtenerExperienciasPorMateria("123"),
+    ).rejects.toThrow("Network error");
   });
 });
 ```
@@ -288,29 +286,29 @@ describe('experienciaService', () => {
 
 ```typescript
 // e2e/login.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Login Flow', () => {
-  test('debe permitir login con credenciales válidas', async ({ page }) => {
-    await page.goto('/auth/login');
+test.describe("Login Flow", () => {
+  test("debe permitir login con credenciales válidas", async ({ page }) => {
+    await page.goto("/auth/login");
 
-    await page.fill('input[name="email"]', 'test@example.com');
-    await page.fill('input[name="password"]', 'password123');
+    await page.fill('input[name="email"]', "test@example.com");
+    await page.fill('input[name="password"]', "password123");
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('h1')).toContainText('Dashboard');
+    await expect(page).toHaveURL("/dashboard");
+    await expect(page.locator("h1")).toContainText("Dashboard");
   });
 
-  test('debe mostrar error con credenciales inválidas', async ({ page }) => {
-    await page.goto('/auth/login');
+  test("debe mostrar error con credenciales inválidas", async ({ page }) => {
+    await page.goto("/auth/login");
 
-    await page.fill('input[name="email"]', 'wrong@example.com');
-    await page.fill('input[name="password"]', 'wrongpassword');
+    await page.fill('input[name="email"]', "wrong@example.com");
+    await page.fill('input[name="password"]', "wrongpassword");
     await page.click('button[type="submit"]');
 
-    await expect(page.locator('.error')).toContainText(
-      'Credenciales inválidas'
+    await expect(page.locator(".error")).toContainText(
+      "Credenciales inválidas",
     );
   });
 });
@@ -338,12 +336,8 @@ pnpm lint-staged
 ```json
 {
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,md,mdx,json}": [
-      "prettier --write"
-    ],
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
-    ]
+    "*.{js,jsx,ts,tsx,md,mdx,json}": ["prettier --write"],
+    "*.{js,jsx,ts,tsx}": ["eslint --fix"]
   }
 }
 ```
@@ -358,8 +352,8 @@ pnpm lint-staged
 // jest.config.js
 module.exports = {
   collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov", "html"],
   coverageThreshold: {
     global: {
       branches: 70,
@@ -449,45 +443,45 @@ Métricas objetivo:
 
 ```typescript
 // Variables y funciones: camelCase
-const userName = 'Juan';
-function fetchUserData() { }
+const userName = "Juan";
+function fetchUserData() {}
 
 // Constantes: UPPER_SNAKE_CASE
-const API_BASE_URL = 'https://api.example.com';
+const API_BASE_URL = "https://api.example.com";
 
 // Componentes y tipos: PascalCase
-interface User { }
-function UserCard() { }
+interface User {}
+function UserCard() {}
 
 // Archivos de componentes: PascalCase
-UserCard.tsx
-ExperienciaForm.tsx
+UserCard.tsx;
+ExperienciaForm.tsx;
 
 // Archivos de utilidades: camelCase
-formatDate.ts
-validators.ts
+formatDate.ts;
+validators.ts;
 ```
 
 ### Imports
 
 ```typescript
 // 1. React y librerías externas
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 // 2. Componentes
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 // 3. Hooks
-import { useHistoriaAcademica } from '@/hooks/domain/useHistoriaAcademica';
+import { useHistoriaAcademica } from "@/hooks/domain/useHistoriaAcademica";
 
 // 4. Servicios y utilidades
-import { historiaService } from '@/services/historiaService';
-import { cn } from '@/lib/utils';
+import { historiaService } from "@/services/historiaService";
+import { cn } from "@/lib/utils";
 
 // 5. Tipos
-import type { User } from '@/lib/types';
+import type { User } from "@/lib/types";
 ```
 
 ### Comentarios
@@ -522,12 +516,12 @@ closeModal();
 
 ```typescript
 // Solo en desarrollo
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug info:', data);
+if (process.env.NODE_ENV === "development") {
+  console.log("Debug info:", data);
 }
 
 // Errores (siempre)
-console.error('Error crítico:', error);
+console.error("Error crítico:", error);
 ```
 
 ---
@@ -538,22 +532,24 @@ console.error('Error crítico:', error);
 
 ```typescript
 // ✅ Bueno
-it('debe mostrar error cuando el email es inválido', () => { });
+it("debe mostrar error cuando el email es inválido", () => {});
 
 // ❌ Malo
-it('test 1', () => { });
+it("test 1", () => {});
 ```
 
 ### 2. Arrange-Act-Assert
 
 ```typescript
-it('debe crear experiencia', async () => {
+it("debe crear experiencia", async () => {
   // Arrange
-  const experiencia = { /* ... */ };
-  
+  const experiencia = {
+    /* ... */
+  };
+
   // Act
   const result = await crearExperiencia(experiencia);
-  
+
   // Assert
   expect(result).toBeDefined();
   expect(result.id).toBeTruthy();
@@ -564,12 +560,12 @@ it('debe crear experiencia', async () => {
 
 ```typescript
 // ✅ Bueno - solo mockear lo necesario
-jest.mock('@/services/experienciaService', () => ({
+jest.mock("@/services/experienciaService", () => ({
   crearExperiencia: jest.fn(),
 }));
 
 // ❌ Malo - mockear todo
-jest.mock('@/services/experienciaService');
+jest.mock("@/services/experienciaService");
 ```
 
 ---

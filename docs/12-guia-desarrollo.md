@@ -75,24 +75,24 @@ historia-academica/
 
 ```typescript
 // ✅ Variables: camelCase
-const userName = 'Juan';
+const userName = "Juan";
 const isActive = true;
 
 // ✅ Constantes: UPPER_SNAKE_CASE
-const API_BASE_URL = 'https://api.example.com';
+const API_BASE_URL = "https://api.example.com";
 const MAX_RETRIES = 3;
 
 // ✅ Funciones: camelCase
-function fetchUserData() { }
-const handleSubmit = () => { };
+function fetchUserData() {}
+const handleSubmit = () => {};
 
 // ✅ Componentes: PascalCase
-function UserCard() { }
-const ExperienciaForm = () => { };
+function UserCard() {}
+const ExperienciaForm = () => {};
 
 // ✅ Tipos e Interfaces: PascalCase
-interface User { }
-type ApiResponse<T> = { };
+interface User {}
+type ApiResponse<T> = {};
 ```
 
 ---
@@ -142,7 +142,7 @@ export function UserCard({ userId, onUpdate }: UserCardProps) {
     <div className="rounded-lg border p-4">
       <h3 className="text-lg font-semibold">{data.name}</h3>
       <p className="text-muted-foreground">{data.email}</p>
-      
+
       <div className="mt-4 flex gap-2">
         <Button onClick={handleEdit}>Editar</Button>
         <Button onClick={handleSave} variant="outline">
@@ -194,7 +194,7 @@ export interface User {
   email: string;
   nombre: string;
   apellido: string;
-  rol: 'ESTUDIANTE' | 'ADMINISTRADOR';
+  rol: "ESTUDIANTE" | "ADMINISTRADOR";
 }
 
 export interface ApiResponse<T> {
@@ -365,10 +365,10 @@ describe('UserCard', () => {
   it('debe llamar onUpdate al hacer clic en guardar', () => {
     const mockOnUpdate = jest.fn();
     render(<UserCard userId="123" onUpdate={mockOnUpdate} />);
-    
+
     const saveButton = screen.getByText('Guardar');
     fireEvent.click(saveButton);
-    
+
     expect(mockOnUpdate).toHaveBeenCalled();
   });
 });
@@ -428,6 +428,7 @@ pnpm format
 ### Pre-commit Hooks
 
 Configurado con Husky y lint-staged:
+
 - Formatea archivos modificados con Prettier
 - Ejecuta ESLint en archivos JS/TS
 
@@ -477,9 +478,9 @@ export function CustomCard({ title, children, className }: CustomCardProps) {
 
 ```typescript
 // src/hooks/domain/useCustomData.ts
-import { useQuery } from '@tanstack/react-query';
-import { customService } from '@/services/customService';
-import { studentKeys } from '@/lib/query-keys';
+import { useQuery } from "@tanstack/react-query";
+import { customService } from "@/services/customService";
+import { studentKeys } from "@/lib/query-keys";
 
 export const useCustomData = (userId: string) => {
   return useQuery({
@@ -499,12 +500,12 @@ export const useCustomData = (userId: string) => {
 
 ```typescript
 // Desarrollo
-if (process.env.NODE_ENV === 'development') {
-  console.log('Debug info:', data);
+if (process.env.NODE_ENV === "development") {
+  console.log("Debug info:", data);
 }
 
 // Producción (evitar)
-console.error('Error crítico:', error); // Solo errores
+console.error("Error crítico:", error); // Solo errores
 ```
 
 ### React DevTools
@@ -572,12 +573,11 @@ pnpm type-check
 // Problema: Diferencia entre SSR y CSR
 // Solución: Usar 'use client' o dynamic import
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const ClientComponent = dynamic(
-  () => import('./ClientComponent'),
-  { ssr: false }
-);
+const ClientComponent = dynamic(() => import("./ClientComponent"), {
+  ssr: false,
+});
 ```
 
 ---

@@ -133,9 +133,8 @@ export default function PoliticaPrivacidad() {
               6. Cookies y Almacenamiento Local
             </h3>
             <p className="text-muted-foreground">
-              Utilizamos almacenamiento local para
-              mantener su sesión activa y recordar sus preferencias de
-              visualización. No utilizamos cookies
+              Utilizamos almacenamiento local para mantener su sesión activa y
+              recordar sus preferencias de visualización. No utilizamos cookies
               de rastreo publicitario.
             </p>
           </section>
