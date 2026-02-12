@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type User } from "@supabase/supabase-js";
 import { usePersona } from "@/hooks/domain/usePersona";
 import { useInscripciones } from "@/hooks/domain/useInscripciones";
@@ -9,6 +9,7 @@ import { useModal } from "@/stores/modal-store";
 import { useConfirm } from "@/components/providers/confirm-dialog-provider";
 import inscripcionService from "@/services/inscripcionService";
 import { MateriasDisponibles } from "@/components/student/inscripcion/MateriasDisponibles";
+import { useUIStore } from "@/stores/ui-store";
 import { MisInscripciones } from "@/components/student/inscripcion/MisInscripciones";
 import Modal from "@/components/modals/Modal";
 import {
@@ -64,11 +65,27 @@ export default function Inscripcion({ user }: { user: User }) {
     isDandoseDeBaja,
   } = useInscripciones(persona?.id, !!historia);
 
+  const { inscripcionParams, setInscripcionParams } = useUIStore();
+
   const [materiaSeleccionada, setMateriaSeleccionada] = useState<any | null>(
     null
   );
   const [mesaSeleccionada, setMesaSeleccionada] = useState<Mesa | "">("");
   const [showConfirmacionAlta, setShowConfirmacionAlta] = useState(false); // Local para el alta
+
+  // Efecto para auto-seleccionar materia desde recomendación
+  useEffect(() => {
+    if (inscripcionParams && materiasDisponibles.length > 0) {
+      const materia = materiasDisponibles.find(
+        (m) => m.codigo === inscripcionParams.materiaCodigo
+      );
+      if (materia) {
+        setMateriaSeleccionada(materia);
+        // Limpiamos para no re-seleccionar si el usuario cambia manualmente y luego vuelve
+        setInscripcionParams(null);
+      }
+    }
+  }, [inscripcionParams, materiasDisponibles, setInscripcionParams]);
 
   // Hooks Globales
   const {

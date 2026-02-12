@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookCopy, Calendar, ThumbsUp, BarChart2, Info } from "lucide-react";
+import { BookCopy, Calendar, ThumbsUp, BarChart2, Info, Users } from "lucide-react";
 import { useUIStore } from "@/stores/ui-store";
 
 interface ResultadosProps {
@@ -22,7 +22,7 @@ export function ResultadosRecomendacion({
   criterio,
   planCodigo,
 }: ResultadosProps) {
-  const { setActiveTab, setStatsParams } = useUIStore();
+  const { setActiveTab, setStatsParams, setInscripcionParams } = useUIStore();
 
   const handleVerEstadisticas = (codigoMateria: string) => {
     if (!planCodigo) return;
@@ -32,6 +32,12 @@ export function ResultadosRecomendacion({
       periodo: "TODOS_LOS_TIEMPOS",
     });
     setActiveTab("estadisticas");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleInscripcionSocial = (codigoMateria: string) => {
+    setInscripcionParams({ materiaCodigo: codigoMateria });
+    setActiveTab("inscripcion");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -61,7 +67,7 @@ export function ResultadosRecomendacion({
           <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block mb-1">¿Cómo ordenamos estas materias?</span>
-            El <strong>Puntaje</strong> te sugiere qué rendir primero combinando dos factores: 
+            El <strong>Puntaje</strong> te sugiere qué rendir primero combinando dos factores:
             la <strong>probabilidad de aprobar (70%)</strong> y qué tan <strong>accesible/fácil</strong> es la materia (30%).
           </div>
         </div>
@@ -96,7 +102,7 @@ export function ResultadosRecomendacion({
             <InfoCriterio final={final} criterio={criterio} />
 
             {planCodigo && (
-              <div className="mt-4 pt-4 border-t flex justify-end">
+              <div className="mt-4 pt-4 border-t flex justify-end flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -105,6 +111,15 @@ export function ResultadosRecomendacion({
                 >
                   <BarChart2 className="w-4 h-4 mr-2" />
                   Ver estadísticas detalladas
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-green-600 border-green-200 hover:bg-green-50 dark:text-green-400 dark:border-green-900 dark:hover:bg-green-950/50"
+                  onClick={() => handleInscripcionSocial(final.codigoMateria)}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Inscripción Social
                 </Button>
               </div>
             )}
@@ -134,11 +149,10 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
 
     return (
       <div
-        className={`flex items-center gap-2 text-sm p-2 rounded ${
-          esCritico
-            ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
-            : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
-        }`}
+        className={`flex items-center gap-2 text-sm p-2 rounded ${esCritico
+          ? "text-red-700 bg-red-50 dark:text-red-300 dark:bg-red-900/20"
+          : "text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/20"
+          }`}
       >
         <Calendar className="h-4 w-4" />
         <span>
@@ -156,7 +170,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
         {/* COLUMNA 1: PUNTAJE DESTACADO */}
         <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded border border-primary/20 flex flex-col justify-center">
           <div className="font-bold text-primary text-lg">
-             {/* Mostramos el puntaje calculado en el backend */}
+            {/* Mostramos el puntaje calculado en el backend */}
             {final.estadisticas.puntaje ? final.estadisticas.puntaje.toFixed(0) : "-"}
           </div>
           <div className="text-[10px] text-primary/80 uppercase font-bold tracking-wider">
