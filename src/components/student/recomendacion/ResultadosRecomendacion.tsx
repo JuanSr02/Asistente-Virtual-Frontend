@@ -279,7 +279,7 @@ function InfoCriterio({ final, criterio }: { final: any; criterio: string }) {
             </span>
             <span>
               {estaVencida
-                ? "Regularidad exiprada."
+                ? "Regularidad expirada."
                 : `${final.fechaVencimiento} (${semanasRestantes} semanas restantes)`}
             </span>
           </div>
