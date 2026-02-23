@@ -1,7 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import experienciaService from "@/services/experienciaService";
 import { studentKeys } from "@/lib/query-keys";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export function useExperiencias(userId: string, materiaId?: string) {
   const queryClient = useQueryClient();
@@ -29,19 +34,26 @@ export function useExperiencias(userId: string, materiaId?: string) {
       // Obtenemos todos los exámenes rendidos por el alumno
       const examenes =
         await experienciaService.obtenerExamenesPorEstudiante(userIdInt);
-      // Filtramos los que ya tienen experiencia cargada (optimistic check)
+      // Filtramos los que ya tienen experiencia cargada
       const misExps = misExperienciasQuery.data || [];
-      const idsConExperiencia = new Set(
-        misExps.map((e: any) => e.examenId || e.id),
+      // Extraemos los IDs de exámenes que ya tienen experiencia
+      const idsExamenesConExperiencia = new Set(
+        misExps.map((e: any) => e.examenId),
       );
-      // Nota: Ajustar campo según tu DTO real, a veces es el mismo ID de tabla cruzada
-
-      // En la lógica legacy se filtraba así:
-      const conExp = misExps.map((e: any) => e.id); // Ojo aquí con los IDs
-      return examenes.filter((e: any) => !conExp.includes(e.id));
+      // Retornamos solo los exámenes que NO tienen experiencia aún
+      return examenes.filter((e: any) => !idsExamenesConExperiencia.has(e.id));
     },
     enabled: !isNaN(userIdInt) && !misExperienciasQuery.isLoading,
   });
+
+  // Cuando misExperiencias cambia, invalida y refetch automáticamente
+  useEffect(() => {
+    if (misExperienciasQuery.data) {
+      queryClient.invalidateQueries({
+        queryKey: studentKeys.experiencias.examenesDisponibles(userId),
+      });
+    }
+  }, [misExperienciasQuery.data?.length, userId, queryClient]);
 
   // 4. Crear Experiencia
   const crearMutation = useMutation({
