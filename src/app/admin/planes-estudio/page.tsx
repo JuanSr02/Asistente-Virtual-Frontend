@@ -107,7 +107,7 @@ export default function PlanesEstudio() {
           Planes de Estudio
         </CardTitle>
         <CardDescription className="text-sm text-muted-foreground mt-1">
-          Administra los planes de estudio y sus materias.
+          Administra los planes de estudio. Haz clic en un plan para ver sus materias o eliminarlo.
         </CardDescription>
       </CardHeader>
 
