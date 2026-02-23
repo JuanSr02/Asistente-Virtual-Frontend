@@ -63,7 +63,7 @@ const RECURSOS_DISPONIBLES = [
 ];
 
 const MOTIVACIONES_DISPONIBLES = [
-  "Me gusta la materia",
+  "Ultimo Final",
   "Es correlativa importante",
   "Se me vencía la regularidad",
   "Para avanzar en la carrera",
@@ -776,10 +776,7 @@ export default function ExperienciasExamen({ user }: { user: User }) {
               <p
                 id="link-resumen-help"
                 className="text-xs text-muted-foreground"
-              >
-                Si es un link (Drive, Notion), se mostrará un botón. Si es
-                texto, se mostrará como contacto.
-              </p>
+              ></p>
             </div>
           )}
 
