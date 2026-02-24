@@ -80,7 +80,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
               >
                 <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-2">
                   <span className="text-sm">
-                    Asistente Virtual - UNSL · Dept. de Informática · © 2025
+                    Asistente Virtual - UNSL · Dept. de Informática · © 2026
                   </span>
                   <nav
                     className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm"
