@@ -59,6 +59,7 @@ export default function Recomendacion({ user }: { user: User }) {
   const {
     recomendaciones,
     isLoading: isLoadingRecs,
+    isFetching: isFetchingRecs,
     refetch,
   } = useRecomendaciones(persona?.id, criterio, !!historia);
 
@@ -202,7 +203,11 @@ export default function Recomendacion({ user }: { user: User }) {
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 Materias Sugeridas
                 <span className="text-xs font-normal text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                  {recomendaciones.length} encontradas
+                  {isLoadingRecs || isFetchingRecs ? (
+                    <span className="inline-block h-4 w-16 rounded bg-muted/60 animate-pulse" />
+                  ) : (
+                    `${recomendaciones.length} encontradas`
+                  )}
                 </span>
               </h2>
               <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -228,16 +233,16 @@ export default function Recomendacion({ user }: { user: User }) {
                   variant="outline"
                   size="icon"
                   onClick={() => refetch()}
-                  disabled={isLoadingRecs}
+                  disabled={isLoadingRecs || isFetchingRecs}
                 >
                   <RefreshCw
-                    className={`h-4 w-4 ${isLoadingRecs ? "animate-spin" : ""}`}
+                    className={`h-4 w-4 ${isLoadingRecs || isFetchingRecs ? "animate-spin" : ""}`}
                   />
                 </Button>
               </div>
             </div>
 
-            {isLoadingRecs ? (
+            {isLoadingRecs || isFetchingRecs ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-32 w-full rounded-xl" />
